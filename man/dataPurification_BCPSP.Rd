@@ -7,8 +7,8 @@
 dataPurification_BCPSP(
   treeDataRaw,
   plotHeaderDataRaw,
-  damageAgentCodes = "IBM",
-  codesToExclude,
+  damageAgentCodes,
+  codesToExclude = "IBM",
   excludeAllObs = TRUE
 )
 }

@@ -21,8 +21,8 @@ globalVariables(c(
 #' @export
 #' @importFrom data.table setnames setkey
 #'
-dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCodes = "IBM",
-                                   codesToExclude, excludeAllObs = TRUE) {
+dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCodes,
+                                   codesToExclude = "IBM", excludeAllObs = TRUE) {
 
   headerData <- plotHeaderDataRaw[tot_stand_age != -99,][
     ,':='(utmtimes = length(unique(utm_zone)),
@@ -113,6 +113,7 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
 
   treeData$OrigPlotID1 <- paste0("BC", treeData$OrigPlotID1)
   headerData$OrigPlotID1 <- paste0("BC", headerData$OrigPlotID1)
+  headerData[, c("Easting", "Northing", "Zone") := NULL]
 
   return(list(
     "plotHeaderData" = headerData,

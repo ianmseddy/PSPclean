@@ -158,7 +158,7 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree,
   setcolorder(treeData, neworder = c("MeasureID", "OrigPlotID1", "MeasureYear"))
 
   treeData$OrigPlotID1 <- paste0("AB", treeData$OrigPlotID1)
-  plotHeaderData$OrigPlotID1 <- paste0("AB", plotHeaderData$OrigPlotID1)
+  headerData$OrigPlotID1 <- paste0("AB", headerData$OrigPlotID1)
 
 
   return(list(plotHeaderData = headerData,
