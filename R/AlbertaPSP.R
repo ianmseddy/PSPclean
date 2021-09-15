@@ -21,10 +21,10 @@ globalVariables(c(
 #' @return a list of plot and tree data.tables
 #'
 #' @export
-#' @importFrom data.table copy setkey set setcolorder
+#' @importFrom data.table copy data.table set setcolorder setkey
 #'
-dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree,
-                                   plot, codesToExclude = 3, excludeAllObs = TRUE) {
+dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
+                                   codesToExclude = 3, excludeAllObs = TRUE) {
   plot <- copy(plot)
   plotMeasure <- copy(plotMeasure)
   treeMeasure <- copy(treeMeasure)
@@ -104,31 +104,41 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree,
 
   #Previously we removed trees with followign classes: these are Dead Tree Standing, Dead and Down, MPB, and Spruce Beetle
   #now MPB and Spruce Beetle are causes, while dead tree standing and dead and down are conditions
+  #Previous defaults were 1 = Spruce budworm, 3 = Mountain pine beetle, 20 = insect (other)
   #we cannot remove individual observations of trees due to MPB - we need to throw out the measurement.
   #From GOA PSP manual June 2019 - pg 26
   badConditions <- c(1, 2, 13, 14) #standing dead, dead down, cut down, missing
-
-  badCauses <- codesToExclude
-  #Previous defaults were 1 = Spruce budworm, 3 = Mountain pine beetle, 20 = insect (other)
-
-  #determine what proportion of a plot has a condition caused by MPB, SPB, or insects
-  treeCheck <- treeMeasure[, .(totalBad = sum(cause1 %in% badCauses |
-                                                cause2 %in% badCauses |
-                                                cause3 %in% badCauses, na.rm = TRUE)
-                               /.N), .(company_plot_number, measurement_number)]
-  #this needs to be a parameter
-  goodPlots <- treeCheck[totalBad < 0.1]
-
-  treeMeasure <- treeMeasure[c(company_plot_number %in% goodPlots$company_plot_number &
-                                 measurement_number %in% goodPlots$measurement_number),]
-  plotMeasure <- plotMeasure[c(company_plot_number %in% goodPlots$company_plot_number &
-                                 measurement_number %in% goodPlots$measurement_number),]
-
-  #remove dead trees
+  #these must be removed no matter what
   treeMeasure <- treeMeasure[!condition_code1 %in% badConditions &
                                !condition_code2 %in% badConditions &
                                !condition_code3 %in% badConditions,]
-  # check the plot size
+
+  #these are removed conditionally
+  if (!is.null(codesToExclude)){
+
+    CauseLegend <- data.table(cause = 1:23,
+                              name = c("Spruce budworm", "Defoliator", "Mountain pine beetle", "Root collar weevil",
+                                       "Terminal weevil", "Armillaria root disease", "Shepherd's crook", "Dwarf mistletoe",
+                                       "Stem disease", "Wstern gall rust", "Animal damage", "Wind damage", "Snow/ice damage",
+                                       "Hail damage", "Fire damage", "Mechanical damage", "Improper planting",
+                                       "Poor ground conditions", "Competition", "Insect (other)", "Disease (other)",
+                                       "Climate/weather/flood damage", "Anthropogenic damage"))
+    CauseLegend <- CauseLegend[cause %in% codesToExclude,]
+    message(paste("removing trees marked as damaged by:", paste(CauseLegend$name, collapse = ", ")))
+    badTrees <- treeMeasure[cause1 %in% codesToExclude | cause2 %in% codesToExclude | cause3 %in% codesToExclude,
+                            .(company_plot_number, measurement_number, tree_number)]
+    message(paste("removing", nrow(badTrees), "trees due to damage from Alberta PSP"))
+
+    if (excludeAllObs) {
+      treeMeasure <- treeMeasure[!badTrees, on = c("company_plot_number", "tree_number")]
+      #then we need to remove trees with codesToExclude at any point
+    } else {
+      #only exclude the tree in the measured year
+      treeMeasure <- treeMeasure[!badTrees, on = c("company_plot_number", "measurement_number", "tree_number")]
+    }
+  }
+
+  # # check the plot size
   plotMeasure[, PlotSize := tree_plot_area/10000]
   measureID <- unique(plotMeasure[, .(company_plot_number, measurement_number)])
   measureID[, MeasureID := paste0("ABPSP_", as.numeric(row.names(measureID)))]

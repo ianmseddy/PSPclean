@@ -4,7 +4,14 @@
 \alias{dataPurification_NFIPSP}
 \title{standardize and treat the NFI PSP data}
 \usage{
-dataPurification_NFIPSP(lgptreeRaw, lgpHeaderRaw, approxLocation)
+dataPurification_NFIPSP(
+  lgptreeRaw,
+  lgpHeaderRaw,
+  approxLocation,
+  treeDamage,
+  codesToExclude = "IB",
+  excludeAllObs = TRUE
+)
 }
 \arguments{
 \item{lgptreeRaw}{the tree measurement data}
@@ -12,6 +19,13 @@ dataPurification_NFIPSP(lgptreeRaw, lgpHeaderRaw, approxLocation)
 \item{lgpHeaderRaw}{the plot header data}
 
 \item{approxLocation}{the location data}
+
+\item{treeDamage}{the tree damage data}
+
+\item{codesToExclude}{damage agents to exclude from measurements}
+
+\item{excludeAllObs}{if removing observations of individual trees due to damage codes,
+remove all prior and future observations if \code{TRUE}.}
 }
 \value{
 a list of plot and tree data.tables

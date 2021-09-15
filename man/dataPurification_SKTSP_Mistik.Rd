@@ -2,7 +2,7 @@
 % Please edit documentation in R/SaskatchewanTSP.R
 \name{dataPurification_SKTSP_Mistik}
 \alias{dataPurification_SKTSP_Mistik}
-\title{standardize and treat the Saskatchewan Mistik TSP data - I do not know where this comes from}
+\title{standardize and treat the Saskatchewan Mistik TSP data}
 \usage{
 dataPurification_SKTSP_Mistik(compiledPlotData, compiledTreeData)
 }
@@ -15,5 +15,5 @@ dataPurification_SKTSP_Mistik(compiledPlotData, compiledTreeData)
 a list of plot and tree data.tables
 }
 \description{
-standardize and treat the Saskatchewan Mistik TSP data - I do not know where this comes from
+standardize and treat the Saskatchewan Mistik TSP data
 }

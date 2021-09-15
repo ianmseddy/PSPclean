@@ -19,10 +19,13 @@ globalVariables(c(
 #' @return a list of plot and tree data.tables
 #'
 #' @export
-#' @importFrom data.table setnames setkey
+#' @importFrom data.table setnames setkey copy
 #'
 dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCodes,
                                    codesToExclude = "IBM", excludeAllObs = TRUE) {
+
+  treeDataRaw <- copy(treeDataRaw)
+  plotHeaderDataRaw <- copy(plotHeaderDataRaw)
 
   headerData <- plotHeaderDataRaw[tot_stand_age != -99,][
     ,':='(utmtimes = length(unique(utm_zone)),
@@ -44,25 +47,24 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
                              utm_northing, Elevation = elev, area_pm, tot_stand_age,
                              meas_yr)]
 
-  headerData[, baseYear := min(meas_yr),
-             by = SAMP_ID]
+  headerData[, baseYear := min(meas_yr), by = SAMP_ID]
   headerData[, baseSA := as.integer(tot_stand_age-(meas_yr-baseYear))]
   # get the plots with locations
   headerData <- headerData[!is.na(utm_zone) & !is.na(utm_easting) & !is.na(utm_northing),]
   # get plots with plot size
 
   headerData <- headerData[!is.na(area_pm),][,':='(tot_stand_age = NULL, meas_yr = NULL)]
-  names(headerData)[c(1:4, 6)] <- c("OrigPlotID1", "Zone", "Easting",
-                                    "Northing", "PlotSize")
+
+  setnames(headerData, old = c("SAMP_ID", "utm_zone", "utm_easting", "utm_northing", "area_pm"),
+           new = c("OrigPlotID1", "Zone", "Easting","Northing", "PlotSize"))
   headerData <- unique(headerData, by = c("OrigPlotID1"))
 
   # for tree data
-  if (is.null(treeDataRaw$OrigPlotID1)) {
-    #SAMP_ID is lower case in new BC dataset
-    setnames(treeDataRaw, c("SAMP_ID", "plot_no"),
-             c("OrigPlotID1", "OrigPlotID2"))
-  }
+  #SAMP_ID is lower case in new BC dataset
+  setnames(treeDataRaw, c("samp_id", "plot_no"), c("OrigPlotID1", "OrigPlotID2"))
+
   treeData <- treeDataRaw[OrigPlotID1 %in% unique(headerData$OrigPlotID1),]
+  treeData <- treeData[sub_plot_tree == "N",][, OrigPlotID2 := as.numeric(OrigPlotID2)]
   # range(treeData$meas_yr) # 1926 2014
   # unique(treeData$Plotnumber) # 01 02 03
 
@@ -79,41 +81,46 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
     bad5 <- treeData[dam_5 %in% codesToExclude, .(OrigPlotID1, OrigPlotID2, tree_no, meas_yr)]
     allBad <- rbind(bad1, bad2, bad3, bad4, bad5)
 
+    message(paste("removing", nrow(allBad), "trees due to damage from BC PSP"))
+
     if (excludeAllObs) {
       allBad <- allBad[, .N, .(OrigPlotID1, OrigPlotID2, tree_no)]
-      message(paste("removing", nrow(allBad), "trees due to damage"))
+
       treeData <- treeData[!allBad, on = c("OrigPlotID1", "OrigPlotID2", "tree_no")]
     } else {
       treeData <- treeData[!allBad, on = c("OrigPlotID1", "OrigPlotID2", "tree_no", "meas_yr")]
     }
   }
 
-  treeData <- treeData[sub_plot_tree == "N",][, OrigPlotID2 := as.numeric(OrigPlotID2)]
   treeData <- treeData[tree_cls == 1 | tree_cls == 2,
                        .(OrigPlotID1, OrigPlotID2, meas_yr, tree_no, species, dbh, height)]
 
   # unique(treeData$ld)
-  names(treeData)[3:7] <- c("MeasureYear", "TreeNumber", "Species", "DBH", "Height")
+  setnames(treeData, old = c("meas_yr", "tree_no", "species", "dbh", "height"),
+                             new = c("MeasureYear", "TreeNumber", "Species", "DBH", "Height"))
 
-  measreidtable <- unique(treeData[,.(OrigPlotID1, OrigPlotID2, MeasureYear)],
+  measureidtable <- unique(treeData[,.(OrigPlotID1, OrigPlotID2, MeasureYear)],
                           by = c("OrigPlotID1", "OrigPlotID2", "MeasureYear"))
-  measreidtable[,MeasureID:= paste("BCPSP_",row.names(measreidtable), sep = "")]
-  measreidtable <- measreidtable[,.(MeasureID, OrigPlotID1, OrigPlotID2, MeasureYear)]
-  headerData <- setkey(measreidtable, OrigPlotID1)[setkey(headerData, OrigPlotID1), nomatch = 0]
+  measureidtable[,MeasureID:= paste("BCPSP_",row.names(measureidtable), sep = "")]
+  measureidtable <- measureidtable[,.(MeasureID, OrigPlotID1, OrigPlotID2, MeasureYear)]
+  headerData <- setkey(measureidtable, OrigPlotID1)[setkey(headerData, OrigPlotID1), nomatch = 0]
+
+
   set(headerData, NULL,"OrigPlotID2", NULL)
   headerData <- headerData[,.(MeasureID, OrigPlotID1, MeasureYear, Longitude = NA,
                               Latitude = NA, Zone, Easting, Northing, Elevation,
                               PlotSize, baseYear, baseSA)]
-  treeData <- setkey(measreidtable, OrigPlotID1, OrigPlotID2, MeasureYear)[setkey(treeData,
-                                                                                  OrigPlotID1,
-                                                                                  OrigPlotID2,
-                                                                                  MeasureYear), nomatch = 0]
+  measureidtable <- setkey(measureidtable, OrigPlotID1, OrigPlotID2, MeasureYear)
+  treeData <- measureidtable[setkey(treeData, OrigPlotID1, OrigPlotID2, MeasureYear), nomatch = 0]
 
   treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "BCPSP") #Need to add to pemisc
 
   treeData$OrigPlotID1 <- paste0("BC", treeData$OrigPlotID1)
   headerData$OrigPlotID1 <- paste0("BC", headerData$OrigPlotID1)
-  headerData[, c("Easting", "Northing", "Zone") := NULL]
+
+  if (length(unique(treeData$OrigPlotID2)) == 1) {
+    treeData[, OrigPlotID2 := NULL]
+  }
 
   return(list(
     "plotHeaderData" = headerData,
@@ -129,18 +136,24 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
 #' @importFrom reproducible prepInputs
 prepInputsBCPSP <- function(dPath) {
 
-  pspBCRaw <- prepInputs(targetFile = file.path(dPath, "BC_PSP.RData"),
-                         url = "https://drive.google.com/open?id=1P6dcyqwH41-umWvfoCTNQC3BAAWdkitO",
+  pspBCtree <- prepInputs(targetFile = file.path(dPath, "PSPtree_BC.csv"),
+                         url = "https://drive.google.com/file/d/1dEVz7OLhmZ935SWSTC1CRZI_ju4O3UnI/view?usp=sharing",
                          destinationPath = dPath,
-                         fun = 'readRDS')
+                         fun = 'fread')
+
+  pspBCplot <- prepInputs(targetFile = file.path(dPath, "PSPplot_BC.csv"),
+                          url = "https://drive.google.com/file/d/1dEVz7OLhmZ935SWSTC1CRZI_ju4O3UnI/view?usp=sharing",
+                          destinationPath = dPath,
+                          fun = 'fread')
+
 
   pspBCdamageAgentCodes <- prepInputs(url = "https://drive.google.com/file/d/1pBX5txiKFul3CyZ805seQ9-WNx624Mg4/view?usp=sharing",
                                       targetFile = "BCForestry_DamageAgentCodes.csv",
                                       destinationPath = dPath,
                                       fun = 'fread')
   return(list(
-    "plotHeaderDataRaw" = pspBCRaw$plotheader,
-    "treeDataRaw" = pspBCRaw$treedata,
+    "plotHeaderDataRaw" = pspBCplot,
+    "treeDataRaw" = pspBCtree,
     "pspBCdamageAgentCodes" = pspBCdamageAgentCodes
   ))
 

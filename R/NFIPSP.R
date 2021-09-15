@@ -10,11 +10,17 @@ globalVariables(c(
 #' @param lgptreeRaw the tree measurement data
 #' @param lgpHeaderRaw the plot header data
 #' @param approxLocation the location data
+#' @param treeDamage the tree damage data
+#' @param codesToExclude damage agents to exclude from measurements
+#' @param excludeAllObs if removing observations of individual trees due to damage codes,
+#' remove all prior and future observations if \code{TRUE}.
+#'
 #' @return a list of plot and tree data.tables
 #'
 #' @export
 #' @importFrom data.table copy setkey set
-dataPurification_NFIPSP <- function(lgptreeRaw,lgpHeaderRaw, approxLocation) {
+dataPurification_NFIPSP <- function(lgptreeRaw,lgpHeaderRaw, approxLocation, treeDamage,
+                                    codesToExclude = "IB", excludeAllObs = TRUE) {
 
   # start from tree data to obtain plot infor
   lgptreeRaw[, year := as.numeric(substr(lgptreeRaw$meas_date, 1, 4))]
@@ -25,9 +31,22 @@ dataPurification_NFIPSP <- function(lgptreeRaw,lgpHeaderRaw, approxLocation) {
   lgpHeader <- setkey(lgpHeader, nfi_plot)[setkey(approxLocation, nfi_plot), nomatch = 0]
   # remove the plots without SA and location infor
   lgpHeader <- lgpHeader[!is.na(site_age), ][!is.na(utm_n), ][!is.na(utm_e), ]
-  treeData <- lgptreeRaw[, .(nfi_plot, year, tree_num, lgtree_genus, lgtree_species,
+  treeData <- lgptreeRaw[, .(nfi_plot, year, meas_num, tree_num, lgtree_genus, lgtree_species,
                              lgtree_status, dbh, height)][nfi_plot %in% unique(lgpHeader$nfi_plot), ]
   treeData <- treeData[lgtree_status != "DS" & lgtree_status != "M", ][, lgtree_status := NULL]
+
+  if (!is.null(codesToExclude)) {
+    badTrees <- treeDamage[damage_agent %in% codesToExclude, .(nfi_plot, meas_num, tree_num)]
+    message(paste("removing", nrow(badTrees), "trees in NFI due to damage agents"))
+    if (excludeAllObs) {
+      treeData <- treeData[!badTrees, on = c("nfi_plot", "tree_num")]
+    } else {
+      treeData <- treeData[!badTrees, on = c("nfi_plot", "meas_num", "tree_num")]
+    }
+  }
+  #meas_num is needed to match damage, but not afterward
+  treeData[,meas_num := NULL]
+
   setnames(treeData, c("nfi_plot", "year", "tree_num","lgtree_genus", "lgtree_species", "dbh", "height"),
            c("OrigPlotID1", "MeasureYear", "TreeNumber", "Genus", "Species", "DBH", "Height"))
 
@@ -46,7 +65,7 @@ dataPurification_NFIPSP <- function(lgptreeRaw,lgpHeaderRaw, approxLocation) {
   lgpHeader <- setkey(lgpHeader, OrigPlotID1)
   lgpHeader <- lgpHeader[newheader, on = c("OrigPlotID1", "MeasureID")]
 
-  treeData <- treeData[, .(MeasureID, OrigPlotID1, OrigPlotID2 = NA, MeasureYear,
+  treeData <- treeData[, .(MeasureID, OrigPlotID1, MeasureYear,
                            TreeNumber, Genus, Species, DBH, Height)]
   lgpHeader <- lgpHeader[, .(MeasureID, OrigPlotID1, MeasureYear, Longitude = NA, Latitude = NA, Zone,
                              Easting, Northing, Elevation, PlotSize, baseYear, baseSA)]
@@ -91,9 +110,16 @@ prepInputsNFIPSP <- function(dPath) {
                               fun = 'fread',
                               overwrite = TRUE)
 
+  pspNFITreeDamage <- prepInputs(targetFile = file.path(dPath, "all_gp_ltp_tree_damage.csv"),
+                                 url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/view?usp=sharing",
+                                 destinationPath = dPath,
+                                 fun = "fread",
+                                 overwrite = TRUE)
+
   return(list(
-    "pspNFILocationRaw" = pspNFILocationRaw,
-    "pspNFIHeaderRaw" = pspNFIHeaderRaw,
-    "pspNFITreeRaw" = pspNFITreeRaw
+    "pspLocation" = pspNFILocationRaw,
+    "pspHeader" = pspNFIHeaderRaw,
+    "pspTreeMeasure" = pspNFITreeRaw,
+    "pspTreeDamage" = pspNFITreeDamage
   ))
 }

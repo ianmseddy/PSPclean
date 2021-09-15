@@ -5,7 +5,7 @@ globalVariables(c(
   "Zone", "Easting", "Northing", "SA"
 ))
 
-#' standardize and treat the Saskatchewan Mistik TSP data - I do not know where this comes from
+#' standardize and treat the Saskatchewan Mistik TSP data
 #'
 #' @param compiledPlotData the plot header data
 #' @param compiledTreeData the tree data
@@ -35,7 +35,7 @@ dataPurification_SKTSP_Mistik <- function(compiledPlotData, compiledTreeData) {
   treeData <- setkey(headData[, .(MeasureID, ID_FOR, MeasureYear)],
                      ID_FOR)[setkey(treeData, ID_FOR), nomatch = 0]
 
-  treeData <- treeData[, .(MeasureID, OrigPlotID1 = ID_FOR, OrigPlotID2 = NA, MeasureYear,
+  treeData <- treeData[, .(MeasureID, OrigPlotID1 = ID_FOR, MeasureYear,
                            TreeNumber = TREENO, Species = SPECIES, DBH, Height = HEIGHT)]
 
   headData <- headData[, .(MeasureID, OrigPlotID1 = ID_FOR, MeasureYear, Longitude = NA,
@@ -71,6 +71,6 @@ prepInputsSaskatchwanTSP <- function(dPath) {
 
   return(list(
     "compiledPlotData" = tspSKMistikRaw$plotheader,
-    "compiledTreeData" = tspSKMistikRaw$treeData
+    "compiledTreeData" = tspSKMistikRaw$treedata
   ))
 }
