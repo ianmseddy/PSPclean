@@ -4,7 +4,7 @@ globalVariables(c(
   "condition_code1", "condition_code2", "condition_code3", "cause1", "cause2",
   "cause3", ".N", "totalBad", "PlotSize", "tree_plot_area", "MeasureID", "latitude",
   "longitude", "OrigPlotID1", "Species", "MeasureYear", "company_plot_number", "tree_number",
-  "species", "minMeasure", "measurement_number", "dbh", "height", "elevation"
+  "species", "minMeasure", "measurement_number", "dbh", "height", "elevation", "cause"
 ))
 
 #' standardize and treat the Alberta PSP data

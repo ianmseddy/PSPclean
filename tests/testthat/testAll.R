@@ -3,7 +3,6 @@ mainDir <- tempdir()
 standardizedPlotNames <- c("MeasureID", "OrigPlotID1", "MeasureYear","Longitude", "Latitude",
                            "Zone", "Northing", "Easting",
                            "Elevation", "PlotSize", "baseYear", "baseSA")
-
 standardizedTreeNames <- c("MeasureID", "OrigPlotID1", "MeasureYear", "TreeNumber", "Species", "DBH", "Height", "newSpeciesName")
 
 test_that("PSP NFI works", {
@@ -37,8 +36,6 @@ test_that("PSP NFI works", {
   nodamN <- nrow(nfiClean$treeData)
   alldamN <- nrow(nfiClean_allDam$treeData)
   expect_true(somedamN > nodamN & somedamN < alldamN)
-
-  unlink(mainDir, recursive = TRUE)
 })
 
 test_that("PSP BC works", {
@@ -69,9 +66,6 @@ test_that("PSP BC works", {
 test_that("PSP alberta works", {
 
   ab <- prepInputsAlbertaPSP(dPath = mainDir)
-
-  sk <- prepInputsSaskatchwanPSP(dPath = mainDir)
-  skm <- prepInputsSaskatchwanTSP(dPath = mainDir)
   abClean <- dataPurification_ABPSP(treeMeasure = ab$pspABtreeMeasure,
                                     plotMeasure = ab$pspABplotMeasure,
                                     tree =  ab$pspABtree, plot = ab$pspABplot)
@@ -98,13 +92,18 @@ test_that("PSP alberta works", {
 
 test_that("PSP sk works", {
 
+  sk <- prepInputsSaskatchwanPSP(dPath = mainDir)
+
   skClean <- dataPurification_SKPSP(SADataRaw = sk$SADataRaw, plotHeaderRaw = sk$plotHeaderRaw,
                                     measureHeaderRaw = sk$measureHeaderRaw, treeDataRaw = sk$treeDataRaw)
   expect_true(all(names(skClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(names(skClean$treeData) %in% standardizedTreeNames))
 
+  skm <- prepInputsSaskatchwanTSP(dPath = mainDir)
   skmClean <- dataPurification_SKTSP_Mistik(compiledPlotData = skm$compiledPlotData,
                                             compiledTreeData = skm$compiledTreeData)
   expect_true(all(names(skmClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(names(skmClean$treeData) %in% standardizedTreeNames))
 })
+
+unlink(mainDir, recursive = TRUE)

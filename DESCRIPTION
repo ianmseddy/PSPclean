@@ -20,3 +20,5 @@ Imports:
     data.table,
     reproducible,
     sf
+Suggests:
+    testthat

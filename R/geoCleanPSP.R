@@ -41,5 +41,6 @@ geoCleanPSP <- function(Locations) {
 
   #The dataset contains separate entries for different years at the same location, presumably for when CMI is sampled
   set(Locations, NULL, "Zone", NULL)
+  Locations <- unique.data.frame(Locations[, "OrigPlotID1"])
   return(Locations)
 }
