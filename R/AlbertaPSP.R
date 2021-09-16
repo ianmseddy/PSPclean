@@ -170,6 +170,9 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   treeData$OrigPlotID1 <- paste0("AB", treeData$OrigPlotID1)
   headerData$OrigPlotID1 <- paste0("AB", headerData$OrigPlotID1)
 
+  #final clean up
+  treeData[Height <= 0, Height := NA]
+  treeData <- treeData[!is.na(DBH) & DBH > 0]
 
   return(list(plotHeaderData = headerData,
               treeData = treeData))

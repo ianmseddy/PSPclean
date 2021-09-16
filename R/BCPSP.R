@@ -118,6 +118,10 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
   treeData$OrigPlotID1 <- paste0("BC", treeData$OrigPlotID1)
   headerData$OrigPlotID1 <- paste0("BC", headerData$OrigPlotID1)
 
+  #final clean up
+  treeData[Height <= 0, Height := NA]
+  treeData <- treeData[!is.na(DBH) & DBH > 0]
+
   if (length(unique(treeData$OrigPlotID2)) == 1) {
     treeData[, OrigPlotID2 := NULL]
   }

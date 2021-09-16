@@ -48,6 +48,9 @@ dataPurification_SKTSP_Mistik <- function(compiledPlotData, compiledTreeData) {
   treeData$OrigPlotID1 <- paste0("SKMistik", treeData$OrigPlotID1)
   headData$OrigPlotID1 <- paste0("SKMistik", headData$OrigPlotID1)
 
+  treeData[Height <= 0, Height := NA]
+  treeData <- treeData[!is.na(DBH) & DBH > 0]
+
   return(list(
     "plotHeaderData" = headData,
     "treeData" = treeData))

@@ -79,6 +79,9 @@ dataPurification_NFIPSP <- function(lgptreeRaw,lgpHeaderRaw, approxLocation, tre
   treeData$OrigPlotID1 <- paste0("NFI", treeData$OrigPlotID1)
   lgpHeader$OrigPlotID1 <- paste0("NFI", lgpHeader$OrigPlotID1)
 
+  treeData[Height <= 0, Height := NA]
+  treeData <- treeData[!is.na(DBH) & DBH > 0]
+
   return(list(
     "plotHeaderData" = lgpHeader,
     "treeData" = treeData))
