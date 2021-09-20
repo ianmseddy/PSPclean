@@ -19,6 +19,8 @@ License: GPL-3
 Imports:
     data.table,
     reproducible,
-    sf
+    sf,
+    sp,
+    raster
 Suggests:
     testthat
