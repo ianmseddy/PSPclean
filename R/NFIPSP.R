@@ -23,6 +23,7 @@ globalVariables(c(
 dataPurification_NFIPSP <- function(lgptreeRaw,lgpHeaderRaw, approxLocation, treeDamage,
                                     codesToExclude = "IB", excludeAllObs = TRUE) {
 
+  lgptreeRaw <- lgptreeRaw[orig_plot_area == "Y",]
   # start from tree data to obtain plot infor
   lgptreeRaw[, year := as.numeric(substr(lgptreeRaw$meas_date, 1, 4))]
   lgpHeaderRaw[, year := as.numeric(substr(lgpHeaderRaw$meas_date, 1, 4))]
@@ -34,7 +35,10 @@ dataPurification_NFIPSP <- function(lgptreeRaw,lgpHeaderRaw, approxLocation, tre
   lgpHeader <- lgpHeader[!is.na(site_age), ][!is.na(utm_n), ][!is.na(utm_e), ]
   treeData <- lgptreeRaw[, .(nfi_plot, year, meas_num, tree_num, lgtree_genus, lgtree_species,
                              lgtree_status, dbh, height)][nfi_plot %in% unique(lgpHeader$nfi_plot), ]
+  #DS = dead standing, M = Missing Data
   treeData <- treeData[lgtree_status != "DS" & lgtree_status != "M", ][, lgtree_status := NULL]
+
+  #remove bad plots
 
   if (!is.null(codesToExclude)) {
     badTrees <- treeDamage[damage_agent %in% codesToExclude, .(nfi_plot, meas_num, tree_num)]
