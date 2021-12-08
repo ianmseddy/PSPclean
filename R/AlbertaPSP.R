@@ -170,6 +170,22 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   treeData$OrigPlotID1 <- paste0("AB", treeData$OrigPlotID1)
   headerData$OrigPlotID1 <- paste0("AB", headerData$OrigPlotID1)
 
+  #correct two instances of tree number changing over time - we will give new plotIDs to these
+  #so they are effectively counted as new plots in the same location
+  badMeasures1 <- c("AB49.1", "AB49.2", "AB49.3", "AB49.4") #first measurement must be changed
+  badMeasures2 <- c("AB309.1", "AB309.2") #first and second measures must be changed
+  headerData[OrigPlotID1 %in% badMeasures1 & MeasureYear > 1961, baseYear := 1968]
+  headerData[OrigPlotID1 %in% badMeasures1 & MeasureYear == 1961, OrigPlotID1 := paste0(OrigPlotID1, "f")]
+  treeData[OrigPlotID1 %in% badMeasures1 & MeasureYear == 1961, OrigPlotID1 := paste0(OrigPlotID1, "f")]
+  headerData[OrigPlotID1 %in% badMeasures1, baseSA := baseSA + 7] #treat 68 as first measurement
+
+  headerData[OrigPlotID1 %in% badMeasures2 & MeasureYear >= 1986, baseYear := 1986]
+  headerData[OrigPlotID1 %in% badMeasures2 & MeasureYear >= 1986, baseSA := baseSA + 20]
+  headerData[OrigPlotID1 %in% badMeasures2 & MeasureYear < 1986, OrigPlotID1 := paste0(OrigPlotID1, "f")]
+  treeData[OrigPlotID1 %in% badMeasures2 & MeasureYear < 1986, OrigPlotID1 := paste0(OrigPlotID1, "f")]
+
+
+
   #final clean up
   treeData[Height <= 0, Height := NA]
   treeData <- treeData[!is.na(DBH) & DBH > 0]
