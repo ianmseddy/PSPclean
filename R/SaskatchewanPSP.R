@@ -28,6 +28,14 @@ globalVariables(c(
 dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
                                    treeDataRaw, codesToExclude = NULL, excludeAllObs = TRUE) {
 
+  #get rid of artifical trees - plots where the distribution of trees/DBH/species were modelled
+  treeDataRaw[, isArtificial := OFFICE_ERROR == "Artificial Tree",]
+  hasArtificial <- treeDataRaw[isArtificial == TRUE, .N, .(PLOT_ID)]
+  treeDataRaw <- treeDataRaw[!PLOT_ID %in% hasArtificial$PLOT_ID]
+  SADataRaw <- SADataRaw[!PLOT_ID %in% hasArtificial$PLOT_ID]
+  plotHeaderRaw <- plotHeaderRaw[!PLOT_ID %in% hasArtificial$PLOT_ID]
+  ##there are no plots with artifical and real trees
+
   header_SA <- SADataRaw[!is.na(TOTAL_AGE) & TREE_STATUS == 1, ]
   header_SA[, baseYear := min(YEAR), by = PLOT_ID]
   header_SA[, treeAge := TOTAL_AGE - (YEAR - baseYear)]
@@ -74,10 +82,7 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
     #meaning, if a tree died due to e.g. insects, remove it from all obs
     if (excludeAllObs) {
       flaggedTrees <- treeData[MORTALITY %in% codesToExclude,]
-      #IAN FIX THIS
-      browser()
     }
-
   }
 
   # check the living trees
@@ -125,12 +130,33 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   treeData[MeasureYear == 2044, MeasureYear := 2014] #correct obvious error
   headData[MeasureYear == 2044, MeasureYear := 2014]
 
-  #remove two measurements with incorrect tree numbers
-  headData <- headData[!MeasureID %in% c("SKPSP_2166", "SKPSP_2161")]
-  treeData <- treeData[!MeasureID %in% c("SKPSP_2166", "SKPSP_2161")]
+  headData[, OrigPlotID1 := as.character(OrigPlotID1)]
+  treeData[, OrigPlotID1 := as.character(OrigPlotID1)]
+
+  #this funtion wil identify measurements where no single tree matches a subsequent (or prior) measurement in same plot
+  badTreeNumbers <- lapply(headData$MeasureID, FUN = function(x, td = treeData) {
+    thisPlot <- td[MeasureID == x,]
+    theOtherPlot <- td[MeasureID != x & OrigPlotID1 %in% thisPlot$OrigPlotID1, .(TreeNumber)]
+    thisPlot <- thisPlot[TreeNumber %in% theOtherPlot$TreeNumber,]
+    IsBad <- nrow(thisPlot) == 0 & nrow(theOtherPlot) != 0
+    out <- data.table(MeasureID = x, IsBad = IsBad)
+    return(out)
+  })
+
+  badTreeNumbers <- rbindlist(badTreeNumbers)
+  badTreeNumbers <- badTreeNumbers[IsBad == TRUE,]
+  #first isolate the measurements with no matching trees
+  badMeasures <- headData[MeasureID %in% badTreeNumbers$MeasureID]
+  badPlots <- headData[OrigPlotID1 %in% badMeasures$OrigPlotID1]
+  badTrees <- treeData[MeasureID %in% badTreeNumbers$MeasureID]
+  headData <- headData[!MeasureID %in% badTreeNumbers$MeasureID,]
+  treeData <- treeData[!MeasureID %in% badTreeNumbers$MeasureID,]
+
+  #20004 is bad in 51 and 61
+  #the above approach will not correct plots where the numbers change after 2 measurements,
+  #ie split 2-2 or 2-3 with 4/5 measurements respectively - at thsi point I assume stand-replacing disturbance
 
   treeData$OrigPlotID1 <- paste0("SK", treeData$OrigPlotID1)
-  headData$OrigPlotID1 <- paste0("SK", headData$OrigPlotID1)
 
   #final clean up
   treeData[Height <= 0, Height := NA]
