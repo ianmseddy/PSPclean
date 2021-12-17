@@ -3,7 +3,7 @@ globalVariables(c(
   "treeAge", "CROWN_CLASS", "NofTrees", "baseSA", ".", "Z13nad83_e",
   "Z13nad83_n", "PLOT_SIZE", "TREE_NO", "SPECIES", "DBH", "HEIGHT",
   "CONDITION_CODE1", "CONDITION_CODE2", "CONDITION_CODE3", "MORTALITY",
-  "OrigPlotID1", "OrigPlotID2", "MeausreYear",
+  "OrigPlotID1", "OrigPlotID2", "MeausreYear", "OFFICE_ERROR", "IsBad",
   "MeasureID", "TreeNumber", "Species", "Height", "Zone",
   "Easting", "Northing", "PlotSize", "species", "dbh", "height"
 ))
@@ -24,7 +24,7 @@ globalVariables(c(
 #' @return a list of plot and tree data.tables
 #'
 #' @export
-#' @importFrom data.table setnames setkey
+#' @importFrom data.table setnames setkey rbindlist
 dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
                                    treeDataRaw, codesToExclude = NULL, excludeAllObs = TRUE) {
 

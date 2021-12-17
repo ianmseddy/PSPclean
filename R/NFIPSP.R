@@ -1,9 +1,9 @@
 globalVariables(c(
   "nfi_plot", ".", "meas_plot_size", "site_age", "utm_n", "utm_e", "utm_zone", "tree_num",
-  "lgtree_genus", "lgtree_species", "lgtree_status", "OrigPlotID1", "MeasureYear", "dbh",
-  "MeasureID", "TreeNumber", "Genus",":=", "year", "Species", "DBH", "Height", "Zone",
-  "Easting", "Northing", "Elevation", "PlotSize", "baseYear", "baseSA", "elevation", "height",
-  "meas_num", "damage_agent"
+  "lgtree_genus", "lgtree_species", "isArtificial", "lgtree_status", "OrigPlotID1", "orig_plot_area",
+  "MeasureYear", "dbh", "MeasureID", "TreeNumber", "Genus",":=", "year", "Species", "DBH",
+  "Height", "Easting", "Northing", "Elevation", "PlotSize", "baseYear", "baseSA", "elevation",
+  "height", "meas_num", "damage_agent", "Zone"
 ))
 
 #' standardize and treat the NFI PSP data

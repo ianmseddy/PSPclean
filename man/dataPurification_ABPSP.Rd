@@ -10,7 +10,8 @@ dataPurification_ABPSP(
   tree,
   plot,
   codesToExclude = 3,
-  excludeAllObs = TRUE
+  excludeAllObs = TRUE,
+  areaDiffThresh = 0.95
 )
 }
 \arguments{
@@ -25,7 +26,10 @@ dataPurification_ABPSP(
 \item{codesToExclude}{damage agent codes used to filterr tree data - see GOA PSP Manual.
 Measurements with these codes will be removed}
 
-\item{excludeAllObs}{if removing observations of individual trees due to damage codes,
+\item{excludeAllObs}{if removing observations of individual trees due to damage codes,}
+
+\item{areaDiffThresh}{the threshold of plot size discrepancy to allow below which
+plots will be given a new ID column. Expressed as \code{min(PlotSize)/max(PlotSize)}
 remove all prior and future observations if \code{TRUE}.}
 }
 \value{

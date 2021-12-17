@@ -1,10 +1,10 @@
 globalVariables(c(
-  ":=", "trees_measurement_comment", "tree_origin", "stand_origin", "dbh_age",
-  "stump_age", "total_age", "crown_class", "measurement_year", "stand_age",
-  "condition_code1", "condition_code2", "condition_code3", "cause1", "cause2",
-  "cause3", ".N", "totalBad", "PlotSize", "tree_plot_area", "MeasureID", "latitude",
+  ":=", "trees_measurement_comment", "tree_origin", "stand_origin", "dbh_age", "maxN",
+  "stump_age", "total_age", "crown_class", "measurement_year", "stand_age", "tree_location_id",
+  "condition_code1", "condition_code2", "condition_code3", "cause", "cause1", "cause2",
+  "cause3", ".N", "N", "sizes", "tempyear", "totalBad", "PlotSize", "tree_plot_area", "MeasureID", "latitude",
   "longitude", "OrigPlotID1", "Species", "MeasureYear", "company_plot_number", "tree_number",
-  "species", "minMeasure", "measurement_number", "dbh", "height", "elevation", "cause"
+  "species", "minMeasure", "measurement_number", "dbh", "height", "elevation"
 ))
 
 #' standardize and treat the Alberta PSP data
@@ -16,6 +16,8 @@ globalVariables(c(
 #' @param codesToExclude damage agent codes used to filterr tree data - see GOA PSP Manual.
 #' Measurements with these codes will be removed
 #' @param excludeAllObs if removing observations of individual trees due to damage codes,
+#' @param areaDiffThresh the threshold of plot size discrepancy to allow below which
+#' plots will be given a new ID column. Expressed as \code{min(PlotSize)/max(PlotSize)}
 #' remove all prior and future observations if \code{TRUE}.
 #'
 #' @return a list of plot and tree data.tables
@@ -24,13 +26,15 @@ globalVariables(c(
 #' @importFrom data.table copy data.table set setcolorder setkey
 #'
 dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
-                                   codesToExclude = 3, excludeAllObs = TRUE) {
+                                   codesToExclude = 3, excludeAllObs = TRUE,
+                                   areaDiffThresh = 0.95) {
   plot <- copy(plot)
   plotMeasure <- copy(plotMeasure)
   treeMeasure <- copy(treeMeasure)
   treeMeasure[, trees_measurement_comment := NULL] #for more legible printing
   tree <- copy(tree)
-
+  #TODO: determine what this column represents - values above 0 seem to identify trees measured only once
+  tree <- tree[tree_location_id == 0]
   tree <- tree[, .(company_plot_number, tree_number, tree_origin, species)]
   treeMeasure <- tree[treeMeasure, on = c("company_plot_number", "tree_number")]
   rm(tree)
@@ -184,7 +188,24 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   headerData[OrigPlotID1 %in% badMeasures2 & MeasureYear < 1986, OrigPlotID1 := paste0(OrigPlotID1, "f")]
   treeData[OrigPlotID1 %in% badMeasures2 & MeasureYear < 1986, OrigPlotID1 := paste0(OrigPlotID1, "f")]
 
+  #for now - drop plots where plot area changes substantially
+  badPlots3 <- headerData[, .(sizes = length(unique(PlotSize))), .(OrigPlotID1)]
+  badPlots3 <- headerData[OrigPlotID1 %in% badPlots3[sizes > 1, ]$OrigPlotID1, ]
+  badPlots3[, diff := min(PlotSize)/max(PlotSize), .(OrigPlotID1)]
+  needsNewID <- badPlots3[diff < areaDiffThresh]
+  needsNewID <- headerData[OrigPlotID1 %in% needsNewID$OrigPlotID1, .N, .(OrigPlotID1, PlotSize)]
+  needsNewID[, maxN := max(N), .(OrigPlotID1)]
+  trulyBad <- needsNewID[N != maxN]
+  trulyBad <- headerData[trulyBad, on = c("PlotSize", "OrigPlotID1")]
 
+  #first update the PlotIDS - measureID can stay same as it is always unique
+  headerData[MeasureID %in% trulyBad$MeasureID, OrigPlotID1 := paste0(OrigPlotID1, "f")]
+  #next update the baseYear and baseSA
+  headerData[, tempyear := baseYear]
+  headerData[MeasureID %in% trulyBad$MeasureID, baseYear := min(MeasureYear), .(OrigPlotID1)]
+  headerData[MeasureID %in% trulyBad$MeasureID, baseSA := baseSA + baseYear - tempyear, .(OrigPlotID1)]
+  headerData[, tempyear := NULL]
+  treeData[MeasureID %in% trulyBad$MeasureID, OrigPlotID1 := paste0(OrigPlotID1, "f")]
 
   #final clean up
   treeData[Height <= 0, Height := NA]
