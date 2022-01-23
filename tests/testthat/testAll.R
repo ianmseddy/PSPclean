@@ -1,3 +1,6 @@
+## googledrive needed in suggests b/c used by reproducible, where it's also suggested and therefore
+##   not installed by default with this package
+stopifnot(require("googledrive", quietly = TRUE))
 
 mainDir <- tempdir()
 standardizedPlotNames <- c(
