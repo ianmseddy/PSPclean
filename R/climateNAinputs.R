@@ -19,18 +19,22 @@ globalVariables(c(
 #' @importFrom reproducible prepInputs
 #'
 
-#run the rmd to get standardized PSP object
-#elevation will produce a much better climate prediction, even if it isn't strictly necessary
-#previous work showed that when elevation is missing,
+# run the rmd to get standardized PSP object
+# elevation will produce a much better climate prediction, even if it isn't strictly necessary
+# previous work showed that when elevation is missing,
 # it is better to sample elevation from a DEM than to omit it
 prepPSP_climateNA <- function(dPath, filename2, PSPplot, PSPgis) {
-  #get an elevation DEM - this is the 7.5 arcsecond DEM used for fireSense, from GTOPO
-  CanadaDEM <- prepInputs(url = "https://drive.google.com/file/d/121x_CfWy2XP_-1av0cYE7sxUfb4pmsup/view?usp=sharing",
-                          destinationPath = dPath)
-  missingIDs <- PSPplot[is.na(Elevation),]$OrigPlotID1
-  missingElevation <- sf::as_Spatial(PSPgis[PSPgis$OrigPlotID1 %in% missingIDs,])
-  missingElevation <- data.table(OrigPlotID1 = missingElevation$OrigPlotID1,
-                                 estimatedElevation = raster::extract(CanadaDEM, missingElevation))
+  # get an elevation DEM - this is the 7.5 arcsecond DEM used for fireSense, from GTOPO
+  CanadaDEM <- prepInputs(
+    url = "https://drive.google.com/file/d/121x_CfWy2XP_-1av0cYE7sxUfb4pmsup/view?usp=sharing",
+    destinationPath = dPath
+  )
+  missingIDs <- PSPplot[is.na(Elevation), ]$OrigPlotID1
+  missingElevation <- sf::as_Spatial(PSPgis[PSPgis$OrigPlotID1 %in% missingIDs, ])
+  missingElevation <- data.table(
+    OrigPlotID1 = missingElevation$OrigPlotID1,
+    estimatedElevation = raster::extract(CanadaDEM, missingElevation)
+  )
   if (anyNA(missingElevation$estimatedElevation)) {
     warning("Extracting elevation from DEM has failed for some plots")
   }
@@ -45,11 +49,13 @@ prepPSP_climateNA <- function(dPath, filename2, PSPplot, PSPgis) {
 
   PSPcoord[, estimatedElevation := NULL]
 
-  #prep for climateNA
-  #the columns have to be called "id1", "id2", "lat", "long", "elev"
+  # prep for climateNA
+  # the columns have to be called "id1", "id2", "lat", "long", "elev"
   # sampleData <- fread("C:/users/ieddy/Downloads/ClimateNA_v640/inputFiles/input_test.csv")
-  setnames(PSPcoord, c("OrigPlotID1", "coords.x1", "coords.x2", "Elevation"),
-           c("id1", "long", "lat", "elev"))
+  setnames(
+    PSPcoord, c("OrigPlotID1", "coords.x1", "coords.x2", "Elevation"),
+    c("id1", "long", "lat", "elev")
+  )
   PSPcoord[, id2 := ""]
   setcolorder(PSPcoord, neworder = c("id1", "id2", "lat", "long", "elev"))
   PSPcoord <- unique(PSPcoord)

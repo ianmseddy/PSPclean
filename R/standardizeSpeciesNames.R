@@ -12,15 +12,19 @@ globalVariables(c(
 standardizeSpeciesNames <- function(speciesTable, forestInventorySource) {
   #### Manitoba#####
   if (forestInventorySource == "MBPSP" | forestInventorySource == "MBTSP") {
-    speciesTable[Species == "AE" | Species == "E" | Species == "WE",
-                 newSpeciesName := "white elm"] # assume WE is white elm in MB PSP
+    speciesTable[
+      Species == "AE" | Species == "E" | Species == "WE",
+      newSpeciesName := "white elm"
+    ] # assume WE is white elm in MB PSP
     speciesTable[Species == "GA", newSpeciesName := "red ash"] # green ash = red ash
     speciesTable[Species == "WP", newSpeciesName := "white pine"]
     speciesTable[Species == "RP", newSpeciesName := "red pine"]
     speciesTable[Species == "JP" | Species == "jp", newSpeciesName := "jack pine"]
     speciesTable[Species == "SP", newSpeciesName := "scots pine"]
-    speciesTable[Species == "BS" | Species == "bs" | Species == " BS",
-                 newSpeciesName := "black spruce"]
+    speciesTable[
+      Species == "BS" | Species == "bs" | Species == " BS",
+      newSpeciesName := "black spruce"
+    ]
     speciesTable[Species == "WS" | Species == "ws", newSpeciesName := "white spruce"]
     speciesTable[Species == "BF" | Species == "bf", newSpeciesName := "balsam fir"]
     speciesTable[Species == "TL" | Species == "tl", newSpeciesName := "tamarack larch"]
@@ -89,7 +93,7 @@ standardizeSpeciesNames <- function(speciesTable, forestInventorySource) {
     # MR could not find, assume it is red maple
     speciesTable[Species == "SE", newSpeciesName := "engelmann spruce"]
     speciesTable[Species == "FD", newSpeciesName := "douglas-fir"]
-    speciesTable[Species == "BA", newSpeciesName := "pacific silver fir"] #this is amabilis fir
+    speciesTable[Species == "BA", newSpeciesName := "pacific silver fir"] # this is amabilis fir
     speciesTable[Species == "CW", newSpeciesName := "western redcedar"]
     speciesTable[Species == "HW", newSpeciesName := "western hemlock"]
     speciesTable[Species == "FDI", newSpeciesName := "douglas-fir"]
@@ -103,8 +107,8 @@ standardizeSpeciesNames <- function(speciesTable, forestInventorySource) {
     speciesTable[Species == "WS", newSpeciesName := "scoulers willow"]
     speciesTable[Species == "AX", newSpeciesName := "trembling aspen"]
     # hybrid poplars for AX, assume trembling aspen
-  } else if (forestInventorySource == "ABPSP"){
-   #### Alberta ####
+  } else if (forestInventorySource == "ABPSP") {
+    #### Alberta ####
     # speciesTable[Species == "  ", newSpeciesName := "unknown"]
     speciesTable[Species == "AW", newSpeciesName := "trembling aspen"]
     speciesTable[Species == "BW", newSpeciesName := "white birch"]
@@ -123,7 +127,7 @@ standardizeSpeciesNames <- function(speciesTable, forestInventorySource) {
     speciesTable[Species == "SB", newSpeciesName := "black spruce"]
     speciesTable[Species == "SE", newSpeciesName := "engelmann spruce"]
     speciesTable[Species == "SW", newSpeciesName := "white spruce"]
-  } else if(forestInventorySource == "SKPSP" | forestInventorySource == "SKTSP"){
+  } else if (forestInventorySource == "SKPSP" | forestInventorySource == "SKTSP") {
     #### Sask ####
     # speciesTable[Species == "", newSpeciesName := "unknown"]
     speciesTable[Species == "BF", newSpeciesName := "balsam fir"]
@@ -143,8 +147,8 @@ standardizeSpeciesNames <- function(speciesTable, forestInventorySource) {
     speciesTable[Species == "WE", newSpeciesName := "white elm"]
     speciesTable[Species == "WS", newSpeciesName := "white spruce"]
     # speciesTable[Species == "XX", newSpeciesName := "unknown"] # what is this
-  } else if(forestInventorySource == "NWTTSP"){
-    ####NWT####
+  } else if (forestInventorySource == "NWTTSP") {
+    #### NWT####
     speciesTable[Species == "A", newSpeciesName := "trembling aspen"]
     speciesTable[Species == "BW", newSpeciesName := "white birch"]
     speciesTable[Species == "Bw", newSpeciesName := "white birch"]
@@ -165,125 +169,239 @@ standardizeSpeciesNames <- function(speciesTable, forestInventorySource) {
     speciesTable[Species == "Sw", newSpeciesName := "white spruce"]
     speciesTable[Species == "SW", newSpeciesName := "white spruce"]
     speciesTable[Species == "W", newSpeciesName := "willow"]
-  } else if(forestInventorySource == "NFIPSP"){
-    ####NFI ####
+  } else if (forestInventorySource == "NFIPSP") {
+    #### NFI ####
     # the Species code system in NFI is different from provincial systems
     # the speciesTable for NFIPSP must have Genus and Species column
 
-    speciesTable[Genus == "ABIE" & Species == "BAL",
-                 newSpeciesName := "balsam fir"]
-    speciesTable[Genus == "ABIE" & Species == "LAS",
-                 newSpeciesName := "subalpine fir"]
-    speciesTable[Genus == "ACER" & Species == "SAH",
-                 newSpeciesName := "sugar maple"]
-    speciesTable[Genus == "ACER" & Species == "SPI",
-                 newSpeciesName := "mountain maple"]
-    speciesTable[Genus == "ACER" & Species == "RUB",
-                 newSpeciesName := "red maple"]
-    speciesTable[Genus == "ALNU" & Species == "SPP",
-                 newSpeciesName := "alder"]
-    speciesTable[Genus == "ALNU" & Species == "INC",
-                 newSpeciesName := "gray alder"]
-    speciesTable[Genus == "ALNU" & Species == "RUB",
-                 newSpeciesName := "red alder"]
-    speciesTable[Genus == "ALNU" & Species == "CRI",
-                 newSpeciesName := "alder"]
-    speciesTable[Genus == "ALNU" & Species == "VIR",
-                 newSpeciesName := "sitka alder"]
-    speciesTable[Genus == "AMEL" & Species == "ALN",
-                 newSpeciesName := "saskatoon-berry"]
-    speciesTable[Genus == "BETU" & Species == "ALL",
-                 newSpeciesName := "yellow birch"] #swamp birch
-    speciesTable[Genus == "BETU" & Species == "GLA",
-                 newSpeciesName := "birch"]
-    speciesTable[Genus == "BETU" & Species == "NAN",
-                 newSpeciesName := "birch"] # not found
-    speciesTable[Genus == "BETU" & Species == "GLA",
-                 newSpeciesName := "birch"] # not found
-    speciesTable[Genus == "BETU" & Species == "NEO",
-                 newSpeciesName := "white birch"] # alaska paper birch
-    speciesTable[Genus == "BETU" & Species == "OCC",
-                 newSpeciesName := "white birch"] # water birch
-    speciesTable[Genus == "BETU" & Species == "PAP",
-                 newSpeciesName := "white birch"]
-    speciesTable[Genus == "BETU" & Species == "PUM",
-                 newSpeciesName := "birch"] # not found
-    speciesTable[Genus == "BETU" & Species == "SPP",
-                 newSpeciesName := "birch"] # water birch
-    speciesTable[Genus == "CHAM" & Species == "NOO",
-                 newSpeciesName := "yellow cedar"] # nootka cypress
-    speciesTable[Genus == "CORN" & Species == "STO",
-                 newSpeciesName := "redosier dogwood"] # water birch
-    speciesTable[Genus == "CORY" & Species == "COR",
-                 newSpeciesName := "unknown"] # water birch
-    speciesTable[Genus == "FRAX" & Species == "NIG",
-                 newSpeciesName := "black ash"]
-    speciesTable[Genus == "FRAX" & Species == "PEN",
-                 newSpeciesName := "red ash"]
-    speciesTable[Genus == "GENC" & Species == "SPP",
-                 newSpeciesName := "softwood"]
-    speciesTable[Genus == "GENH" & Species == "SPP",
-                 newSpeciesName := "hardwood"]
-    speciesTable[Genus == "LARI" & Species == "LAR",
-                 newSpeciesName := "tamarack larch"]
-    speciesTable[Genus == "LARI" & Species == "OCC",
-                 newSpeciesName := "western larch"]
-    speciesTable[Genus == "PICE" & Species == "ENG",
-                 newSpeciesName := "engelmann spruce"]
-    speciesTable[Genus == "PICE" & Species == "GLA",
-                 newSpeciesName := "white spruce"]
-    speciesTable[Genus == "PICE" & Species == "MAR",
-                 newSpeciesName := "black spruce"]
-    speciesTable[Genus == "PICE" & Species == "RUB",
-                 newSpeciesName := "red spruce"]
-    speciesTable[Genus == "PICE" & Species == "SPP",
-                 newSpeciesName := "spruce"]
-    speciesTable[Genus == "PINU" & Species == "BAN",
-                 newSpeciesName := "jack pine"]
-    speciesTable[Genus == "PINU" & Species == "CON",
-                 newSpeciesName := "lodgepole pine"]
-    speciesTable[Genus == "PINU" & Species == "PON",
-                 newSpeciesName := "ponderosa pine"]
-    speciesTable[Genus == "PINU" & Species == "STR",
-                 newSpeciesName := "white pine"]
-    speciesTable[Genus == "POPU" & Species == "BAL",
-                 newSpeciesName := "balsam poplar"]
-    speciesTable[Genus == "POPU" & Species == "SPP",
-                 newSpeciesName := "poplar"]
-    speciesTable[Genus == "POPU" & Species == "TRE",
-                 newSpeciesName := "trembling aspen"]
-    speciesTable[Genus == "PRUN" & Species == "PEN",
-                 newSpeciesName := "pin cherry"]
-    speciesTable[Genus == "PRUN" & Species == "VIR",
-                 newSpeciesName := "choke cherry"]
-    speciesTable[Genus == "PSEU" & Species == "MEN",
-                 newSpeciesName := "douglas-fir"]
-    speciesTable[Genus == "QUER" & Species == "MAC",
-                 newSpeciesName := "bur oak"]
-    speciesTable[Genus == "SALI" & Species == "PED",
-                 newSpeciesName := "willow"] # not found assume willow
-    speciesTable[Genus == "SALI" & Species == "PLA",
-                 newSpeciesName := "willow"] # not found assume willow
-    speciesTable[Genus == "SALI" & Species == "SCO",
-                 newSpeciesName := "scouler willow"]
-    speciesTable[Genus == "SALI" & Species == "SPP",
-                 newSpeciesName := "willow"]
-    speciesTable[Genus == "SALI" & Species == "SPP",
-                 newSpeciesName := "willow"]
-    speciesTable[Genus == "SHEP" & Species == "CAN",
-                 newSpeciesName := "berry"] # not found assume berry
-    speciesTable[Genus == "TSUG" & Species == "CAN",
-                 newSpeciesName := "eastern hemlock"] #
-    speciesTable[Genus == "TSUG" & Species == "HET",
-                 newSpeciesName := "western hemlock"] #
-    speciesTable[Genus == "TSUG" & Species == "MER",
-                 newSpeciesName := "mountain hemlock"] #
-    speciesTable[Genus == "THUJ" & Species == "OCC",
-                 newSpeciesName := "eastern white cedar"] #
-    speciesTable[Genus == "THUJ" & Species == "PLI",
-                 newSpeciesName := "western redcedar"] #
-    speciesTable[Genus == "UNKN" & Species == "SPP",
-                 newSpeciesName := "unknown"] #
+    speciesTable[
+      Genus == "ABIE" & Species == "BAL",
+      newSpeciesName := "balsam fir"
+    ]
+    speciesTable[
+      Genus == "ABIE" & Species == "LAS",
+      newSpeciesName := "subalpine fir"
+    ]
+    speciesTable[
+      Genus == "ACER" & Species == "SAH",
+      newSpeciesName := "sugar maple"
+    ]
+    speciesTable[
+      Genus == "ACER" & Species == "SPI",
+      newSpeciesName := "mountain maple"
+    ]
+    speciesTable[
+      Genus == "ACER" & Species == "RUB",
+      newSpeciesName := "red maple"
+    ]
+    speciesTable[
+      Genus == "ALNU" & Species == "SPP",
+      newSpeciesName := "alder"
+    ]
+    speciesTable[
+      Genus == "ALNU" & Species == "INC",
+      newSpeciesName := "gray alder"
+    ]
+    speciesTable[
+      Genus == "ALNU" & Species == "RUB",
+      newSpeciesName := "red alder"
+    ]
+    speciesTable[
+      Genus == "ALNU" & Species == "CRI",
+      newSpeciesName := "alder"
+    ]
+    speciesTable[
+      Genus == "ALNU" & Species == "VIR",
+      newSpeciesName := "sitka alder"
+    ]
+    speciesTable[
+      Genus == "AMEL" & Species == "ALN",
+      newSpeciesName := "saskatoon-berry"
+    ]
+    speciesTable[
+      Genus == "BETU" & Species == "ALL",
+      newSpeciesName := "yellow birch"
+    ] # swamp birch
+    speciesTable[
+      Genus == "BETU" & Species == "GLA",
+      newSpeciesName := "birch"
+    ]
+    speciesTable[
+      Genus == "BETU" & Species == "NAN",
+      newSpeciesName := "birch"
+    ] # not found
+    speciesTable[
+      Genus == "BETU" & Species == "GLA",
+      newSpeciesName := "birch"
+    ] # not found
+    speciesTable[
+      Genus == "BETU" & Species == "NEO",
+      newSpeciesName := "white birch"
+    ] # alaska paper birch
+    speciesTable[
+      Genus == "BETU" & Species == "OCC",
+      newSpeciesName := "white birch"
+    ] # water birch
+    speciesTable[
+      Genus == "BETU" & Species == "PAP",
+      newSpeciesName := "white birch"
+    ]
+    speciesTable[
+      Genus == "BETU" & Species == "PUM",
+      newSpeciesName := "birch"
+    ] # not found
+    speciesTable[
+      Genus == "BETU" & Species == "SPP",
+      newSpeciesName := "birch"
+    ] # water birch
+    speciesTable[
+      Genus == "CHAM" & Species == "NOO",
+      newSpeciesName := "yellow cedar"
+    ] # nootka cypress
+    speciesTable[
+      Genus == "CORN" & Species == "STO",
+      newSpeciesName := "redosier dogwood"
+    ] # water birch
+    speciesTable[
+      Genus == "CORY" & Species == "COR",
+      newSpeciesName := "unknown"
+    ] # water birch
+    speciesTable[
+      Genus == "FRAX" & Species == "NIG",
+      newSpeciesName := "black ash"
+    ]
+    speciesTable[
+      Genus == "FRAX" & Species == "PEN",
+      newSpeciesName := "red ash"
+    ]
+    speciesTable[
+      Genus == "GENC" & Species == "SPP",
+      newSpeciesName := "softwood"
+    ]
+    speciesTable[
+      Genus == "GENH" & Species == "SPP",
+      newSpeciesName := "hardwood"
+    ]
+    speciesTable[
+      Genus == "LARI" & Species == "LAR",
+      newSpeciesName := "tamarack larch"
+    ]
+    speciesTable[
+      Genus == "LARI" & Species == "OCC",
+      newSpeciesName := "western larch"
+    ]
+    speciesTable[
+      Genus == "PICE" & Species == "ENG",
+      newSpeciesName := "engelmann spruce"
+    ]
+    speciesTable[
+      Genus == "PICE" & Species == "GLA",
+      newSpeciesName := "white spruce"
+    ]
+    speciesTable[
+      Genus == "PICE" & Species == "MAR",
+      newSpeciesName := "black spruce"
+    ]
+    speciesTable[
+      Genus == "PICE" & Species == "RUB",
+      newSpeciesName := "red spruce"
+    ]
+    speciesTable[
+      Genus == "PICE" & Species == "SPP",
+      newSpeciesName := "spruce"
+    ]
+    speciesTable[
+      Genus == "PINU" & Species == "BAN",
+      newSpeciesName := "jack pine"
+    ]
+    speciesTable[
+      Genus == "PINU" & Species == "CON",
+      newSpeciesName := "lodgepole pine"
+    ]
+    speciesTable[
+      Genus == "PINU" & Species == "PON",
+      newSpeciesName := "ponderosa pine"
+    ]
+    speciesTable[
+      Genus == "PINU" & Species == "STR",
+      newSpeciesName := "white pine"
+    ]
+    speciesTable[
+      Genus == "POPU" & Species == "BAL",
+      newSpeciesName := "balsam poplar"
+    ]
+    speciesTable[
+      Genus == "POPU" & Species == "SPP",
+      newSpeciesName := "poplar"
+    ]
+    speciesTable[
+      Genus == "POPU" & Species == "TRE",
+      newSpeciesName := "trembling aspen"
+    ]
+    speciesTable[
+      Genus == "PRUN" & Species == "PEN",
+      newSpeciesName := "pin cherry"
+    ]
+    speciesTable[
+      Genus == "PRUN" & Species == "VIR",
+      newSpeciesName := "choke cherry"
+    ]
+    speciesTable[
+      Genus == "PSEU" & Species == "MEN",
+      newSpeciesName := "douglas-fir"
+    ]
+    speciesTable[
+      Genus == "QUER" & Species == "MAC",
+      newSpeciesName := "bur oak"
+    ]
+    speciesTable[
+      Genus == "SALI" & Species == "PED",
+      newSpeciesName := "willow"
+    ] # not found assume willow
+    speciesTable[
+      Genus == "SALI" & Species == "PLA",
+      newSpeciesName := "willow"
+    ] # not found assume willow
+    speciesTable[
+      Genus == "SALI" & Species == "SCO",
+      newSpeciesName := "scouler willow"
+    ]
+    speciesTable[
+      Genus == "SALI" & Species == "SPP",
+      newSpeciesName := "willow"
+    ]
+    speciesTable[
+      Genus == "SALI" & Species == "SPP",
+      newSpeciesName := "willow"
+    ]
+    speciesTable[
+      Genus == "SHEP" & Species == "CAN",
+      newSpeciesName := "berry"
+    ] # not found assume berry
+    speciesTable[
+      Genus == "TSUG" & Species == "CAN",
+      newSpeciesName := "eastern hemlock"
+    ] #
+    speciesTable[
+      Genus == "TSUG" & Species == "HET",
+      newSpeciesName := "western hemlock"
+    ] #
+    speciesTable[
+      Genus == "TSUG" & Species == "MER",
+      newSpeciesName := "mountain hemlock"
+    ] #
+    speciesTable[
+      Genus == "THUJ" & Species == "OCC",
+      newSpeciesName := "eastern white cedar"
+    ] #
+    speciesTable[
+      Genus == "THUJ" & Species == "PLI",
+      newSpeciesName := "western redcedar"
+    ] #
+    speciesTable[
+      Genus == "UNKN" & Species == "SPP",
+      newSpeciesName := "unknown"
+    ] #
   } else {
     stop("Please define the correct forestInventorySource among ")
   }
