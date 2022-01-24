@@ -156,21 +156,21 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
 prepInputsBCPSP <- function(dPath) {
   pspBCtree <- prepInputs(
     targetFile = "PSPtree_BC.csv",
-    url = "https://drive.google.com/file/d/1dEVz7OLhmZ935SWSTC1CRZI_ju4O3UnI/view?usp=sharing",
+    url = "https://drive.google.com/file/d/1dEVz7OLhmZ935SWSTC1CRZI_ju4O3UnI/",
     destinationPath = dPath,
     fun = "data.table::fread"
   )
 
   pspBCplot <- prepInputs(
     targetFile = "PSPplot_BC.csv",
-    url = "https://drive.google.com/file/d/1dEVz7OLhmZ935SWSTC1CRZI_ju4O3UnI/view?usp=sharing",
+    url = "https://drive.google.com/file/d/1dEVz7OLhmZ935SWSTC1CRZI_ju4O3UnI/",
     destinationPath = dPath,
     fun = "data.table::fread",
     overwrite = TRUE ## TODO: avoid this; why does googledrive insist on this in tests???
   )
 
   pspBCdamageAgentCodes <- prepInputs(
-    url = "https://drive.google.com/file/d/1pBX5txiKFul3CyZ805seQ9-WNx624Mg4/view?usp=sharing",
+    url = "https://drive.google.com/file/d/1pBX5txiKFul3CyZ805seQ9-WNx624Mg4/",
     targetFile = "BCForestry_DamageAgentCodes.csv",
     destinationPath = dPath,
     fun = "fread"

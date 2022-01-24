@@ -26,7 +26,7 @@ globalVariables(c(
 prepPSP_climateNA <- function(dPath, filename2, PSPplot, PSPgis) {
   # get an elevation DEM - this is the 7.5 arcsecond DEM used for fireSense, from GTOPO
   CanadaDEM <- prepInputs(
-    url = "https://drive.google.com/file/d/121x_CfWy2XP_-1av0cYE7sxUfb4pmsup/view?usp=sharing",
+    url = "https://drive.google.com/file/d/121x_CfWy2XP_-1av0cYE7sxUfb4pmsup/",
     destinationPath = dPath
   )
   missingIDs <- PSPplot[is.na(Elevation), ]$OrigPlotID1
