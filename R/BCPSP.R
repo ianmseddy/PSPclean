@@ -154,22 +154,27 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
 #' @export
 #' @importFrom reproducible prepInputs
 prepInputsBCPSP <- function(dPath) {
+  pspBCtree <- prepInputs(
+    targetFile = "PSPtree_BC.csv",
+    url = "https://drive.google.com/file/d/1dEVz7OLhmZ935SWSTC1CRZI_ju4O3UnI/view?usp=sharing",
+    destinationPath = dPath,
+    fun = "data.table::fread"
+  )
 
-  pspBCtree <- prepInputs(targetFile = file.path(dPath, "PSPtree_BC.csv"),
-                         url = "https://drive.google.com/file/d/1dEVz7OLhmZ935SWSTC1CRZI_ju4O3UnI/view?usp=sharing",
-                         destinationPath = dPath,
-                         fun = 'fread')
+  pspBCplot <- prepInputs(
+    targetFile = "PSPplot_BC.csv",
+    url = "https://drive.google.com/file/d/1dEVz7OLhmZ935SWSTC1CRZI_ju4O3UnI/view?usp=sharing",
+    destinationPath = dPath,
+    fun = "data.table::fread",
+    overwrite = TRUE ## TODO: avoid this; why does googledrive insist on this in tests???
+  )
 
-  pspBCplot <- prepInputs(targetFile = file.path(dPath, "PSPplot_BC.csv"),
-                          url = "https://drive.google.com/file/d/1dEVz7OLhmZ935SWSTC1CRZI_ju4O3UnI/view?usp=sharing",
-                          destinationPath = dPath,
-                          fun = 'fread')
-
-
-  pspBCdamageAgentCodes <- prepInputs(url = "https://drive.google.com/file/d/1pBX5txiKFul3CyZ805seQ9-WNx624Mg4/view?usp=sharing",
-                                      targetFile = "BCForestry_DamageAgentCodes.csv",
-                                      destinationPath = dPath,
-                                      fun = 'fread')
+  pspBCdamageAgentCodes <- prepInputs(
+    url = "https://drive.google.com/file/d/1pBX5txiKFul3CyZ805seQ9-WNx624Mg4/view?usp=sharing",
+    targetFile = "BCForestry_DamageAgentCodes.csv",
+    destinationPath = dPath,
+    fun = "fread"
+  )
   return(list(
     "plotHeaderDataRaw" = pspBCplot,
     "treeDataRaw" = pspBCtree,
