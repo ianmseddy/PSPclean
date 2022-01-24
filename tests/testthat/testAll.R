@@ -1,36 +1,50 @@
+## googledrive needed in suggests b/c used by reproducible, where it's also suggested and therefore
+##   not installed by default with this package
+stopifnot(require("googledrive", quietly = TRUE))
 
-mainDir <- tempdir()
-standardizedPlotNames <- c("MeasureID", "OrigPlotID1", "MeasureYear","Longitude", "Latitude",
-                           "Zone", "Northing", "Easting",
-                           "Elevation", "PlotSize", "baseYear", "baseSA")
-standardizedTreeNames <- c("MeasureID", "OrigPlotID1", "MeasureYear", "TreeNumber", "Species", "DBH", "Height", "newSpeciesName")
+standardizedPlotNames <- c(
+  "MeasureID", "OrigPlotID1", "MeasureYear", "Longitude", "Latitude",
+  "Zone", "Northing", "Easting", "Elevation", "PlotSize", "baseYear", "baseSA"
+)
+standardizedTreeNames <- c(
+  "MeasureID", "OrigPlotID1", "MeasureYear", "TreeNumber", "Species",
+  "DBH", "Height", "newSpeciesName"
+)
 
 test_that("PSP NFI works", {
+  dPath <- reproducible::checkPath(file.path(tempdir(), "NFI"), create = TRUE)
+  on.exit({
+    unlink(dPath, recursive = TRUE)
+  }, add = TRUE)
 
-  nfi <- prepInputsNFIPSP(dPath = mainDir)
-  nfiClean <- dataPurification_NFIPSP(lgptreeRaw = nfi$pspTreeMeasure,
-                                      lgpHeaderRaw = nfi$pspHeader,
-                                      approxLocation = nfi$pspLocation,
-                                      treeDamage = nfi$pspTreeDamage)
+  nfi <- prepInputsNFIPSP(dPath = dPath)
+  nfiClean <- dataPurification_NFIPSP(
+    lgptreeRaw = nfi$pspTreeMeasure,
+    lgpHeaderRaw = nfi$pspHeader,
+    approxLocation = nfi$pspLocation,
+    treeDamage = nfi$pspTreeDamage
+  )
 
   expect_true(all(colnames(nfiClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(colnames(nfiClean$treeData) %in% standardizedTreeNames))
 
+  nfiClean_allDam <- dataPurification_NFIPSP(
+    lgptreeRaw = nfi$pspTreeMeasure,
+    lgpHeaderRaw = nfi$pspHeader,
+    approxLocation = nfi$pspLocation,
+    treeDamage = nfi$pspTreeDamage,
+    codesToExclude = NULL
+  )
 
-
-  nfiClean_allDam <- dataPurification_NFIPSP(lgptreeRaw = nfi$pspTreeMeasure,
-                                            lgpHeaderRaw = nfi$pspHeader,
-                                            approxLocation = nfi$pspLocation,
-                                            treeDamage = nfi$pspTreeDamage,
-                                            codesToExclude = NULL)
-
-  #filtering should always reduce rows
-  #exclude trees if damaged, but not if undamaged in prior/subsequent obs
-  nfiClean_someDam <- dataPurification_NFIPSP(lgptreeRaw = nfi$pspTreeMeasure,
-                                              lgpHeaderRaw = nfi$pspHeader,
-                                              approxLocation = nfi$pspLocation,
-                                              treeDamage = nfi$pspTreeDamage,
-                                              excludeAllObs = FALSE)
+  # filtering should always reduce rows
+  # exclude trees if damaged, but not if undamaged in prior/subsequent obs
+  nfiClean_someDam <- dataPurification_NFIPSP(
+    lgptreeRaw = nfi$pspTreeMeasure,
+    lgpHeaderRaw = nfi$pspHeader,
+    approxLocation = nfi$pspLocation,
+    treeDamage = nfi$pspTreeDamage,
+    excludeAllObs = FALSE
+  )
 
   somedamN <- nrow(nfiClean_someDam$treeData)
   nodamN <- nrow(nfiClean$treeData)
@@ -39,71 +53,94 @@ test_that("PSP NFI works", {
 })
 
 test_that("PSP BC works", {
+  dPath <- reproducible::checkPath(file.path(tempdir(), "BC"), create = TRUE)
+  on.exit({
+    unlink(dPath, recursive = TRUE)
+  }, add = TRUE)
 
-
-  bc <- prepInputsBCPSP(dPath = mainDir)
-  bcClean <- dataPurification_BCPSP(treeDataRaw = bc$treeDataRaw,
-                                    plotHeaderDataRaw = bc$plotHeaderDataRaw,
-                                    damageAgentCodes = bc$pspBCdamageAgentCodes)
+  bc <- prepInputsBCPSP(dPath = dPath)
+  bcClean <- dataPurification_BCPSP(
+    treeDataRaw = bc$treeDataRaw,
+    plotHeaderDataRaw = bc$plotHeaderDataRaw,
+    damageAgentCodes = bc$pspBCdamageAgentCodes
+  )
   expect_true(all(names(bcClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(names(bcClean$treeData) %in% standardizedTreeNames))
 
-  bcClean_allDam <- dataPurification_BCPSP(treeDataRaw = bc$treeDataRaw,
-                                           plotHeaderDataRaw = bc$plotHeaderDataRaw,
-                                           damageAgentCodes = bc$pspBCdamageAgentCodes,
-                                           codesToExclude = NULL)
-  bcClean_someDam <- dataPurification_BCPSP(treeDataRaw = bc$treeDataRaw,
-                                            plotHeaderDataRaw = bc$plotHeaderDataRaw,
-                                            damageAgentCodes = bc$pspBCdamageAgentCodes,
-                                            excludeAllObs = FALSE)
+  bcClean_allDam <- dataPurification_BCPSP(
+    treeDataRaw = bc$treeDataRaw,
+    plotHeaderDataRaw = bc$plotHeaderDataRaw,
+    damageAgentCodes = bc$pspBCdamageAgentCodes,
+    codesToExclude = NULL
+  )
+  bcClean_someDam <- dataPurification_BCPSP(
+    treeDataRaw = bc$treeDataRaw,
+    plotHeaderDataRaw = bc$plotHeaderDataRaw,
+    damageAgentCodes = bc$pspBCdamageAgentCodes,
+    excludeAllObs = FALSE
+  )
 
   somedamN <- nrow(bcClean_someDam$treeData)
   nodamN <- nrow(bcClean$treeData)
   alldamN <- nrow(bcClean_allDam$treeData)
   expect_true(somedamN > nodamN & somedamN < alldamN)
-
 })
-test_that("PSP alberta works", {
 
-  ab <- prepInputsAlbertaPSP(dPath = mainDir)
-  abClean <- dataPurification_ABPSP(treeMeasure = ab$pspABtreeMeasure,
-                                    plotMeasure = ab$pspABplotMeasure,
-                                    tree =  ab$pspABtree, plot = ab$pspABplot)
+test_that("PSP AB works", {
+  dPath <- reproducible::checkPath(file.path(tempdir(), "AB"), create = TRUE)
+  on.exit({
+    unlink(dPath, recursive = TRUE)
+  }, add = TRUE)
+
+  ab <- prepInputsAlbertaPSP(dPath = dPath)
+  abClean <- dataPurification_ABPSP(
+    treeMeasure = ab$pspABtreeMeasure,
+    plotMeasure = ab$pspABplotMeasure,
+    tree = ab$pspABtree, plot = ab$pspABplot
+  )
 
   expect_true(all(names(abClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(names(abClean$treeData) %in% standardizedTreeNames))
 
-  abClean_allDam <- dataPurification_ABPSP(treeMeasure = ab$pspABtreeMeasure,
-                                    plotMeasure = ab$pspABplotMeasure,
-                                    tree =  ab$pspABtree, plot = ab$pspABplot,
-                                    codesToExclude = NULL)
+  abClean_allDam <- dataPurification_ABPSP(
+    treeMeasure = ab$pspABtreeMeasure,
+    plotMeasure = ab$pspABplotMeasure,
+    tree = ab$pspABtree, plot = ab$pspABplot,
+    codesToExclude = NULL
+  )
 
-  abClean_someDam <- dataPurification_ABPSP(treeMeasure = ab$pspABtreeMeasure,
-                                            plotMeasure = ab$pspABplotMeasure,
-                                            tree =  ab$pspABtree, plot = ab$pspABplot,
-                                            excludeAllObs = FALSE)
+  abClean_someDam <- dataPurification_ABPSP(
+    treeMeasure = ab$pspABtreeMeasure,
+    plotMeasure = ab$pspABplotMeasure,
+    tree = ab$pspABtree, plot = ab$pspABplot,
+    excludeAllObs = FALSE
+  )
 
   somedamN <- nrow(abClean_someDam$treeData)
   nodamN <- nrow(abClean$treeData)
   alldamN <- nrow(abClean_allDam$treeData)
   expect_true(somedamN > nodamN & somedamN < alldamN)
-
 })
 
-test_that("PSP sk works", {
+test_that("PSP SK works", {
+  dPath <- reproducible::checkPath(file.path(tempdir(), "SK"), create = TRUE)
+  on.exit({
+    unlink(dPath, recursive = TRUE)
+  }, add = TRUE)
+  sk <- prepInputsSaskatchwanPSP(dPath = dPath)
 
-  sk <- prepInputsSaskatchwanPSP(dPath = mainDir)
-
-  skClean <- dataPurification_SKPSP(SADataRaw = sk$SADataRaw, plotHeaderRaw = sk$plotHeaderRaw,
-                                    measureHeaderRaw = sk$measureHeaderRaw, treeDataRaw = sk$treeDataRaw)
+  skClean <- dataPurification_SKPSP(
+    SADataRaw = sk$SADataRaw, plotHeaderRaw = sk$plotHeaderRaw,
+    measureHeaderRaw = sk$measureHeaderRaw, treeDataRaw = sk$treeDataRaw
+  )
   expect_true(all(names(skClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(names(skClean$treeData) %in% standardizedTreeNames))
 
-  skm <- prepInputsSaskatchwanTSP(dPath = mainDir)
-  skmClean <- dataPurification_SKTSP_Mistik(compiledPlotData = skm$compiledPlotData,
-                                            compiledTreeData = skm$compiledTreeData)
+  skm <- prepInputsSaskatchwanTSP(dPath = dPath)
+  skmClean <- dataPurification_SKTSP_Mistik(
+    compiledPlotData = skm$compiledPlotData,
+    compiledTreeData = skm$compiledTreeData
+  )
   expect_true(all(names(skmClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(names(skmClean$treeData) %in% standardizedTreeNames))
 })
-
-unlink(mainDir, recursive = TRUE)

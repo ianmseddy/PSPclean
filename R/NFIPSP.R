@@ -1,9 +1,10 @@
-globalVariables(c(
-  "nfi_plot", ".", "meas_plot_size", "site_age", "utm_n", "utm_e", "utm_zone", "tree_num",
-  "lgtree_genus", "lgtree_species", "isArtificial", "lgtree_status", "OrigPlotID1", "orig_plot_area",
-  "MeasureYear", "dbh", "MeasureID", "TreeNumber", "Genus",":=", "year", "Species", "DBH",
-  "Height", "Easting", "Northing", "Elevation", "PlotSize", "baseYear", "baseSA", "elevation",
-  "height", "meas_num", "damage_agent", "Zone"
+utils::globalVariables(c(
+  ":=", ".",
+  "baseSA", "baseYear", "damage_agent", "dbh", "DBH", "Easting", "elevation", "Elevation",
+  "Genus", "height", "Height", "isArtificial", "lgtree_genus", "lgtree_species", "lgtree_status",
+  "meas_num", "meas_plot_size", "MeasureID", "MeasureYear", "nfi_plot", "Northing",
+  "orig_plot_area", "OrigPlotID1", "PlotSize", "site_age", "Species", "tree_num", "TreeNumber",
+  "utm_e", "utm_n", "utm_zone", "year", "Zone"
 ))
 
 #' standardize and treat the NFI PSP data
@@ -20,10 +21,9 @@ globalVariables(c(
 #'
 #' @export
 #' @importFrom data.table copy setkey set
-dataPurification_NFIPSP <- function(lgptreeRaw,lgpHeaderRaw, approxLocation, treeDamage,
+dataPurification_NFIPSP <- function(lgptreeRaw, lgpHeaderRaw, approxLocation, treeDamage,
                                     codesToExclude = "IB", excludeAllObs = TRUE) {
-
-  lgptreeRaw <- lgptreeRaw[orig_plot_area == "Y",]
+  lgptreeRaw <- lgptreeRaw[orig_plot_area == "Y", ]
   # start from tree data to obtain plot infor
   lgptreeRaw[, year := as.numeric(substr(lgptreeRaw$meas_date, 1, 4))]
   lgpHeaderRaw[, year := as.numeric(substr(lgpHeaderRaw$meas_date, 1, 4))]
@@ -33,12 +33,14 @@ dataPurification_NFIPSP <- function(lgptreeRaw,lgpHeaderRaw, approxLocation, tre
   lgpHeader <- setkey(lgpHeader, nfi_plot)[setkey(approxLocation, nfi_plot), nomatch = 0]
   # remove the plots without SA and location infor
   lgpHeader <- lgpHeader[!is.na(site_age), ][!is.na(utm_n), ][!is.na(utm_e), ]
-  treeData <- lgptreeRaw[, .(nfi_plot, year, meas_num, tree_num, lgtree_genus, lgtree_species,
-                             lgtree_status, dbh, height)][nfi_plot %in% unique(lgpHeader$nfi_plot), ]
-  #DS = dead standing, M = Missing Data
+  treeData <- lgptreeRaw[, .(
+    nfi_plot, year, meas_num, tree_num, lgtree_genus, lgtree_species,
+    lgtree_status, dbh, height
+  )][nfi_plot %in% unique(lgpHeader$nfi_plot), ]
+  # DS = dead standing, M = Missing Data
   treeData <- treeData[lgtree_status != "DS" & lgtree_status != "M", ][, lgtree_status := NULL]
 
-  #remove bad plots
+  # remove bad plots
 
   if (!is.null(codesToExclude)) {
     badTrees <- treeDamage[damage_agent %in% codesToExclude, .(nfi_plot, meas_num, tree_num)]
@@ -49,15 +51,19 @@ dataPurification_NFIPSP <- function(lgptreeRaw,lgpHeaderRaw, approxLocation, tre
       treeData <- treeData[!badTrees, on = c("nfi_plot", "meas_num", "tree_num")]
     }
   }
-  #meas_num is needed to match damage, but not afterward
-  treeData[,meas_num := NULL]
+  # meas_num is needed to match damage, but not afterward
+  treeData[, meas_num := NULL]
 
-  setnames(treeData, c("nfi_plot", "year", "tree_num","lgtree_genus", "lgtree_species", "dbh", "height"),
-           c("OrigPlotID1", "MeasureYear", "TreeNumber", "Genus", "Species", "DBH", "Height"))
+  setnames(
+    treeData, c("nfi_plot", "year", "tree_num", "lgtree_genus", "lgtree_species", "dbh", "height"),
+    c("OrigPlotID1", "MeasureYear", "TreeNumber", "Genus", "Species", "DBH", "Height")
+  )
 
   # names(lgpHeader) <- c("OrigPlotID1", "baseYear", "PlotSize", "baseSA", "Northing", "Easting", "Zone", "Elevation")
-  setnames(lgpHeader, old = c("nfi_plot", "year", "meas_plot_size", "site_age", "utm_n", "utm_e", "utm_zone", "elevation"),
-           new = c("OrigPlotID1", "baseYear", "PlotSize", "baseSA", "Northing", "Easting", "Zone", "Elevation"))
+  setnames(lgpHeader,
+    old = c("nfi_plot", "year", "meas_plot_size", "site_age", "utm_n", "utm_e", "utm_zone", "elevation"),
+    new = c("OrigPlotID1", "baseYear", "PlotSize", "baseSA", "Northing", "Easting", "Zone", "Elevation")
+  )
 
   lgpHeader <- unique(lgpHeader, by = "OrigPlotID1")
   newheader <- unique(treeData[, .(OrigPlotID1, MeasureYear)], by = c("OrigPlotID1", "MeasureYear"))
@@ -66,19 +72,23 @@ dataPurification_NFIPSP <- function(lgptreeRaw,lgpHeaderRaw, approxLocation, tre
   treeData <- setkey(treeData, OrigPlotID1)
   treeData <- treeData[newheader, on = c("OrigPlotID1", "MeasureYear")]
   lgpHeader <- setkey(lgpHeader, OrigPlotID1)[setkey(newheader, OrigPlotID1), nomatch = 0]
-  #above line changed as now there are repeat measures in NFI, so join must be on MeasureID as well as OrigPlotID1
+  # above line changed as now there are repeat measures in NFI, so join must be on MeasureID as well as OrigPlotID1
   lgpHeader <- setkey(lgpHeader, OrigPlotID1)
   lgpHeader <- lgpHeader[newheader, on = c("OrigPlotID1", "MeasureID")]
 
-  treeData <- treeData[, .(MeasureID, OrigPlotID1, MeasureYear,
-                           TreeNumber, Genus, Species, DBH, Height)]
-  lgpHeader <- lgpHeader[, .(MeasureID, OrigPlotID1, MeasureYear, Longitude = NA, Latitude = NA, Zone,
-                             Easting, Northing, Elevation, PlotSize, baseYear, baseSA)]
+  treeData <- treeData[, .(
+    MeasureID, OrigPlotID1, MeasureYear,
+    TreeNumber, Genus, Species, DBH, Height
+  )]
+  lgpHeader <- lgpHeader[, .(MeasureID, OrigPlotID1, MeasureYear,
+    Longitude = NA, Latitude = NA, Zone,
+    Easting, Northing, Elevation, PlotSize, baseYear, baseSA
+  )]
 
-  treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "NFIPSP") #Need to add to pemisc
+  treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "NFIPSP") # Need to add to pemisc
 
   treeData[, Species := paste0(Genus, "_", Species)]
-  treeData[, Genus := NULL] #This column is not in any of the other PSP datasets
+  treeData[, Genus := NULL] # This column is not in any of the other PSP datasets
 
   treeData$OrigPlotID1 <- paste0("NFI", treeData$OrigPlotID1)
   lgpHeader$OrigPlotID1 <- paste0("NFI", lgpHeader$OrigPlotID1)
@@ -88,7 +98,8 @@ dataPurification_NFIPSP <- function(lgptreeRaw,lgpHeaderRaw, approxLocation, tre
 
   return(list(
     "plotHeaderData" = lgpHeader,
-    "treeData" = treeData))
+    "treeData" = treeData
+  ))
 }
 
 #' source the NFI PSP data
@@ -99,30 +110,37 @@ dataPurification_NFIPSP <- function(lgptreeRaw,lgpHeaderRaw, approxLocation, tre
 #' @export
 #' @importFrom reproducible prepInputs
 prepInputsNFIPSP <- function(dPath) {
+  pspNFILocationRaw <- prepInputs(
+    targetFile = file.path(dPath, "all_gp_site_info.csv"),
+    url = "https://drive.google.com/file/d/1S-4itShMXtwzGxjKPgsznpdTD2ydE9qn/",
+    destinationPath = dPath,
+    overwrite = TRUE,
+    fun = "fread"
+  )
 
-  pspNFILocationRaw <- prepInputs(targetFile = file.path(dPath, "all_gp_site_info.csv"),
-                                  url = "https://drive.google.com/file/d/1S-4itShMXtwzGxjKPgsznpdTD2ydE9qn/view?usp=sharing",
-                                  destinationPath = dPath,
-                                  overwrite = TRUE,
-                                  fun = 'fread')
+  pspNFIHeaderRaw <- prepInputs(
+    targetFile = file.path(dPath, "all_gp_ltp_header.csv"),
+    url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/",
+    destinationPath = dPath,
+    fun = "fread",
+    overwrite = TRUE
+  )
 
-  pspNFIHeaderRaw <- prepInputs(targetFile = file.path(dPath, "all_gp_ltp_header.csv"),
-                                url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/view?usp=sharing",
-                                destinationPath = dPath,
-                                fun = 'fread',
-                                overwrite = TRUE)
+  pspNFITreeRaw <- prepInputs(
+    targetFile = file.path(dPath, "all_gp_ltp_tree.csv"),
+    url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/",
+    destinationPath = dPath,
+    fun = "fread",
+    overwrite = TRUE
+  )
 
-  pspNFITreeRaw <- prepInputs(targetFile = file.path(dPath, "all_gp_ltp_tree.csv"),
-                              url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/view?usp=sharing",
-                              destinationPath = dPath,
-                              fun = 'fread',
-                              overwrite = TRUE)
-
-  pspNFITreeDamage <- prepInputs(targetFile = file.path(dPath, "all_gp_ltp_tree_damage.csv"),
-                                 url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/view?usp=sharing",
-                                 destinationPath = dPath,
-                                 fun = "fread",
-                                 overwrite = TRUE)
+  pspNFITreeDamage <- prepInputs(
+    targetFile = file.path(dPath, "all_gp_ltp_tree_damage.csv"),
+    url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/",
+    destinationPath = dPath,
+    fun = "fread",
+    overwrite = TRUE
+  )
 
   return(list(
     "pspLocation" = pspNFILocationRaw,
