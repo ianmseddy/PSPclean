@@ -239,7 +239,7 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
 prepInputsAlbertaPSP <- function(dPath) {
   pspABtreeMeasure <- prepInputs(
     targetFile = file.path(dPath, "trees_measurement.csv"),
-    url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/view?usp=sharing",
+    url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/",
     fun = "fread",
     overwrite = TRUE,
     destinationPath = dPath
@@ -247,7 +247,7 @@ prepInputsAlbertaPSP <- function(dPath) {
 
   pspABtree <- prepInputs(
     targetFile = file.path(dPath, "trees.csv"),
-    url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/view?usp=sharing",
+    url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/",
     fun = "fread",
     overwrite = TRUE,
     destinationPath = dPath
@@ -255,7 +255,7 @@ prepInputsAlbertaPSP <- function(dPath) {
 
   pspABplotMeasure <- prepInputs(
     targetFile = file.path(dPath, "plot_measurement.csv"),
-    url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/view?usp=sharing",
+    url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/",
     destinationPath = dPath,
     overwrite = TRUE,
     fun = "fread"
@@ -263,7 +263,7 @@ prepInputsAlbertaPSP <- function(dPath) {
 
   pspABplot <- prepInputs(
     targetFile = file.path(dPath, "plot.csv"),
-    url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/view?usp=sharing",
+    url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/",
     fun = "fread",
     overwrite = TRUE,
     destinationPath = dPath
