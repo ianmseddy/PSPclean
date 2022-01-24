@@ -2,7 +2,6 @@
 ##   not installed by default with this package
 stopifnot(require("googledrive", quietly = TRUE))
 
-mainDir <- tempdir()
 standardizedPlotNames <- c(
   "MeasureID", "OrigPlotID1", "MeasureYear", "Longitude", "Latitude",
   "Zone", "Northing", "Easting", "Elevation", "PlotSize", "baseYear", "baseSA"
@@ -13,7 +12,12 @@ standardizedTreeNames <- c(
 )
 
 test_that("PSP NFI works", {
-  nfi <- prepInputsNFIPSP(dPath = mainDir)
+  dPath <- reproducible::checkPath(file.path(tempdir(), "NFI"), create = TRUE)
+  on.exit({
+    unlink(dPath, recursive = TRUE)
+  }, add = TRUE)
+
+  nfi <- prepInputsNFIPSP(dPath = dPath)
   nfiClean <- dataPurification_NFIPSP(
     lgptreeRaw = nfi$pspTreeMeasure,
     lgpHeaderRaw = nfi$pspHeader,
@@ -49,7 +53,12 @@ test_that("PSP NFI works", {
 })
 
 test_that("PSP BC works", {
-  bc <- prepInputsBCPSP(dPath = mainDir)
+  dPath <- reproducible::checkPath(file.path(tempdir(), "BC"), create = TRUE)
+  on.exit({
+    unlink(dPath, recursive = TRUE)
+  }, add = TRUE)
+
+  bc <- prepInputsBCPSP(dPath = dPath)
   bcClean <- dataPurification_BCPSP(
     treeDataRaw = bc$treeDataRaw,
     plotHeaderDataRaw = bc$plotHeaderDataRaw,
@@ -78,7 +87,12 @@ test_that("PSP BC works", {
 })
 
 test_that("PSP AB works", {
-  ab <- prepInputsAlbertaPSP(dPath = mainDir)
+  dPath <- reproducible::checkPath(file.path(tempdir(), "AB"), create = TRUE)
+  on.exit({
+    unlink(dPath, recursive = TRUE)
+  }, add = TRUE)
+
+  ab <- prepInputsAlbertaPSP(dPath = dPath)
   abClean <- dataPurification_ABPSP(
     treeMeasure = ab$pspABtreeMeasure,
     plotMeasure = ab$pspABplotMeasure,
@@ -109,7 +123,11 @@ test_that("PSP AB works", {
 })
 
 test_that("PSP SK works", {
-  sk <- prepInputsSaskatchwanPSP(dPath = mainDir)
+  dPath <- reproducible::checkPath(file.path(tempdir(), "SK"), create = TRUE)
+  on.exit({
+    unlink(dPath, recursive = TRUE)
+  }, add = TRUE)
+  sk <- prepInputsSaskatchwanPSP(dPath = dPath)
 
   skClean <- dataPurification_SKPSP(
     SADataRaw = sk$SADataRaw, plotHeaderRaw = sk$plotHeaderRaw,
@@ -118,7 +136,7 @@ test_that("PSP SK works", {
   expect_true(all(names(skClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(names(skClean$treeData) %in% standardizedTreeNames))
 
-  skm <- prepInputsSaskatchwanTSP(dPath = mainDir)
+  skm <- prepInputsSaskatchwanTSP(dPath = dPath)
   skmClean <- dataPurification_SKTSP_Mistik(
     compiledPlotData = skm$compiledPlotData,
     compiledTreeData = skm$compiledTreeData
@@ -126,5 +144,3 @@ test_that("PSP SK works", {
   expect_true(all(names(skmClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(names(skmClean$treeData) %in% standardizedTreeNames))
 })
-
-unlink(mainDir, recursive = TRUE)
