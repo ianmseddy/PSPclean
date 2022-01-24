@@ -77,7 +77,7 @@ test_that("PSP BC works", {
   expect_true(somedamN > nodamN & somedamN < alldamN)
 })
 
-test_that("PSP Alberta works", {
+test_that("PSP AB works", {
   ab <- prepInputsAlbertaPSP(dPath = mainDir)
   abClean <- dataPurification_ABPSP(
     treeMeasure = ab$pspABtreeMeasure,
@@ -108,7 +108,7 @@ test_that("PSP Alberta works", {
   expect_true(somedamN > nodamN & somedamN < alldamN)
 })
 
-test_that("PSP sk works", {
+test_that("PSP SK works", {
   sk <- prepInputsSaskatchwanPSP(dPath = mainDir)
 
   skClean <- dataPurification_SKPSP(
