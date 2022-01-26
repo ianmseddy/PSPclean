@@ -173,7 +173,7 @@ prepInputsBCPSP <- function(dPath) {
     url = "https://drive.google.com/file/d/1pBX5txiKFul3CyZ805seQ9-WNx624Mg4/",
     targetFile = "BCForestry_DamageAgentCodes.csv",
     destinationPath = dPath,
-    fun = "fread"
+    fun = "data.table::fread"
   )
   return(list(
     "plotHeaderDataRaw" = pspBCplot,
