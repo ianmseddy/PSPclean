@@ -1,10 +1,12 @@
 Package: PSPclean
 Type: Package
 Title: Sources and standardizes permanent sample plot data
-Version: 0.1.2
+Version: 0.1.2.9000
 Authors@R: c(
     person("Ian M S", "Eddy", email = "ian.eddy@nrcan.rncan.gc.ca",
-    role = c("aut", "cre"))
+           role = c("aut", "cre"))
+    person("Alex M", "Chubaty", email = "achubaty@for-cast.ca",
+           role = c("ctb"))
     )
 Depends:
     R (>= 3.6)
