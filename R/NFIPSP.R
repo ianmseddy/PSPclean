@@ -115,14 +115,14 @@ prepInputsNFIPSP <- function(dPath) {
     url = "https://drive.google.com/file/d/1S-4itShMXtwzGxjKPgsznpdTD2ydE9qn/",
     destinationPath = dPath,
     overwrite = TRUE,
-    fun = "fread"
+    fun = "data.table::fread"
   )
 
   pspNFIHeaderRaw <- prepInputs(
     targetFile = file.path(dPath, "all_gp_ltp_header.csv"),
     url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/",
     destinationPath = dPath,
-    fun = "fread",
+    fun = "data.table::fread",
     overwrite = TRUE
   )
 
@@ -130,7 +130,7 @@ prepInputsNFIPSP <- function(dPath) {
     targetFile = file.path(dPath, "all_gp_ltp_tree.csv"),
     url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/",
     destinationPath = dPath,
-    fun = "fread",
+    fun = "data.table::fread",
     overwrite = TRUE
   )
 
@@ -138,7 +138,7 @@ prepInputsNFIPSP <- function(dPath) {
     targetFile = file.path(dPath, "all_gp_ltp_tree_damage.csv"),
     url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/",
     destinationPath = dPath,
-    fun = "fread",
+    fun = "data.table::fread",
     overwrite = TRUE
   )
 

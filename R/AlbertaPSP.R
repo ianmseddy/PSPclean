@@ -240,7 +240,7 @@ prepInputsAlbertaPSP <- function(dPath) {
   pspABtreeMeasure <- prepInputs(
     targetFile = file.path(dPath, "trees_measurement.csv"),
     url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/",
-    fun = "fread",
+    fun = "data.table::fread",
     overwrite = TRUE,
     destinationPath = dPath
   )
@@ -248,7 +248,7 @@ prepInputsAlbertaPSP <- function(dPath) {
   pspABtree <- prepInputs(
     targetFile = file.path(dPath, "trees.csv"),
     url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/",
-    fun = "fread",
+    fun = "data.table::fread",
     overwrite = TRUE,
     destinationPath = dPath
   )
@@ -264,7 +264,7 @@ prepInputsAlbertaPSP <- function(dPath) {
   pspABplot <- prepInputs(
     targetFile = file.path(dPath, "plot.csv"),
     url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/",
-    fun = "fread",
+    fun = "data.table::fread",
     overwrite = TRUE,
     destinationPath = dPath
   )
