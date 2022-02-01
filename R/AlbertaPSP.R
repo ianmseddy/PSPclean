@@ -258,7 +258,7 @@ prepInputsAlbertaPSP <- function(dPath) {
     url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/",
     destinationPath = dPath,
     overwrite = TRUE,
-    fun = "fread"
+    fun = "data.table::fread"
   )
 
   pspABplot <- prepInputs(
