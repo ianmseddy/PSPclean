@@ -175,6 +175,7 @@ prepInputsBCPSP <- function(dPath) {
     destinationPath = dPath,
     fun = "data.table::fread"
   )
+
   return(list(
     "plotHeaderDataRaw" = pspBCplot,
     "treeDataRaw" = pspBCtree,
