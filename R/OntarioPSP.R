@@ -1,56 +1,35 @@
-library(RODBC)
-library(data.table)
-readRenviron(".Renviron") #set uid and pwd to access MS SQL Server
+globalVariables(c(
+  ":=", "trees_measurement_comment", "tree_origin", "stand_origin", "dbh_age", "maxN",
+  "stump_age", "total_age", "crown_class", "measurement_year", "stand_age", "tree_location_id",
+  "condition_code1", "condition_code2", "condition_code3", "cause", "cause1", "cause2",
+  "cause3", ".N", "N", "sizes", "tempyear", "totalBad", "PlotSize", "tree_plot_area", "MeasureID", "latitude",
+  "longitude", "OrigPlotID1", "Species", "MeasureYear", "company_plot_number", "tree_number",
+  "species", "minMeasure", "measurement_number", "dbh", "height", "elevation"
+))
 
-#To follow the existing convention, there should be two functions, one that "gets" the raw data.tables and nothing else,
-#and the purification function which will manipulate these appropriately to form two data.tables
+#' standardize and treat the Ontario PSP data
+#'
+#' @param ONPSPlist list of relevant plots
+#' @param sppEquiv table of species names - see \code{LandR::sppEquiv}-
+#' must have column 'latin' and 'PSP'
+#' @param excludeAllObs if removing observations of individual trees due to damage codes,
+#'
+#' @return a list of plot and tree data.tables
+#'
+#' @export
+#' @importFrom data.table copy data.table set setcolorder setkey
+#'
+dataPurification_ONPSP <- function(ONPSPlist, sppEquiv, excludeAllObs = TRUE){
 
-#open database connection
-ucon <- odbcConnect("PSPodbc", uid = Sys.getenv("uid"), pwd = Sys.getenv("pwd")) #add uid and pwrd. From environment?
-
-#scratch
-# sqlQuery(ucon,"select name from master.sys.sysdatabases where dbid > 4")
-# psp <- sqlQuery(ucon,"select name from master.sys.sysdatabases where dbid > 4")
-
-# Create query of previously loaded table data - ensure your schema is set
-# query <- paste("SELECT [AgeHeaderKey],[VisitKey],[MsrDate] FROM [gyPSPPGP].[dbo].[tblAgeHeader]")
-
-#to save time, wrap these in functions
-getTables <- function(tablename, cols = "*") {
-  return(paste0("SELECT ", cols, " FROM [gyPSPPGP].[dbo].[", tablename, "]"))
-}
-makeDT <- function(x, con = ucon) {
-  return(as.data.table(sqlQuery(con, getTables(x))))
-}
+#TODO: review excludeAllObs - I dont' think we exclude anything at the moment
 
 ##### Location ####
-
-
-#TODO: remove the treated plots
-# Plot <- Plot[!PlotKey %in% treated$PlotKey]
-
-
-#OVERVIEW
-# to get plotID of a tree, connect treeMsr to treeGrowthPlot to treeHeader to Visit to Package to Plot -
-#use Visit and Plot to create MeasureIDs, and Plot ID can be renamed "OrigPlotID1".
-#however, you must renumber trees within growth plots and combine them (there are potentially 3)
-#Visit Key is the "MeasureID", but
-#to start, we need to get treeMsrKey with treeGrowthPlot key, and then treeheader to Visit.
-
-#Conceptually, this should return up to 4 tables (tree, treeHeader, plot before you joined it, and maybe age?)
-#better to include columns than drop them, in case we need them. e.g. damage codes, mortality
-#then dataPurification_OntarioPSP will turn these data.tables into two table:
-#one with treeHeader/plot/age combined, and one with treeHeader/tree.
-
-#####fix plot id columns ####
-Plot <- makeDT("tblPlot")
-LocCoord <- makeDT("tblLocCoord")
-# LocPlot <- makeDT("tblLocPlot")
+Plot <- ONPSPlist[["tblPlot"]]
+LocCoord <- ONPSPlist[["tblLocCoord"]]
 #41 plots have no location, of which 39 are PSP (not important) and 2 PGP. Unclear why these are missing
 #the same plot has two locations due to coordtypeCode
 Plot <- LocCoord[Plot, on = "PlotKey"]
 #CoordTypeCode: 1 = road post, 3 = location post, from tlkCoordType
-#TODO: investigate the missing locations -
 #note that not all plots are unique locations
 investigateMissingLoc <- Plot[is.na(CoordTypeCode)]
 setkey(Plot)
@@ -59,55 +38,49 @@ Plot <- Plot[, .SD, .SDcols = c("PlotKey", "PlotName", "Easting",
                                 "Northing", "Datum", "DatasetCode")]
 rm(LocCoord)
 ####Identifying treated plots ####
-standInfoTreatment <- makeDT("tblStandInfoTreat")
-treatType <- makeDT("tlkpTreatType")
+standInfoTreatment <- ONPSPlist[["tblStandInfoTreat"]]
+treatType <- ONPSPlist[["tlkpTreatType"]]
 standInfoTreatment <- treatType[standInfoTreatment, on = c("TreatTypeCode")]
 rm(treatType)
 treated <- Plot[PlotKey %in% standInfoTreatment$PlotKey]
 treated <- treated[standInfoTreatment, on = c("PlotKey")]
 
-Visit <- makeDT("tblVisit")
-VisitType <- makeDT("tlkpVisitType")
+Visit <- ONPSPlist[["tblVisit"]]
+VisitType <- ONPSPlist[["tlkpVisitType"]]
 Visit <- VisitType[Visit, on = c("VisitTypeCode")]
 Visit$VisitTypeName <- as.factor(Visit$VisitTypeName)
 rm(VisitType)
 
-#tree Growth Plot has up to 3 growth plots for a single tree header key
-treeGrowthPlot <- makeDT("tblTreeGrowthPlot")
-treeMsr <- makeDT("tblTreeMsr")
+treeGrowthPlot <- ONPSPlist[["tblTreeGrowthPlot"]]
+treeMsr <- ONPSPlist[["tblTreeMsr"]]
 treeMsr <- treeMsr[, .(TreeMsrKey, TreeGrowthPlotKey, TreeKey, TreeStatusCode, DBH, CrownClassCode)]
 treeMsr <- treeGrowthPlot[treeMsr, on = ("TreeGrowthPlotKey")]
 
 #2- connect treeheader with Visit and Package
-#Package contains PlotKey and package Key, which connects Visit key, which connects to TreeHeader
-treeHeader <- makeDT("tblTreeHeader") #has headerkey, VisitKey, and MsrDate.
-#there are visits which have nothing to do with trees -
+treeHeader <- ONPSPlist[["tblTreeHeader"]] #has headerkey, VisitKey, and MsrDate.
 treeHeader <- Visit[treeHeader, on = c("VisitKey")] #getting package key from Package
-Package <- makeDT("tblPackage")
+Package <- ONPSPlist[["tblPackage"]]
 treeHeader <- Package[, .(PackageKey, PlotKey, StartYear)][treeHeader, on = c("PackageKey")]
 treeHeader[, c("ManualCode", "VisitTypeCode") := NULL]
-
 
 # connect plot location and tree:
 #treeGrowthPlotKey in treeMsr -> treeGrowthPlotKey in treeGrowthPlot;
 #treeHeader in treeGrowthPlot -> treeHeader in treeHeader;
 #PlotKey in treeHeader -> PlotKey in Plot
-##round 11.26 to 11.28 as some plots have inconsistent areas, leading to 398 vs. 400 m2
 treeGrowthPlot[Radius == 11.26, Radius := 11.28]
 treeGrowthPlot[Radius == 11.33, Radius := 11.28]
 treeGrowthPlot[, plotArea := Width * Length]
 treeGrowthPlot[is.na(plotArea), plotArea := round(Radius^2*3.142)]
-#some plots change from radius 11.33 to 11.28 over time - leading to difering areas.
-#I think this area discrepancy is allowable (< 1%) but others are drastic and should be excluded
+#some plots change from radius 11.33 to 11.28 over time - leading to differing areas.
+#IMO this area discrepancy is allowable (< 1%) but others are drastic and should be excluded
 
 smallGrowthPlotKey <- treeGrowthPlot[, .(TreeGrowthPlotKey, TreeHeaderKey, GrowthPlotNum, TreeRenumber, plotArea)]
-plotHeaderData <- treeHeader[Plot, on = c("PlotKey")]
-plotHeaderData[, c("DatasetCode", "StartYear") := NULL]
-#TODO: for now I am removing location to make a leaner table
-plotHeaderData[, c("Easting", "Northing", "Datum") := NULL]
+plotData <- treeHeader[Plot, on = c("PlotKey")]
+plotData[, c("DatasetCode", "StartYear") := NULL]
+plotData[, c("Easting", "Northing", "Datum") := NULL]
 
-plotHeaderData <- smallGrowthPlotKey[plotHeaderData, on = c("TreeHeaderKey")]
-plotHeaderData[, VisitTypeName := NULL]
+plotData <- smallGrowthPlotKey[plotData, on = c("TreeHeaderKey")]
+plotData[, VisitTypeName := NULL]
 #TODO confirm that the reason this table is < rows than smallGrowthPlot is the loss of treated plots
 # partially confirmed - all but two (PlotKey 7565 and 7566)
 rm(smallGrowthPlotKey)
@@ -115,13 +88,13 @@ rm(smallGrowthPlotKey)
 #####height#####
 treeMsr <- treeMsr[, .SD, .SDcol = colnames(treeMsr)[!colnames(treeMsr) %in%
                                                        c("LocAzi", "Radius", "LocDist", "Width", "Length")]]
-treeHeight <- makeDT("tblHt")
+treeHeight <- ONPSPlist[["tblHt"]]
 treeMsr <- treeHeight[, .(TreeMsrKey, HtTot)][treeMsr, on = c("TreeMsrKey")]
 rm(treeHeight)
 
 ####species####
-tree <- makeDT("tblTree")
-specLk <- makeDT("tlkpSpec")
+tree <- ONPSPlist[["tblTree"]]
+specLk <- ONPSPlist[["tlkpSpec"]]
 specLk[, fullGenusSpec := paste(SpecGenus, tolower(SpecSpec))]
 tree <- specLk[, .(SpecCommon, fullGenusSpec, SpecCode)][tree, on = c("SpecCode")]
 tree <- tree[, c("PostNum", "Dist", "Azi", "MortCauseCode", "TagTypeCode") := NULL]
@@ -134,7 +107,7 @@ tree[, CrownClsr := NULL]
 
 #####age####
 #connect ageHeader with plots for purpose of stand age
-ageHeader <- makeDT("tblAgeHeader") #connects visit key (msr purpose) with other age data
+ageHeader <- ONPSPlist[["tblAgeHeader"]] #connects visit key (msr purpose) with other age data
 ageHeader <- Visit[ageHeader, on = c("VisitKey")]
 ageHeader <- Package[ageHeader, on = c("PackageKey")]
 #now we can connect with plot
@@ -143,10 +116,10 @@ ageHeader[, c("ResidCmpnt", "ManualCode", "VisitTypeName", "VisitTypeCode",
 ageHeader <- Plot[, .(PlotKey, PlotName)][ageHeader, on = c("PlotKey")]
 #MsrDate cannot be used for joins even though it is in both tables as it will vary by day, and not a key (unlike VisiKey)
 #get measurements of individual trees
-ageTree <- makeDT("tblAgeTree")
+ageTree <- ONPSPlist[["tblAgeTree"]]
 #crownclass codes C D and E are code for codominant, dominant, emergent
-ageTree[, c("SiteCondCode", "HtLiveBranch", "MortAzi", "MortDist", "HtLiveFoliage", "HtToDBH") := NULL]
-ageSample <- makeDT("tblAgeSample")
+# ageTree[, c("SiteCondCode", "HtLiveBranch", "MortAzi", "MortDist", "HtLiveFoliage", "HtToDBH") := NULL]
+ageSample <- ONPSPlist[["tblAgeSample"]]
 #join so we get plot ID
 temp <- ageHeader[, .(AgeHeaderKey, PlotName, PlotKey, FieldSeasonYear)]
 ageTree <- temp[ageTree, on = c("AgeHeaderKey")]
@@ -154,11 +127,13 @@ rm(temp)
 #there are two plots with missing IDs  - ageHeaderKey 9466 and 9467.
 #also note that AgeSample does not have AgeTreeKey 20639, and 165 others,
 #though these exist the AgeTree table
+
 treeAges <- ageSample[, .(AgeSampleKey, AgeTreeKey, FieldAge, OfficeAge,
                           AgeSampleStatusCode, AgeSampleTypeCode)]
 treeAges <- treeAges[ageTree, on = c("AgeTreeKey")]
-ageSampleType <- makeDT("tlkpAgeSampleType")
+ageSampleType <- ONPSPlist[["tlkpAgeSampleType"]]
 treeAges <- ageSampleType[treeAges, on = ("AgeSampleTypeCode")]
+
 #1 DBH Core and 4 DBH Cookie need to be adjusted to match Base
 treeAges <- treeAges[, .(AgeSampleKey, AgeTreeKey, FieldAge, OfficeAge, AgeSampleTypeCode,
                          AgeSampleStatusCode, GrowthPlotNum, FieldSeasonYear, TreeNum, CrownClassCode, DBH)]
@@ -216,23 +191,21 @@ standAgesOther <- treeAges[nDominant < 2,
                            .(PlotName, firstMsrYear)]
 standAges <- rbind(standAgesDominant, standAgesOther)
 rm(ageHeader, ageSample, ageSampleType, ageTree, standAgesOther, standAgesDominant, treeAges, Visit)
-gc()
+
 ####Canopy Origin ####
-#TODO: connect standInfo via MsrKey to the plots, and drop those that were planted - aka 4:6
-standInfoHeader <- makeDT("tblStandInfoHeader")
+standInfoHeader <- ONPSPlist[["tblStandInfoHeader"]]
 #some stands originated from old fields and from harvest
-mainCanopyOrigin <- makeDT("tlkpMainCanopyOrigin")
+mainCanopyOrigin <- ONPSPlist[["tlkpMainCanopyOrigin"]]
 standInfoHeader <- mainCanopyOrigin[standInfoHeader, on = c("MainCanopyOriginCode")]
 standInfoHeader[, c("PlotUnifRationale", "MaturClassRationale") := NULL]
 rm(mainCanopyOrigin)
-gc()
 
 
 ###### prep for modules #####
-plotHeaderData <- unique(plotHeaderData[, .(PlotName, TreeGrowthPlotKey, plotArea,
+plotData <- unique(plotData[, .(PlotName, TreeGrowthPlotKey, plotArea,
                                             FieldSeasonYear, MsrDate, GrowthPlotNum)])
 #add relevant columns to tree
-tree <- plotHeaderData[, .(PlotName, FieldSeasonYear, TreeGrowthPlotKey)][tree, on = c("TreeGrowthPlotKey")]
+tree <- plotData[, .(PlotName, FieldSeasonYear, TreeGrowthPlotKey)][tree, on = c("TreeGrowthPlotKey")]
 #filter out dead trees - done first so that plots aren't excluded because of unmeasured dead trees
 #Cut, Dead, Dead Veteran, Exclude, Gone (X), Live, Live Veteran - from tlkpTreeStatus
 tree <- tree[TreeStatusCode %in% c("L", "V")]
@@ -243,11 +216,11 @@ tree <- tree[!TreeGrowthPlotKey %in% missingDBH_TGPK]
 # rm(missingDBH_TGPK)
 #identify the plots with re-numbered trees, these can be kept but need new PlotNames
 needNewPlotNames <- unique(tree[TreeRenumber == 1,]$TreeGrowthPlotKey)
-
 #remove planted stands (and natural stands with planted trees)
+
 #1584 plots have planted trees - remove individual growth plots.
 ####drop dead trees and planted trees
-treeOrigin <- makeDT("tlkpTreeOrigin")
+treeOrigin <- ONPSPlist[["tlkpTreeOrigin"]]
 tree <- treeOrigin[tree, on = c("TreeOriginCode")]
 hasPlanted <- unique(tree[TreeOriginCode %in% c("P", "p")]$TreeGrowthPlotKey)
 tree <- tree[!TreeGrowthPlotKey %in% hasPlanted]
@@ -257,7 +230,7 @@ tree[, TreeOriginCode := NULL]
 #filter for only natural stands
 #328 plots have some kind of treatment (planted, seeded, thinning, pesticide, herbicide, etc)
 #some plots can be kept because measuring happened first - 32 growth plots
-treatedBad <- plotHeaderData[treated[, .(PlotName, TreatYear, TreatTypeName)], on = c("PlotName")]
+treatedBad <- plotData[treated[, .(PlotName, TreatYear, TreatTypeName)], on = c("PlotName")]
 treatedBad <- treatedBad[FieldSeasonYear >= TreatYear]
 tree <- tree[!TreeGrowthPlotKey %in% treatedBad$TreeGrowthPlotKey,]
 rm(treated, treatedBad)
@@ -267,25 +240,33 @@ setnames(tree, "TreeKey", "TreeNumber")
 #correct growthPlot numbers using factor of growthPlot_treeNumber. Confirm rerenumber, oldNumber, treeNumber
 
 #standardize species names - for biomass estimation
-sppEquiv <- LandR::sppEquivalencies_CA[, .(Latin_full, PSP)]
+sppEquiv <- sppEquiv[, .(Latin_full, PSP)]
 setnames(sppEquiv, new = c("fullGenusSpec", "newSpeciesName"))
 sppEquiv <- unique(sppEquiv)
-#fix a few codings to match PSP
-tree[fullGenusSpec == "Salix sp (tree)", fullGenusSpec := "Salix spp."]
+
+#fix a few codings to match PSP - there is no biomass equation for species-specific willow anyway
+tree[fullGenusSpec %in% c("Salix sp (tree)", "Salix alba", "Salix babylonica"),
+                          fullGenusSpec := "Salix spp."]
 #this seems most likely, among populus spp with biomass equations
 tree[fullGenusSpec %in% c("Populus x", "Populus sp"), fullGenusSpec := "Populus balsamifera"]
 tree[fullGenusSpec == "Acer saccharum ssp. nigrum", fullGenusSpec := "Acer saccharum"]
 tree <- sppEquiv[tree, on = ("fullGenusSpec")]
+tree[SpecCommon == "Unknown Hardwood", newSpeciesName := "unknown hardwood"]
 tree[is.na(newSpeciesName), newSpeciesName := SpecCommon]
 tree[, c("OriginName", "fullGenusSpec", "OrigTreeNum") := NULL]
 
+
+####final clean up of Plot ####
+rm(standInfoTreatment, standInfoHeader, Package)
+
+
 #filter for those missing locations
-plotHeaderData <- plotHeaderData[!PlotName %in% investigateMissingLoc$PlotName]
+plotData <- plotData[!PlotName %in% investigateMissingLoc$PlotName]
 
 ##filter for only those with age
 setnames(standAges, c("firstMsrYear", "meanStandAge"), new = c("baseYear", "baseSA"))
-plotHeaderData <- standAges[plotHeaderData, on = c("PlotName")]
-plotHeaderData <- plotHeaderData[!is.na(baseSA)]
+plotData <- standAges[plotData, on = c("PlotName")]
+plotData <- plotData[!is.na(baseSA)]
 
 #standardize area -
 #some plots have multiple plot sizes -
@@ -293,28 +274,78 @@ plotHeaderData <- plotHeaderData[!is.na(baseSA)]
 #page 79 of the manual explains some plots have been expanded over time
 #but they should not have been reduced (though FCTEM2001038PGP appears to have been reduced by 100m2)
 #either way, reject any where area differs by > 5m2
-plotHeaderData <- plotHeaderData[TreeGrowthPlotKey %in% tree$TreeGrowthPlotKey]
-plotHeaderData[, plotArea := sum(plotArea), .(PlotName, FieldSeasonYear)]
-badAreas <- plotHeaderData[, .(numAreas = length(unique(plotArea))), .(PlotName)]
+plotData <- plotData[TreeGrowthPlotKey %in% tree$TreeGrowthPlotKey]
+plotData[, plotArea := sum(plotArea), .(PlotName, FieldSeasonYear)]
+badAreas <- plotData[, .(numAreas = length(unique(plotArea))), .(PlotName)]
 badAreas <- badAreas[numAreas > 1]
 
-plotHeaderData <- plotHeaderData[!PlotName %in% badAreas$PlotName]
-plotHeaderData[, GrowthPlotNum := NULL]
+plotData <- plotData[!PlotName %in% badAreas$PlotName]
+plotData[, GrowthPlotNum := NULL]
 #add location info
 
-plotHeaderData <- Plot[, .(PlotName, Easting, Northing, Datum)][plotHeaderData, on = c("PlotName")]
+plotData <- Plot[, .(PlotName, Easting, Northing, Datum)][plotData, on = c("PlotName")]
 
-#clean up plot
-setnames(plotHeaderData, c("PlotName", "FieldSeasonYear", "plotArea"  ), c("OrigPlotID1", "MeasureYear", "PlotSize"))
-plotHeaderData[, MsrDate := NULL]
+plotData[, MeasureID := as.factor(paste0(PlotName, FieldSeasonYear))]
+plotData[, MeasureID := as.factor(paste0("ONPSP_", as.numeric(MeasureID)))]
+setnames(plotData, c("PlotName", "FieldSeasonYear", "plotArea"  ), c("OrigPlotID1", "MeasureYear", "PlotSize"))
+plotData[, c("MsrDate", "TreeGrowthPlotKey") := NULL]
+plotData <- unique(plotData) #treat different growth plots within a plot as one
 
-#clean up tree
+####Final clean up of Tree####
+#use TreeNumber - MeasureID will come from paste of PlotName_FieldSeasonYear
+
 tree[, c("CrownClassCode", "TreeHeaderKey") := NULL]
-setnames(tree, c("HtTot", "FieldSeasonYear", "PlotName"), c("Height", "MeasureYear", "OrigPlotID1"))
-#final filter to ensure both are present everywhere
-rm(treated, standInfoTreatment, standInfoHeader, Package)
+setnames(tree, c("HtTot", "FieldSeasonYear", "PlotName", "SpecCommon"), c("Height", "MeasureYear", "OrigPlotID1", "Species"))
+tree <- tree[plotData[, .(MeasureYear, OrigPlotID1, MeasureID)], on = c("OrigPlotID1", "MeasureYear")]
+#some tree measurements wil be dropped as the plots were filtered out
 
-#plotHeaderData should have MeasureID OrigPlotID1 MeasureYear Longitude Latitude Zone Easting Northing Elevation   PlotSize baseYear baseSA
+#TODO: review needNewPlotNames - these are renumbered tree
 
-#tree should have MeasureID OrigPlotID1 MeasureYear TreeNumber Species  DBH Height  newSpeciesName
+tree[, c("TreeGrowthPlotKey", "TreeMsrKey", "GrowthPlotNum") := NULL]
+plotData[, OrigPlotID1 := as.factor(paste0("ONPSP_", OrigPlotID1))]
+tree[, OrigPlotID1 := as.factor(paste0("ONPSP_", OrigPlotID1))]
+plotData[, Datum := as.factor(Datum)]
 
+browser()
+setkey(tree, MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, DBH, Height, newSpeciesName)
+setcolorder(tree)
+
+setkey(plotData, OrigPlotID1, MeasureID, MeasureYear)
+setcolorder(plotData)
+
+return(list(plotHeaderData = plotData,
+            treeHeaderData = tree))
+}
+
+#' retrieve preprocessed Ontario PSP and PGP data
+#'
+#' @param dPath the Access database for PSP and PGP plots
+#' @param ... additional args passed to prepInputs
+#'
+#' @return a list of plot and tree data.tables
+#'
+#' @export
+#' @importFrom data.table fread
+
+prepInputsOntarioPSP <- function(dPath, ...) {
+  toget <- c("tblAgeSample.csv", "tblAgeTree.csv", "tblLocCoord.csv",
+             "tblPackage.csv", "tblPlot.csv", "tblStandInfoHeader.csv",
+             "tblStandInfoTreat.csv", "tblTree.csv", "tblTreeGrowthPlot.csv",
+             "tblTreeHeader.csv", "tblTreeMsr.csv", "tblVisit.csv", "tlkpAgeSampleType.csv",
+             "tlkpMainCanopyOrigin.csv", "tlkpSpec.csv", "tlkpTreatType.csv",
+             "tlkpTreeOrigin.csv", "tlkpVisitType.csv", "tblHt.csv")
+
+  actual_dPath <- file.path(dPath, "OntarioPSP")
+  out <- prepInputs(url = "https://drive.google.com/file/d/1ca6TC7952cU4M2dJkT68IOsFmObaDrQn/view?usp=share_link",
+                    targetFile = "tblAgeHeader.csv",
+                    destinationPath = actual_dPath,
+                    alsoExtract = toget,
+                    fun = "fread",
+                    ...)
+
+  actualOut <- file.path(actual_dPath, c(toget, "tblAgeHeader.csv"))
+  actualNames <- sub(basename(actualOut), pattern = ".csv", replacement = "")
+  actualOut <- lapply(actualOut, fread)
+  names(actualOut) <- actualNames
+  return(actualOut)
+}
