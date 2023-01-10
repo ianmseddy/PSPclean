@@ -12,39 +12,75 @@ globalVariables(c(
 #' @importFrom sf st_as_sf st_transform
 geoCleanPSP <- function(Locations) {
 
+  if (!is.null(Locations$Longitude)) {
+    #TODO: write this code so that passing an object with 0 projected locations won't fail
+    Locations$Longitude <- NA
+  }
   # Seperate those using UTM
   LocationsUTM <- Locations[is.na(Longitude) | Longitude == 0, ]
   LocationsWGS <- Locations[!is.na(Longitude) & Longitude != 0, ]
 
   # a few points in UTM 11 are missing northing digits. Blame Alberta?
   LocationsUTM <- LocationsUTM[nchar(LocationsUTM$Northing) > 3, ] # better way to fix?
+
+  if (nrow(LocationsWGS) > 0){
   LocationsWGS <- st_as_sf(
     x = LocationsWGS,
     coords = c("Longitude", "Latitude"),
     crs = "+proj=longlat +datum=WGS84"
   )
   set(LocationsWGS, NULL, c("Northing", "Easting"), NULL) # need equal number of columns
+  }
 
-  LocationsReproj <- lapply(unique(LocationsUTM$Zone), FUN = function(x, points = LocationsUTM) {
-    output <- st_as_sf(
-      x = points[points$Zone == x, ],
-      coords = c("Easting", "Northing"),
-      crs = paste0("+proj=utm +zone=", x, " +ellps=GRS80 +datum=NAD83 +units=m +no_defs ")
-    )
-    set(output, NULL, c("Latitude", "Longitude"), NULL) # mostly NA or wrong
-    output <- st_transform(output, crs = "+proj=longlat +datum=WGS84") # reproject to longlat
-    return(output)
-  })
-  names(LocationsReproj) <- paste0("prev_UTMzone", unique(LocationsUTM$Zone))
+  if (nrow(LocationsUTM) > 0) {
+    #reproject points to lat long
+    ReprojFun = function(UTMzone, points, datum) {
+
+      oldCRS <- if (datum == "NAD83") {
+        paste0("+proj=utm +zone=", UTMzone, " +ellps=GRS80 +datum=",
+               datum, " +units=m +no_defs ")
+      } else if (datum == "NAD27"){
+        paste0("+init=epsg:4267 +proj=longlat +ellps=clrk66 +datum=NAD27 +no_defs + ",
+               "nadgrids=@conus,@alaska,@ntv2_0.gsb,@ntv1_can.dat")
+      } else {
+        stop("uncreognized datum in Location data")
+      }
+
+      output <- st_as_sf(
+        x = points[points$Zone == UTMzone, ],
+        coords = c("Easting", "Northing"),
+        crs = oldCRS)
+      set(output, NULL, c("Latitude", "Longitude"), NULL) # mostly NA or wrong
+      newCRS <- "+proj=longlat +datum=WGS84"
+      output <- st_transform(output, newCRS) # reproject to longlat
+      return(output)
+    }
+
+    LocationsNAD27 <- LocationsUTM[Datum == 27] #this is only Ontario
+    LocationsUTM <- LocationsUTM[!OrigPlotID1 %in% LocationsNAD27]
+    LocationsReproj <- lapply(unique(LocationsUTM$Zone), ReprojFun,
+                              datum = "NAD83", points = LocationsUTM)
+
+    if (nrow(LocationsNAD27) > 0) {
+      LocationsReproj2 <- lapply(unique(LocationsNAD27$Zone),
+                                 FUN = ReprojFun, points = LocationsNAD27, datum = "NAD27")
+      LocationsReproj <- c(LocationsReproj, LocationsReproj2)
+      rm(LocationsReproj2)
+      LocationsReproj <- do.call(rbind, LocationsReproj)
+    }
+  }
 
   # Merge all datasets together
-  LocationsReproj$WGS <- LocationsWGS
-  LocationsReproj$deparse.level <- 1
+  if (nrow(LocationsWGS) > 0) {
+    LocationsReproj$WGS <- LocationsWGS
+    LocationsReproj$deparse.level <- 1
 
-  Locations <- do.call(rbind, args = LocationsReproj)
-
+    Locations <- do.call(rbind, args = LocationsReproj)
+  } else {
+    Locations <- LocationsReproj
+  }
   # The dataset contains separate entries for different years at the same location, presumably for when CMI is sampled
-  set(Locations, NULL, "Zone", NULL)
+  set(Locations, NULL, c("Zone", "Datum"), NULL)
   Locations <- unique.data.frame(Locations[, "OrigPlotID1"])
   return(Locations)
 }

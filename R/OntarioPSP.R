@@ -26,17 +26,19 @@ dataPurification_ONPSP <- function(ONPSPlist, sppEquiv, excludeAllObs = TRUE){
 ##### Location ####
 Plot <- ONPSPlist[["tblPlot"]]
 LocCoord <- ONPSPlist[["tblLocCoord"]]
-#41 plots have no location, of which 39 are PSP (not important) and 2 PGP. Unclear why these are missing
-#the same plot has two locations due to coordtypeCode
-Plot <- LocCoord[Plot, on = "PlotKey"]
+LocPlot <- ONPSPlist[["tblLocPlot"]][, .(LocPlotKey, PlotKey, Zone)] #need UTM Zone here
+
+Plot <- Plot[LocPlot, on = c("PlotKey")]
+#41 plots have no location ? Unclear why these are missing
+#the same plot may have two location entries due to coordtypeCode
+Plot <- LocCoord[Plot, on = c("PlotKey")]
 #CoordTypeCode: 1 = road post, 3 = location post, from tlkCoordType
 #note that not all plots are unique locations
 investigateMissingLoc <- Plot[is.na(CoordTypeCode)]
-setkey(Plot)
 Plot <- Plot[CoordTypeCode == 3]
 Plot <- Plot[, .SD, .SDcols = c("PlotKey", "PlotName", "Easting",
-                                "Northing", "Datum", "DatasetCode")]
-rm(LocCoord)
+                                "Northing", "Datum", "Zone", "DatasetCode")]
+rm(LocCoord, LocPlot)
 ####Identifying treated plots ####
 standInfoTreatment <- ONPSPlist[["tblStandInfoTreat"]]
 treatType <- ONPSPlist[["tlkpTreatType"]]
@@ -77,7 +79,7 @@ treeGrowthPlot[is.na(plotArea), plotArea := round(Radius^2*3.142)]
 smallGrowthPlotKey <- treeGrowthPlot[, .(TreeGrowthPlotKey, TreeHeaderKey, GrowthPlotNum, TreeRenumber, plotArea)]
 plotData <- treeHeader[Plot, on = c("PlotKey")]
 plotData[, c("DatasetCode", "StartYear") := NULL]
-plotData[, c("Easting", "Northing", "Datum") := NULL]
+plotData[, c("Easting", "Northing", "Zone", "Datum") := NULL]
 
 plotData <- smallGrowthPlotKey[plotData, on = c("TreeHeaderKey")]
 plotData[, VisitTypeName := NULL]
@@ -283,7 +285,7 @@ plotData <- plotData[!PlotName %in% badAreas$PlotName]
 plotData[, GrowthPlotNum := NULL]
 #add location info
 
-plotData <- Plot[, .(PlotName, Easting, Northing, Datum)][plotData, on = c("PlotName")]
+plotData <- Plot[, .(PlotName, Easting, Northing, Zone, Datum)][plotData, on = c("PlotName")]
 
 plotData[, MeasureID := as.factor(paste0(PlotName, FieldSeasonYear))]
 plotData[, MeasureID := as.factor(paste0("ONPSP_", as.numeric(MeasureID)))]
@@ -306,7 +308,6 @@ plotData[, OrigPlotID1 := as.factor(paste0("ONPSP_", OrigPlotID1))]
 tree[, OrigPlotID1 := as.factor(paste0("ONPSP_", OrigPlotID1))]
 plotData[, Datum := as.factor(Datum)]
 
-browser()
 setkey(tree, MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, DBH, Height, newSpeciesName)
 setcolorder(tree)
 
@@ -314,7 +315,7 @@ setkey(plotData, OrigPlotID1, MeasureID, MeasureYear)
 setcolorder(plotData)
 
 return(list(plotHeaderData = plotData,
-            treeHeaderData = tree))
+            treeData = tree))
 }
 
 #' retrieve preprocessed Ontario PSP and PGP data
@@ -328,7 +329,7 @@ return(list(plotHeaderData = plotData,
 #' @importFrom data.table fread
 
 prepInputsOntarioPSP <- function(dPath, ...) {
-  toget <- c("tblAgeSample.csv", "tblAgeTree.csv", "tblLocCoord.csv",
+  toget <- c("tblAgeSample.csv", "tblAgeTree.csv", "tblLocCoord.csv", "tblLocPlot.csv",
              "tblPackage.csv", "tblPlot.csv", "tblStandInfoHeader.csv",
              "tblStandInfoTreat.csv", "tblTree.csv", "tblTreeGrowthPlot.csv",
              "tblTreeHeader.csv", "tblTreeMsr.csv", "tblVisit.csv", "tlkpAgeSampleType.csv",

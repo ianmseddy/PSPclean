@@ -2,16 +2,16 @@
 % Please edit documentation in R/BCPSP.R
 \name{prepInputsBCPSP}
 \alias{prepInputsBCPSP}
-\title{source the BC PSP data}
+\title{Source the BC PSP data}
 \usage{
 prepInputsBCPSP(dPath)
 }
 \arguments{
-\item{dPath}{passed to prepInputs destinationPath}
+\item{dPath}{passed to `destinationPath` in `prepInputs()`}
 }
 \value{
 a list of BC PSP objects
 }
 \description{
-source the BC PSP data
+Source the BC PSP data
 }
