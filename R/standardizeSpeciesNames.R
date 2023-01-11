@@ -89,7 +89,7 @@ standardizeSpeciesNames <- function(speciesTable, forestInventorySource) {
     # A is aspen cottonwood and poplar, assume it is trembling aspen
     speciesTable[Species == "P", newSpeciesName := "lodgepole pine"]
     # P is pine Species, assume it is lodgepole pine
-    speciesTable[Species == "MR", newSpeciesName := "red maple"]
+    speciesTable[Species == "MR", newSpeciesName := "douglas maple"]
     # MR could not find, assume it is red maple
     speciesTable[Species == "SE", newSpeciesName := "engelmann spruce"]
     speciesTable[Species == "FD", newSpeciesName := "douglas-fir"]
