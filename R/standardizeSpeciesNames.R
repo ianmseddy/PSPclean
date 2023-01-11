@@ -90,7 +90,6 @@ standardizeSpeciesNames <- function(speciesTable, forestInventorySource) {
     speciesTable[Species == "P", newSpeciesName := "lodgepole pine"]
     # P is pine Species, assume it is lodgepole pine
     speciesTable[Species == "MR", newSpeciesName := "douglas maple"]
-    # MR could not find, assume it is red maple
     speciesTable[Species == "SE", newSpeciesName := "engelmann spruce"]
     speciesTable[Species == "FD", newSpeciesName := "douglas-fir"]
     speciesTable[Species == "BA", newSpeciesName := "pacific silver fir"] # this is amabilis fir
