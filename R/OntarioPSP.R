@@ -1,10 +1,14 @@
 globalVariables(c(
-  ":=", "trees_measurement_comment", "tree_origin", "stand_origin", "dbh_age", "maxN",
-  "stump_age", "total_age", "crown_class", "measurement_year", "stand_age", "tree_location_id",
-  "condition_code1", "condition_code2", "condition_code3", "cause", "cause1", "cause2",
-  "cause3", ".N", "N", "sizes", "tempyear", "totalBad", "PlotSize", "tree_plot_area", "MeasureID", "latitude",
-  "longitude", "OrigPlotID1", "Species", "MeasureYear", "company_plot_number", "tree_number",
-  "species", "minMeasure", "measurement_number", "dbh", "height", "elevation"
+  ".SD", "AgeHeaderKey", "AgeSampleKey", "AgeSampleStatusCode", "AgeSampleTypeCode",
+  "AgeTreeKey", "CoordTypeCode", "CrownClassCode", "CrownClsr", "Datum", "FieldAge",
+  "FieldAge_Base", "FieldAge_DBH", "FieldAge_diff", "FieldSeasonYear",
+  "GrowthPlotNum", "HtTot", "Latin_full", "Length", "LocPlotKey", "MsrDate", "OfficeAge",
+  "OfficeAge_Base", "OfficeAge_DBH", "OfficeAge_diff", "PSP", "PackageKey", "PlotKey",
+  "PlotName", "Radius", "SpecCode", "SpecCommon", "SpecGenus", "SpecSpec", "StartYear",
+  "TreatTypeName", "TreatYear", "TreeGrowthPlotKey", "TreeHeaderKey", "TreeKey",
+  "TreeMsrKey", "TreeNum", "TreeOriginCode", "TreeRenumber", "TreeStatusCode",
+  "VisitTypeName", "Width", "ageMethod", "dcast", "firstMsrYear", "fullGenusSpec",
+  "nCodominant", "nDominant", "numAreas", "plotArea", "standardizedAge", "unifiedAge"
 ))
 
 #' standardize and treat the Ontario PSP data
@@ -254,7 +258,7 @@ tree[fullGenusSpec %in% c("Populus x", "Populus sp"), fullGenusSpec := "Populus 
 tree[fullGenusSpec == "Acer saccharum ssp. nigrum", fullGenusSpec := "Acer saccharum"]
 tree <- sppEquiv[tree, on = ("fullGenusSpec")]
 tree[SpecCommon == "Unknown Hardwood", newSpeciesName := "unknown hardwood"]
-tree[is.na(newSpeciesName), newSpeciesName := SpecCommon]
+tree[is.na(newSpeciesName), newSpeciesName := tolower(SpecCommon)]
 tree[, c("OriginName", "fullGenusSpec", "OrigTreeNum") := NULL]
 
 
