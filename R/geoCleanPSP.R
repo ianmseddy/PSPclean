@@ -65,17 +65,19 @@ geoCleanPSP <- function(Locations) {
                                  FUN = ReprojFun, points = LocationsNAD27, datum = "NAD27")
       LocationsReproj <- c(LocationsReproj, LocationsReproj2)
       rm(LocationsReproj2)
-      LocationsReproj <- do.call(rbind, LocationsReproj)
     }
   }
 
   # Merge all datasets together
   if (nrow(LocationsWGS) > 0) {
-    LocationsReproj$WGS <- LocationsWGS
-    LocationsReproj$deparse.level <- 1
-
-    Locations <- do.call(rbind, args = LocationsReproj)
+    LocationsReproj <- do.call(rbind, LocationsReproj)
+    #rbind does not have fill = TRUE
+    LocationsWGS$Easting <- NULL
+    LocationsWGS$Northing <- NULL
+    Locations <- list(LocationsReproj, LocationsWGS)
+    Locations <- do.call(rbind, Locations)
   } else {
+    LocationsReproj <- do.call(rbind, LocationsReproj)
     Locations <- LocationsReproj
   }
   # The dataset contains separate entries for different years at the same location, presumably for when CMI is sampled
