@@ -77,6 +77,8 @@ treeGrowthPlot[Radius == 11.26, Radius := 11.28]
 treeGrowthPlot[Radius == 11.33, Radius := 11.28]
 treeGrowthPlot[, plotArea := Width * Length]
 treeGrowthPlot[is.na(plotArea), plotArea := round(Radius^2*3.142)]
+#standardize to ha
+treeGrowthPlot[, plotArea := plotArea/10000]
 #some plots change from radius 11.33 to 11.28 over time - leading to differing areas.
 #IMO this area discrepancy is allowable (< 1%) but others are drastic and should be excluded
 
