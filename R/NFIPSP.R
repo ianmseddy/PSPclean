@@ -90,8 +90,8 @@ dataPurification_NFIPSP <- function(lgptreeRaw, lgpHeaderRaw, approxLocation, tr
   treeData[, Species := paste0(Genus, "_", Species)]
   treeData[, Genus := NULL] # This column is not in any of the other PSP datasets
 
-  treeData$OrigPlotID1 <- paste0("NFI", treeData$OrigPlotID1)
-  lgpHeader$OrigPlotID1 <- paste0("NFI", lgpHeader$OrigPlotID1)
+  treeData$OrigPlotID1 <- paste0("NFIPSP", treeData$OrigPlotID1)
+  lgpHeader$OrigPlotID1 <- paste0("NFIPSP", lgpHeader$OrigPlotID1)
 
   treeData[Height <= 0, Height := NA]
   treeData <- treeData[!is.na(DBH) & DBH > 0]

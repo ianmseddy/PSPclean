@@ -12,8 +12,7 @@ globalVariables(c(
 #' @importFrom sf st_as_sf st_transform
 geoCleanPSP <- function(Locations) {
 
-  if (!is.null(Locations$Longitude)) {
-    #TODO: write this code so that passing an object with 0 projected locations won't fail
+  if (is.null(Locations$Longitude)) {
     Locations$Longitude <- NA
   }
   # Seperate those using UTM

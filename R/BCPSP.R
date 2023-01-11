@@ -128,8 +128,8 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
 
   treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "BCPSP") # Need to add to pemisc
 
-  treeData$OrigPlotID1 <- paste0("BC", treeData$OrigPlotID1)
-  headerData$OrigPlotID1 <- paste0("BC", headerData$OrigPlotID1)
+  treeData$OrigPlotID1 <- paste0("BCPSP", treeData$OrigPlotID1)
+  headerData$OrigPlotID1 <- paste0("BCPSP", headerData$OrigPlotID1)
 
   # final clean up
   treeData[Height <= 0, Height := NA]
