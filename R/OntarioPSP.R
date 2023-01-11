@@ -258,7 +258,7 @@ tree[fullGenusSpec %in% c("Populus x", "Populus sp"), fullGenusSpec := "Populus 
 tree[fullGenusSpec == "Acer saccharum ssp. nigrum", fullGenusSpec := "Acer saccharum"]
 tree <- sppEquiv[tree, on = ("fullGenusSpec")]
 tree[SpecCommon == "Unknown Hardwood", newSpeciesName := "unknown hardwood"]
-tree[is.na(newSpeciesName), newSpeciesName := tolower(SpecCommon)]
+tree[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := tolower(SpecCommon)]
 tree[, c("OriginName", "fullGenusSpec", "OrigTreeNum") := NULL]
 
 

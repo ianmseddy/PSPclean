@@ -161,8 +161,8 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   # the above approach will not correct plots where the numbers change after 2 measurements,
   # ie split 2-2 or 2-3 with 4/5 measurements respectively - at thsi point I assume stand-replacing disturbance
 
-  treeData$OrigPlotID1 <- paste0("SK", treeData$OrigPlotID1)
-
+  treeData[, OrigPlotID1 := paste0("SKPSP", OrigPlotID1)]
+  headData[, OrigPlotID1 := paste0("SKPSP", OrigPlotID1)]
   # final clean up
   treeData[Height <= 0, Height := NA]
   treeData <- treeData[!is.na(DBH) & DBH > 0]
