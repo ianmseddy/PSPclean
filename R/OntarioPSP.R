@@ -7,7 +7,7 @@ globalVariables(c(
   "PlotName", "Radius", "SpecCode", "SpecCommon", "SpecGenus", "SpecSpec", "StartYear",
   "TreatTypeName", "TreatYear", "TreeGrowthPlotKey", "TreeHeaderKey", "TreeKey",
   "TreeMsrKey", "TreeNum", "TreeOriginCode", "TreeRenumber", "TreeStatusCode",
-  "VisitTypeName", "Width", "ageMethod", "dcast", "firstMsrYear", "fullGenusSpec",
+  "VisitTypeName", "Width", "ageMethod", "firstMsrYear", "fullGenusSpec",
   "nCodominant", "nDominant", "numAreas", "plotArea", "standardizedAge", "unifiedAge"
 ))
 
@@ -21,7 +21,7 @@ globalVariables(c(
 #' @return a list of plot and tree data.tables
 #'
 #' @export
-#' @importFrom data.table copy data.table set setcolorder setkey
+#' @importFrom data.table copy data.table set setcolorder setkey dcast
 #'
 dataPurification_ONPSP <- function(ONPSPlist, sppEquiv, excludeAllObs = TRUE){
 
