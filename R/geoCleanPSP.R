@@ -80,6 +80,11 @@ geoCleanPSP <- function(Locations) {
     LocationsReproj <- do.call(rbind, LocationsReproj)
     Locations <- LocationsReproj
   }
+
+  if (is.null(Locations$Elevation)) {
+    Locations$Elevation <- NA
+  }
+
   # The dataset contains separate entries for different years at the same location, presumably for when CMI is sampled
   Locations <- Locations[c("OrigPlotID1", "baseSA", "Elevation")]
   Locations <- Locations[!duplicated(Locations$OrigPlotID1),] #drop repeat measures from GIS
