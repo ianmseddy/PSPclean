@@ -14,6 +14,7 @@ geoCleanPSP <- function(Locations) {
 
   if (is.null(Locations$Longitude)) {
     Locations$Longitude <- NA
+    Locations$Latitude <- NA
   }
   # Seperate those using UTM
   LocationsUTM <- Locations[is.na(Longitude) | Longitude == 0, ]
