@@ -1,13 +1,13 @@
 globalVariables(c(
   ".SD", "AgeHeaderKey", "AgeSampleKey", "AgeSampleStatusCode", "AgeSampleTypeCode",
-  "AgeTreeKey", "CoordTypeCode", "CrownClassCode", "CrownClsr", "Datum", "FieldAge",
-  "FieldAge_Base", "FieldAge_DBH", "FieldAge_diff", "FieldSeasonYear",
+  "AgeTreeKey", "baseAgeYear", "CoordTypeCode", "CrownClassCode", "CrownClsr", "Datum",
+  "FieldAge", "FieldAge_Base", "FieldAge_DBH", "FieldAge_diff", "FieldSeasonYear",
   "GrowthPlotNum", "HtTot", "Latin_full", "Length", "LocPlotKey", "MsrDate", "OfficeAge",
   "OfficeAge_Base", "OfficeAge_DBH", "OfficeAge_diff", "PSP", "PackageKey", "PlotKey",
   "PlotName", "Radius", "SpecCode", "SpecCommon", "SpecGenus", "SpecSpec", "StartYear",
   "TreatTypeName", "TreatYear", "TreeGrowthPlotKey", "TreeHeaderKey", "TreeKey",
   "TreeMsrKey", "TreeNum", "TreeOriginCode", "TreeRenumber", "TreeStatusCode",
-  "VisitTypeName", "Width", "ageMethod", "firstMsrYear", "fullGenusSpec",
+  "VisitTypeName", "Width", "ageMethod", "firstMsrYear", "firstAgeMsrYear", "fullGenusSpec",
   "nCodominant", "nDominant", "numAreas", "plotArea", "standardizedAge", "unifiedAge"
 ))
 
@@ -179,24 +179,24 @@ treeAges[, c("OfficeAge_DBH", "FieldAge_DBH") := NULL]
 treeAges[, unifiedAge := OfficeAge_Base]
 treeAges[is.na(unifiedAge), unifiedAge := FieldAge_Base]
 treeAges <- treeAges[!is.na(unifiedAge)]
-#view 1328596PIP to see why this is necessary - some trees have sneaky bad data
+#view 1328596PIP to see why this is necessary - some trees have complicated data
 temp <- ageTree[, .(AgeHeaderKey, AgeTreeKey)]
 treeAges <- temp[treeAges, on = c("AgeTreeKey")]
 treeAges <- ageHeader[treeAges, on = c("AgeHeaderKey", "FieldSeasonYear")]
 rm(temp, meanOfficeAgeDiff, meanFieldAgeDiff)
-treeAges[, firstMsrYear := min(FieldSeasonYear), .(PlotName)]
+treeAges[, firstAgeMsrYear := min(FieldSeasonYear), .(PlotName)]
 
-#For jurisdictiosn with no estimated standa age,
+#For jurisdictiosn with no estimated stand age,
 #the PSPclean approach derives standAge as mean of N trees with crown class Dominant, where N > 1.
 #if none are available, we take the mean of all dominant and codominant trees
 treeAges[, nDominant := sum(CrownClassCode == "D "), .(PlotName)]
 treeAges[, nCodominant := sum(CrownClassCode == "C "), .(PlotName)]
-treeAges[, standardizedAge := unifiedAge - FieldSeasonYear + firstMsrYear] #standardize
+treeAges[, standardizedAge := unifiedAge - FieldSeasonYear + firstAgeMsrYear] #standardize
 standAgesDominant <- treeAges[nDominant > 1 & CrownClassCode == "D",
-                              .(meanStandAge = as.integer(mean(standardizedAge))), .(PlotName, firstMsrYear)]
+                              .(meanStandAge = as.integer(mean(standardizedAge))), .(PlotName, firstAgeMsrYear)]
 standAgesOther <- treeAges[nDominant < 2,
                            .(meanStandAge = as.integer(mean(standardizedAge, na.rm = TRUE))),
-                           .(PlotName, firstMsrYear)]
+                           .(PlotName, firstAgeMsrYear)]
 standAges <- rbind(standAgesDominant, standAgesOther)
 rm(ageHeader, ageSample, ageSampleType, ageTree, standAgesOther, standAgesDominant, treeAges, Visit)
 
@@ -272,16 +272,28 @@ rm(standInfoTreatment, standInfoHeader, Package)
 plotData <- plotData[!PlotName %in% investigateMissingLoc$PlotName]
 
 ##filter for only those with age
-setnames(standAges, c("firstMsrYear", "meanStandAge"), new = c("baseYear", "baseSA"))
+setnames(standAges, c("firstAgeMsrYear", "meanStandAge"), new = c("baseAgeYear", "baseSA"))
 plotData <- standAges[plotData, on = c("PlotName")]
 plotData <- plotData[!is.na(baseSA)]
+gc()
+#as some some plot measurements occured prior to age measurements, adjust ages backwards
+plotData[, baseYear := min(FieldSeasonYear), .(PlotName)]
+plotData[baseYear < baseAgeYear, baseSA := baseSA + (baseAgeYear-baseYear)]
+plotData[, baseAgeYear := NULL]
+
+
+#filter for incorrect plot size - this plot size changed over time and was not recorded correctly-
+#person comm.
+plotData <- plotData[PlotName != "FCBOW56-2002-21PGP",]
+
 
 #standardize area -
-#some plots have multiple plot sizes -
-#some differences are trivial (11.33m radius vs. 11.28m) but others change by > 100 m2
-#page 79 of the manual explains some plots have been expanded over time
+#some plots have inconsistent plot sizes -
+#some differences are rounding error (11.33m radius vs. 11.28m) but others change by > 100 m2
+#page 79 of the manual explains why some plots have been expanded over time
 #but they should not have been reduced (though FCTEM2001038PGP appears to have been reduced by 100m2)
-#either way, reject any where area differs by > 5m2
+#reject any where area differs by > 5m2
+#this needs to be reviewed
 plotData <- plotData[TreeGrowthPlotKey %in% tree$TreeGrowthPlotKey]
 plotData[, plotArea := sum(plotArea), .(PlotName, FieldSeasonYear)]
 badAreas <- plotData[, .(numAreas = length(unique(plotArea))), .(PlotName)]
