@@ -34,7 +34,7 @@ geoCleanPSP <- function(Locations) {
 
   if (nrow(LocationsUTM) > 0) {
     #reproject points to lat long
-    ReprojFun = function(UTMzone, points, datum) {
+    ReprojFun = function(UTMzone, points, datum = NULL) {
 
       oldCRS <- if (datum == "NAD83") {
         paste0("+proj=utm +zone=", UTMzone, " +ellps=GRS80 +datum=",
@@ -56,8 +56,13 @@ geoCleanPSP <- function(Locations) {
       return(output)
     }
 
-    LocationsNAD27 <- LocationsUTM[Datum == 27] #this is only Ontario
-    LocationsUTM <- LocationsUTM[!OrigPlotID1 %in% LocationsNAD27]
+    if (!is.null(Locations$Datum)) {
+      LocationsNAD27 <- LocationsUTM[Datum == 27] #this is only Ontario so far
+      LocationsUTM <- LocationsUTM[!OrigPlotID1 %in% LocationsNAD27]
+    } else {
+      LocationsNAD27 <- LocationsUTM[0,]
+    }
+
     LocationsReproj <- lapply(unique(LocationsUTM$Zone), ReprojFun,
                               datum = "NAD83", points = LocationsUTM)
 
