@@ -158,7 +158,7 @@ treeAges <- treeAges[!is.na(AgeSampleKey)] #get rid of age trees with no samples
 
 treeAges <- dcast(treeAges, AgeTreeKey + GrowthPlotNum + FieldSeasonYear +
                     TreeNum + CrownClassCode + DBH  ~ ageMethod,
-                  value.var = c("FieldAge", "OfficeAge"), fun = mean, drop = c(TRUE))
+                  value.var = c("FieldAge", "OfficeAge"), fun.aggregate = mean, drop = c(TRUE))
 #correct obvious mistakes
 treeAges[AgeTreeKey == 80459, OfficeAge_Base := 73] #they are clearly missing the 7 - age is 3 otherwise
 treeAges[AgeTreeKey == 43397, FieldAge_Base := 94] #they are clearly missing the 9

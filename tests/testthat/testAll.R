@@ -1,9 +1,9 @@
 ## googledrive needed in suggests b/c used by reproducible, where it's also suggested and therefore
 ##   not installed by default with this package
 stopifnot(require("googledrive", quietly = TRUE))
-
+require("sf")
 standardizedPlotNames <- c(
-  "MeasureID", "OrigPlotID1", "MeasureYear", "Longitude", "Latitude",
+  "MeasureID", "OrigPlotID1", "MeasureYear", "Longitude", "Latitude", "Datum",
   "Zone", "Northing", "Easting", "Elevation", "PlotSize", "baseYear", "baseSA"
 )
 standardizedTreeNames <- c(
@@ -192,20 +192,52 @@ test_that("geoCleanPSP works", {
   out2 <- geoCleanPSP(bcClean$plotHeaderData)
 
   #both
-  out3 <- geoCleanPSP(rbind(bcClean$plotHeaderData, abClean$plotHeaderData))
+  out3 <- geoCleanPSP(rbind(bcClean$plotHeaderData, abClean$plotHeaderData, fill = TRUE))
 
   #ON - has some weird NAD27 plots
   ON <- prepInputsOntarioPSP(dPath = dPath)
-
   sppEquiv <- LandR::sppEquivalencies_CA
   onClean <- dataPurification_ONPSP(ONPSPlist = ON,
                                     sppEquiv = sppEquiv)
   out4 <- geoCleanPSP(onClean$plotHeaderData)
 
-  #all 3
-  out5 <- geoCleanPSP(rbind(onClean$plotHeaderData,
-                            bcClean$plotHeaderData,
-                            abClean$plotHeaderData))
+  #SK
+  skm <- prepInputsSaskatchwanTSP(dPath = dPath)
+  skmClean <- dataPurification_SKTSP_Mistik(
+    compiledPlotData = skm$compiledPlotData,
+    compiledTreeData = skm$compiledTreeData
+  )
+  out5 <- geoCleanPSP(skmClean$plotHeaderData)
 
-  expect_equal(names(out5), names(out))
+  sk <- prepInputsSaskatchwanPSP(dPath = dPath)
+  skClean <- dataPurification_SKPSP(
+    SADataRaw = sk$SADataRaw, plotHeaderRaw = sk$plotHeaderRaw,
+    measureHeaderRaw = sk$measureHeaderRaw, treeDataRaw = sk$treeDataRaw
+  )
+  out6 <- geoCleanPSP(skClean$plotHeaderData)
+
+
+  nfi <- prepInputsNFIPSP(dPath = dPath)
+  nfiClean <- dataPurification_NFIPSP(
+    lgptreeRaw = nfi$pspTreeMeasure,
+    lgpHeaderRaw = nfi$pspHeader,
+    approxLocation = nfi$pspLocation,
+    treeDamage = nfi$pspTreeDamage
+  )
+  out7 <- geoCleanPSP(nfiClean$plotHeaderData)
+
+
+  #all
+  out8 <- geoCleanPSP(rbind(onClean$plotHeaderData,
+                            bcClean$plotHeaderData,
+                            abClean$plotHeaderData,
+                            nfiClean$plotHeaderData,
+                            skmClean$plotHeaderData,
+                            skClean$plotHeaderData,
+                            onClean$plotHeaderData,
+                            fill = TRUE))
+  expect_false(any(st_is_empty(out8)))
+
+  expect_equal(names(out), names(out2))
+  expect_equal(names(out3), names(out4))
 })
