@@ -9,7 +9,7 @@ globalVariables(c(
 #' @return an sf object with \code{OrigPlotID1} column
 #'
 #' @export
-#' @importFrom sf st_as_sf st_transform
+#' @importFrom sf st_as_sf st_transform st_crs
 #' @importFrom data.table set setDT
 geoCleanPSP <- function(Locations) {
 

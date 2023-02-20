@@ -4,15 +4,13 @@
 \alias{dataPurification_ONPSP}
 \title{standardize and treat the Ontario PSP data}
 \usage{
-dataPurification_ONPSP(ONPSPlist, sppEquiv, excludeAllObs = TRUE)
+dataPurification_ONPSP(ONPSPlist, sppEquiv)
 }
 \arguments{
 \item{ONPSPlist}{list of relevant plots}
 
 \item{sppEquiv}{table of species names - see \code{LandR::sppEquiv}-
 must have column 'latin' and 'PSP'}
-
-\item{excludeAllObs}{if removing observations of individual trees due to damage codes,}
 }
 \value{
 a list of plot and tree data.tables
