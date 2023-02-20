@@ -16,14 +16,13 @@ globalVariables(c(
 #' @param ONPSPlist list of relevant plots
 #' @param sppEquiv table of species names - see \code{LandR::sppEquiv}-
 #' must have column 'latin' and 'PSP'
-#' @param excludeAllObs if removing observations of individual trees due to damage codes,
 #'
 #' @return a list of plot and tree data.tables
 #'
 #' @export
 #' @importFrom data.table copy data.table set setcolorder setkey dcast
 #'
-dataPurification_ONPSP <- function(ONPSPlist, sppEquiv, excludeAllObs = TRUE){
+dataPurification_ONPSP <- function(ONPSPlist, sppEquiv){
 
 #TODO: review excludeAllObs - I dont' think we exclude anything at the moment
 
