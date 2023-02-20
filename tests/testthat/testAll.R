@@ -144,3 +144,68 @@ test_that("PSP SK works", {
   expect_true(all(names(skmClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(names(skmClean$treeData) %in% standardizedTreeNames))
 })
+
+
+test_that("PSP ON works", {
+  dPath <- reproducible::checkPath(file.path(tempdir(), "ON"), create = TRUE)
+  on.exit({
+    unlink(dPath, recursive = TRUE)
+  }, add = TRUE)
+  ON <- prepInputsOntarioPSP(dPath = dPath)
+
+  sppEquiv <- LandR::sppEquivalencies_CA
+  onClean <- dataPurification_ONPSP(ONPSPlist = ON,
+                                    sppEquiv = sppEquiv)
+
+  expect_true(all(names(onClean$plotHeaderData) %in% standardizedPlotNames))
+  expect_true(all(names(onClean$treeData) %in% standardizedTreeNames))
+
+})
+
+
+
+test_that("geoCleanPSP works", {
+
+  dPath <- reproducible::checkPath(file.path(tempdir(), "AB"), create = TRUE)
+  on.exit({
+    unlink(dPath, recursive = TRUE)
+  }, add = TRUE)
+
+  #with alberta - all lat lon
+  ab <- prepInputsAlbertaPSP(dPath = dPath)
+  abClean <- dataPurification_ABPSP(
+    treeMeasure = ab$pspABtreeMeasure,
+    plotMeasure = ab$pspABplotMeasure,
+    tree = ab$pspABtree, plot = ab$pspABplot
+  )
+
+  out <- geoCleanPSP(abClean$plotHeaderData)
+
+  #bc - all UTM
+  bc <- prepInputsBCPSP(dPath = dPath)
+  bcClean <- dataPurification_BCPSP(
+    treeDataRaw = bc$treeDataRaw,
+    plotHeaderDataRaw = bc$plotHeaderDataRaw,
+    damageAgentCodes = bc$pspBCdamageAgentCodes
+  )
+
+  out2 <- geoCleanPSP(bcClean$plotHeaderData)
+
+  #both
+  out3 <- geoCleanPSP(rbind(bcClean$plotHeaderData, abClean$plotHeaderData))
+
+  #ON - has some weird NAD27 plots
+  ON <- prepInputsOntarioPSP(dPath = dPath)
+
+  sppEquiv <- LandR::sppEquivalencies_CA
+  onClean <- dataPurification_ONPSP(ONPSPlist = ON,
+                                    sppEquiv = sppEquiv)
+  out4 <- geoCleanPSP(onClean$plotHeaderData)
+
+  #all 3
+  out5 <- geoCleanPSP(rbind(onClean$plotHeaderData,
+                            bcClean$plotHeaderData,
+                            abClean$plotHeaderData))
+
+  expect_equal(names(out5), names(out))
+})
