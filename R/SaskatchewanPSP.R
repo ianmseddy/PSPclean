@@ -182,7 +182,7 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
 #' @importFrom reproducible prepInputs
 prepInputsSaskatchwanPSP <- function(dPath) {
   pspSKRaw <- prepInputs(
-    targetFile = file.path(dPath, "SKPSP.RData"),
+    targetFile = "SKPSP.RData",
     url = "https://drive.google.com/open?id=1yvOzfNqZ28oLYKTfdDb8-Wip7jBPtCz6",
     destinationPath = dPath,
     fun = "load",

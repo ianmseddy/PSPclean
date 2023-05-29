@@ -74,7 +74,7 @@ dataPurification_SKTSP_Mistik <- function(compiledPlotData, compiledTreeData) {
 #' @importFrom reproducible prepInputs
 prepInputsSaskatchwanTSP <- function(dPath) {
   tspSKMistikRaw <- prepInputs(
-    targetFile = file.path(dPath, "SK_TSP_Mistik.RData"),
+    targetFile = "SK_TSP_Mistik.RData",
     url = "https://drive.google.com/open?id=1PCn0DpGwsXBhquW3jOaqks1QC9teo_Xx",
     destinationPath = dPath,
     fun = "load",

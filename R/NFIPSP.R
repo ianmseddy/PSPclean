@@ -111,7 +111,7 @@ dataPurification_NFIPSP <- function(lgptreeRaw, lgpHeaderRaw, approxLocation, tr
 #' @importFrom reproducible prepInputs
 prepInputsNFIPSP <- function(dPath) {
   pspNFILocationRaw <- prepInputs(
-    targetFile = file.path(dPath, "all_gp_site_info.csv"),
+    targetFile = "all_gp_site_info.csv",
     url = "https://drive.google.com/file/d/1S-4itShMXtwzGxjKPgsznpdTD2ydE9qn/",
     destinationPath = dPath,
     overwrite = TRUE,
@@ -119,7 +119,7 @@ prepInputsNFIPSP <- function(dPath) {
   )
 
   pspNFIHeaderRaw <- prepInputs(
-    targetFile = file.path(dPath, "all_gp_ltp_header.csv"),
+    targetFile = "all_gp_ltp_header.csv",
     url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/",
     destinationPath = dPath,
     fun = "data.table::fread",
@@ -127,7 +127,7 @@ prepInputsNFIPSP <- function(dPath) {
   )
 
   pspNFITreeRaw <- prepInputs(
-    targetFile = file.path(dPath, "all_gp_ltp_tree.csv"),
+    targetFile = "all_gp_ltp_tree.csv",
     url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/",
     destinationPath = dPath,
     fun = "data.table::fread",
@@ -135,7 +135,7 @@ prepInputsNFIPSP <- function(dPath) {
   )
 
   pspNFITreeDamage <- prepInputs(
-    targetFile = file.path(dPath, "all_gp_ltp_tree_damage.csv"),
+    targetFile = "all_gp_ltp_tree_damage.csv",
     url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/",
     destinationPath = dPath,
     fun = "data.table::fread",
