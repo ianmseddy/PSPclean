@@ -353,15 +353,14 @@ prepInputsOntarioPSP <- function(dPath, ...) {
              "tlkpMainCanopyOrigin.csv", "tlkpSpec.csv", "tlkpTreatType.csv",
              "tlkpTreeOrigin.csv", "tlkpVisitType.csv", "tblHt.csv")
 
-  actual_dPath <- file.path(dPath, "OntarioPSP")
   out <- prepInputs(url = "https://drive.google.com/file/d/1ca6TC7952cU4M2dJkT68IOsFmObaDrQn/view?usp=share_link",
                     targetFile = "tblAgeHeader.csv",
-                    destinationPath = actual_dPath,
+                    destinationPath = dPath,
                     alsoExtract = toget,
                     fun = "fread",
                     ...)
 
-  actualOut <- file.path(actual_dPath, c(toget, "tblAgeHeader.csv"))
+  actualOut <- file.path(dPath, c(toget, "tblAgeHeader.csv"))
   actualNames <- sub(basename(actualOut), pattern = ".csv", replacement = "")
   actualOut <- lapply(actualOut, fread)
   names(actualOut) <- actualNames
