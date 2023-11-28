@@ -6,7 +6,7 @@ globalVariables(c(
 #'
 #' @param Locations the compiled plot data
 #'
-#' @return an sf object with \code{OrigPlotID1} column
+#' @return an sf object with `OrigPlotID1` column
 #'
 #' @export
 #' @importFrom sf st_as_sf st_transform

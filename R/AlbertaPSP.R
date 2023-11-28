@@ -13,12 +13,12 @@ globalVariables(c(
 #' @param plotMeasure the plot_measurement csv
 #' @param tree the tree csv
 #' @param plot the plot csv
-#' @param codesToExclude damage agent codes used to filterr tree data - see GOA PSP Manual.
+#' @param codesToExclude damage agent codes used to filter tree data - see GOA PSP Manual.
 #' Measurements with these codes will be removed
 #' @param excludeAllObs if removing observations of individual trees due to damage codes,
 #' @param areaDiffThresh the threshold of plot size discrepancy to allow below which
-#' plots will be given a new ID column. Expressed as \code{min(PlotSize)/max(PlotSize)}
-#' remove all prior and future observations if \code{TRUE}.
+#' plots will be given a new ID column. Expressed as `min(PlotSize)/max(PlotSize)`
+#' remove all prior and future observations if `TRUE`.
 #'
 #' @return a list of plot and tree data.tables
 #'
