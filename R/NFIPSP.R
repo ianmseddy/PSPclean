@@ -1,10 +1,11 @@
 utils::globalVariables(c(
-  ":=", ".",
-  "baseSA", "baseYear", "damage_agent", "dbh", "DBH", "Easting", "elevation", "Elevation",
-  "Genus", "height", "Height", "isArtificial", "lgtree_genus", "lgtree_species", "lgtree_status",
-  "meas_num", "meas_plot_size", "MeasureID", "MeasureYear", "nfi_plot", "Northing",
-  "orig_plot_area", "OrigPlotID1", "PlotSize", "site_age", "Species", "tree_num", "TreeNumber",
-  "utm_e", "utm_n", "utm_zone", "year", "Zone"
+  ":=", ".", "baseSA", "baseYear", "damage_agent", "dbh", "DBH",
+  "Easting", "elevation", "Elevation", "Genus", "height", "Height",
+  "isArtificial", "lgtree_genus", "lgtree_species", "lgtree_status",
+  "meas_num", "meas_plot_size", "MeasureID", "MeasureYear", "nfi_plot",
+  "Northing", "orig_plot_area", "OrigPlotID1", "PlotSize", "site_age",
+  "Species", "tree_num", "TreeNumber", "utm_e", "utm_n", "utm_zone",
+  "year", "Zone"
 ))
 
 #' standardize and treat the NFI PSP data

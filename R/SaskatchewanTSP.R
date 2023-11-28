@@ -1,8 +1,8 @@
 globalVariables(c(
-  ".", "ID_FOR", "CRZ_ZONE", "CRZNORTH", "CRZ_EAST", "PLOTNUM", "YEAR",
-  "PSIZE", "P_AGECLS", ":=", "PlotSize", "MeasureID", "TREENO", "SPECIES",
-  "DBH", "HEIGHT", "CONDCOD1", "CONDCOD2", "CONDCOD3", "MeasureYear",
-  "Zone", "Easting", "Northing", "SA"
+  ":=", ".", "CONDCOD1", "CONDCOD2", "CONDCOD3", "CRZ_EAST",
+  "CRZ_ZONE", "CRZNORTH", "DBH", "Easting", "HEIGHT", "ID_FOR",
+  "MeasureID", "MeasureYear", "Northing", "P_AGECLS", "PLOTNUM",
+  "PlotSize", "PSIZE", "SA", "SPECIES", "TREENO", "YEAR", "Zone"
 ))
 
 #' standardize and treat the Saskatchewan Mistik TSP data

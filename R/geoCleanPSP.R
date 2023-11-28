@@ -11,7 +11,6 @@ globalVariables(c(
 #' @export
 #' @importFrom sf st_as_sf st_transform
 geoCleanPSP <- function(Locations) {
-
   # Seperate those using UTM
   LocationsUTM <- Locations[is.na(Longitude) | Longitude == 0, ]
   LocationsWGS <- Locations[!is.na(Longitude) & Longitude != 0, ]
