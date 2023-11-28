@@ -89,8 +89,7 @@ standardizeSpeciesNames <- function(speciesTable, forestInventorySource) {
     # A is aspen cottonwood and poplar, assume it is trembling aspen
     speciesTable[Species == "P", newSpeciesName := "lodgepole pine"]
     # P is pine Species, assume it is lodgepole pine
-    speciesTable[Species == "MR", newSpeciesName := "red maple"]
-    # MR could not find, assume it is red maple
+    speciesTable[Species == "MR", newSpeciesName := "douglas maple"]
     speciesTable[Species == "SE", newSpeciesName := "engelmann spruce"]
     speciesTable[Species == "FD", newSpeciesName := "douglas-fir"]
     speciesTable[Species == "BA", newSpeciesName := "pacific silver fir"] # this is amabilis fir
@@ -408,3 +407,14 @@ standardizeSpeciesNames <- function(speciesTable, forestInventorySource) {
   speciesTable[is.na(newSpeciesName), newSpeciesName := "unknown"]
   return(speciesTable)
 }
+#the species with biomass equations
+# c("alpine fir", "balsam fir", "balsam poplar", "basswood", "beech",
+#   "black ash", "black cherry", "black cottonwood", "black spruce",
+#   "douglas-fir", "eastern hemlock", "eastern redcedar", "eastern white-cedar",
+#   "eastern white pine", "engelmann spruce", "grey birch", "hardwood",
+#   "hickory", "hop-hornbeam", "jack pine", "largetooth aspen", "lodgepole pine",
+#   "pacific silver fir", "red alder", "red ash", "red maple", "red oak",
+#   "red pine", "red spruce", "silver maple", "sitka spruce", "softwood",
+#   "subalpine fir", "sugar maple", "tamarack larch", "trembling aspen",
+#   "western hemlock", "western redcedar", "white ash", "white birch",
+#   "white elm", "white oak", "white spruce", "yellow birch")
