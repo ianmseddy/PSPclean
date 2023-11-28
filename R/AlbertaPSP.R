@@ -1,10 +1,12 @@
 globalVariables(c(
-  ":=", "trees_measurement_comment", "tree_origin", "stand_origin", "dbh_age", "maxN",
-  "stump_age", "total_age", "crown_class", "measurement_year", "stand_age", "tree_location_id",
-  "condition_code1", "condition_code2", "condition_code3", "cause", "cause1", "cause2",
-  "cause3", ".N", "N", "sizes", "tempyear", "totalBad", "PlotSize", "tree_plot_area", "MeasureID", "latitude",
-  "longitude", "OrigPlotID1", "Species", "MeasureYear", "company_plot_number", "tree_number",
-  "species", "minMeasure", "measurement_number", "dbh", "height", "elevation"
+  ":=", ".N", "cause", "cause1", "cause2", "cause3", "company_plot_number",
+  "condition_code1", "condition_code2", "condition_code3", "crown_class",
+  "dbh", "dbh_age", "elevation", "height", "latitude", "longitude",
+  "maxN", "MeasureID", "measurement_number", "measurement_year",
+  "MeasureYear", "minMeasure", "N", "OrigPlotID1", "PlotSize",
+  "sizes", "species", "Species", "stand_age", "stand_origin", "stump_age",
+  "tempyear", "total_age", "totalBad", "tree_location_id", "tree_number",
+  "tree_origin", "tree_plot_area", "trees_measurement_comment"
 ))
 
 #' standardize and treat the Alberta PSP data

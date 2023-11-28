@@ -1,5 +1,5 @@
 globalVariables(c(
-  "Species", ":=", "newSpeciesName", "Genus"
+  ":=", "Genus", "newSpeciesName", "Species"
 ))
 
 #' standardize the species names in a given PSP measurement data.table

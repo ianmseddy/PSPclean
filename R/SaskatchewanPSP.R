@@ -1,11 +1,11 @@
 globalVariables(c(
-  "TOTAL_AGE", "TREE_STATUS", ":=", "baseYear", "YEAR", "PLOT_ID",
-  "treeAge", "CROWN_CLASS", "NofTrees", "baseSA", ".", "Z13nad83_e",
-  "Z13nad83_n", "PLOT_SIZE", "TREE_NO", "SPECIES", "DBH", "HEIGHT",
-  "CONDITION_CODE1", "CONDITION_CODE2", "CONDITION_CODE3", "MORTALITY",
-  "OrigPlotID1", "OrigPlotID2", "MeausreYear", "OFFICE_ERROR", "IsBad",
-  "MeasureID", "TreeNumber", "Species", "Height", "Zone",
-  "Easting", "Northing", "PlotSize", "species", "dbh", "height"
+  ":=", ".", "baseSA", "baseYear", "CONDITION_CODE1", "CONDITION_CODE2",
+  "CONDITION_CODE3", "CROWN_CLASS", "dbh", "DBH", "Easting", "height",
+  "Height", "HEIGHT", "IsBad", "MeasureID", "MeausreYear", "MORTALITY",
+  "NofTrees", "Northing", "OFFICE_ERROR", "OrigPlotID1", "OrigPlotID2",
+  "PLOT_ID", "PLOT_SIZE", "PlotSize", "species", "Species", "SPECIES",
+  "TOTAL_AGE", "TREE_NO", "TREE_STATUS", "treeAge", "TreeNumber",
+  "YEAR", "Z13nad83_e", "Z13nad83_n", "Zone"
 ))
 
 #' standardize and treat the Saskatchewan PSP data
@@ -27,7 +27,6 @@ globalVariables(c(
 #' @importFrom data.table setnames setkey rbindlist
 dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
                                    treeDataRaw, codesToExclude = NULL, excludeAllObs = TRUE) {
-
   # get rid of artifical trees - plots where the distribution of trees/DBH/species were modelled
   treeDataRaw[, isArtificial := OFFICE_ERROR == "Artificial Tree", ]
   hasArtificial <- treeDataRaw[isArtificial == TRUE, .N, .(PLOT_ID)]
