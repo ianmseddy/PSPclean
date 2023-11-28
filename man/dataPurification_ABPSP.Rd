@@ -23,7 +23,7 @@ dataPurification_ABPSP(
 
 \item{plot}{the plot csv}
 
-\item{codesToExclude}{damage agent codes used to filterr tree data - see GOA PSP Manual.
+\item{codesToExclude}{damage agent codes used to filter tree data - see GOA PSP Manual.
 Measurements with these codes will be removed}
 
 \item{excludeAllObs}{if removing observations of individual trees due to damage codes,}

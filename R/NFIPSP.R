@@ -1,10 +1,11 @@
 utils::globalVariables(c(
-  ":=", ".",
-  "baseSA", "baseYear", "damage_agent", "dbh", "DBH", "Easting", "elevation", "Elevation",
-  "Genus", "height", "Height", "isArtificial", "lgtree_genus", "lgtree_species", "lgtree_status",
-  "meas_num", "meas_plot_size", "MeasureID", "MeasureYear", "nfi_plot", "Northing",
-  "orig_plot_area", "OrigPlotID1", "PlotSize", "site_age", "Species", "tree_num", "TreeNumber",
-  "utm_e", "utm_n", "utm_zone", "year", "Zone"
+  ":=", ".", "baseSA", "baseYear", "damage_agent", "dbh", "DBH",
+  "Easting", "elevation", "Elevation", "Genus", "height", "Height",
+  "isArtificial", "lgtree_genus", "lgtree_species", "lgtree_status",
+  "meas_num", "meas_plot_size", "MeasureID", "MeasureYear", "nfi_plot",
+  "Northing", "orig_plot_area", "OrigPlotID1", "PlotSize", "site_age",
+  "Species", "tree_num", "TreeNumber", "utm_e", "utm_n", "utm_zone",
+  "year", "Zone"
 ))
 
 #' standardize and treat the NFI PSP data
@@ -15,7 +16,7 @@ utils::globalVariables(c(
 #' @param treeDamage the tree damage data
 #' @param codesToExclude damage agents to exclude from measurements
 #' @param excludeAllObs if removing observations of individual trees due to damage codes,
-#' remove all prior and future observations if \code{TRUE}.
+#' remove all prior and future observations if `TRUE`.
 #'
 #' @return a list of plot and tree data.tables
 #'

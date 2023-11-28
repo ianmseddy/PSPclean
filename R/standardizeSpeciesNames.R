@@ -1,5 +1,5 @@
 globalVariables(c(
-  "Species", ":=", "newSpeciesName", "Genus"
+  ":=", "Genus", "newSpeciesName", "Species"
 ))
 
 #' standardize the species names in a given PSP measurement data.table
@@ -407,7 +407,7 @@ standardizeSpeciesNames <- function(speciesTable, forestInventorySource) {
   speciesTable[is.na(newSpeciesName), newSpeciesName := "unknown"]
   return(speciesTable)
 }
-#the species with biomass equations
+# the species with biomass equations
 # c("alpine fir", "balsam fir", "balsam poplar", "basswood", "beech",
 #   "black ash", "black cherry", "black cottonwood", "black spruce",
 #   "douglas-fir", "eastern hemlock", "eastern redcedar", "eastern white-cedar",

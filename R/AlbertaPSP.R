@@ -1,10 +1,12 @@
 globalVariables(c(
-  ":=", "trees_measurement_comment", "tree_origin", "stand_origin", "dbh_age", "maxN",
-  "stump_age", "total_age", "crown_class", "measurement_year", "stand_age", "tree_location_id",
-  "condition_code1", "condition_code2", "condition_code3", "cause", "cause1", "cause2",
-  "cause3", ".N", "N", "sizes", "tempyear", "totalBad", "PlotSize", "tree_plot_area", "MeasureID", "latitude",
-  "longitude", "OrigPlotID1", "Species", "MeasureYear", "company_plot_number", "tree_number",
-  "species", "minMeasure", "measurement_number", "dbh", "height", "elevation"
+  ":=", ".N", "cause", "cause1", "cause2", "cause3", "company_plot_number",
+  "condition_code1", "condition_code2", "condition_code3", "crown_class",
+  "dbh", "dbh_age", "elevation", "height", "latitude", "longitude",
+  "maxN", "MeasureID", "measurement_number", "measurement_year",
+  "MeasureYear", "minMeasure", "N", "OrigPlotID1", "PlotSize",
+  "sizes", "species", "Species", "stand_age", "stand_origin", "stump_age",
+  "tempyear", "total_age", "totalBad", "tree_location_id", "tree_number",
+  "tree_origin", "tree_plot_area", "trees_measurement_comment"
 ))
 
 #' standardize and treat the Alberta PSP data
@@ -13,12 +15,12 @@ globalVariables(c(
 #' @param plotMeasure the plot_measurement csv
 #' @param tree the tree csv
 #' @param plot the plot csv
-#' @param codesToExclude damage agent codes used to filterr tree data - see GOA PSP Manual.
+#' @param codesToExclude damage agent codes used to filter tree data - see GOA PSP Manual.
 #' Measurements with these codes will be removed
 #' @param excludeAllObs if removing observations of individual trees due to damage codes,
 #' @param areaDiffThresh the threshold of plot size discrepancy to allow below which
-#' plots will be given a new ID column. Expressed as \code{min(PlotSize)/max(PlotSize)}
-#' remove all prior and future observations if \code{TRUE}.
+#' plots will be given a new ID column. Expressed as `min(PlotSize)/max(PlotSize)`
+#' remove all prior and future observations if `TRUE`.
 #'
 #' @return a list of plot and tree data.tables
 #'
@@ -276,3 +278,4 @@ prepInputsAlbertaPSP <- function(dPath) {
     "pspABplot" = pspABplot
   ))
 }
+
