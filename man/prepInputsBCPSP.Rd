@@ -7,7 +7,7 @@
 prepInputsBCPSP(dPath)
 }
 \arguments{
-\item{dPath}{passed to `destinationPath` in `prepInputs()`}
+\item{dPath}{passed to \code{destinationPath} in \code{prepInputs()}}
 }
 \value{
 a list of BC PSP objects
