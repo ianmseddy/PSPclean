@@ -60,7 +60,7 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   headData_SA <- rbind(header_SA_Dom, header_SA_CoDom)
 
   headData_loca <- plotHeaderRaw[PLOT_ID %in% unique(headData_SA$PLOT_ID), ][, .(PLOT_ID, Z13nad83_e, Z13nad83_n, Zone = 13)]
-  names(headData_loca)[2:3] <- c("Easting", "Northing")
+  setnames(headData_loca, 2:3, c("Easting", "Northing"))
   headData_SALoca <- setkey(headData_SA, PLOT_ID)[setkey(headData_loca, PLOT_ID),
     nomatch = 0
   ]
@@ -116,7 +116,7 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
 
   treeData <- treeData[!is.na(DBH) & DBH != 0, ]
   treeData <- treeData[, .(PLOT_ID, YEAR, TREE_NO, SPECIES, DBH, HEIGHT)]
-  names(treeData) <- c("OrigPlotID1", "MeasureYear", "TreeNumber", "Species", "DBH", "Height")
+  setnames(treeData, new = c("OrigPlotID1", "MeasureYear", "TreeNumber", "Species", "DBH", "Height"))
   setnames(headData, "PLOT_ID", "OrigPlotID1")
   measureidtable <- unique(treeData[, .(OrigPlotID1, MeasureYear)], by = c("OrigPlotID1", "MeasureYear"))
   measureidtable[, MeasureID := paste("SKPSP_", row.names(measureidtable), sep = "")]
