@@ -1,7 +1,7 @@
 Package: PSPclean
 Type: Package
 Title: Sources and standardizes permanent sample plot data
-Version: 0.1.3.9004
+Version: 0.1.3.9005
 Authors@R: c(
     person("Ian M S", "Eddy", email = "ian.eddy@nrcan.rncan.gc.ca",
            role = c("aut", "cre")),
@@ -9,7 +9,7 @@ Authors@R: c(
            role = c("ctb"))
     )
 Depends:
-    R (>= 3.6)
+    R (>= 4.2)
 Description: Converts all data into two keyed tables.  
     One is for tree measurements, and the other is for plot data. 
     Some arguments exist for handling disturbance agents. 
@@ -26,5 +26,8 @@ Imports:
     raster
 Suggests:
     googledrive,
-    testthat
+    testthat,
+    LandR
+Remotes:
+    PredictiveEcology/LandR@development
 Roxygen: list(markdown = TRUE)
