@@ -19,7 +19,7 @@ globalVariables(c(
 #'  Wind = 5, Snow =  6, Other Trees = 7, Hail or Ice Storm = 8.
 #' Measurements with these codes will be removed
 #' @param excludeAllObs if removing observations of individual trees due to damage codes,
-#' remove all prior and future observations if \code{TRUE}.
+#' remove all prior and future observations if `TRUE`.
 #'
 #' @return a list of plot and tree data.tables
 #'

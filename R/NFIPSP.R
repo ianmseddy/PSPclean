@@ -15,7 +15,7 @@ utils::globalVariables(c(
 #' @param treeDamage the tree damage data
 #' @param codesToExclude damage agents to exclude from measurements
 #' @param excludeAllObs if removing observations of individual trees due to damage codes,
-#' remove all prior and future observations if \code{TRUE}.
+#' remove all prior and future observations if `TRUE`.
 #'
 #' @return a list of plot and tree data.tables
 #'
