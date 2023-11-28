@@ -185,13 +185,13 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   treeData <- headerData[, .(MeasureID, MeasureYear)][treeData, on = c("MeasureID")]
   setcolorder(treeData, neworder = c("MeasureID", "OrigPlotID1", "MeasureYear"))
 
-  treeData$OrigPlotID1 <- paste0("AB", treeData$OrigPlotID1)
-  headerData$OrigPlotID1 <- paste0("AB", headerData$OrigPlotID1)
+  treeData$OrigPlotID1 <- paste0("ABPSP", treeData$OrigPlotID1)
+  headerData$OrigPlotID1 <- paste0("ABPSP", headerData$OrigPlotID1)
 
   # correct two instances of tree number changing over time - we will give new plotIDs to these
   # so they are effectively counted as new plots in the same location
-  badMeasures1 <- c("AB49.1", "AB49.2", "AB49.3", "AB49.4") # first measurement must be changed
-  badMeasures2 <- c("AB309.1", "AB309.2") # first and second measures must be changed
+  badMeasures1 <- c("ABPSP49.1", "ABPSP49.2", "ABPSP49.3", "ABPSP49.4") # first measurement must be changed
+  badMeasures2 <- c("ABPSP309.1", "ABPSP309.2") # first and second measures must be changed
   headerData[OrigPlotID1 %in% badMeasures1 & MeasureYear > 1961, baseYear := 1968]
   headerData[OrigPlotID1 %in% badMeasures1 & MeasureYear == 1961, OrigPlotID1 := paste0(OrigPlotID1, "f")]
   treeData[OrigPlotID1 %in% badMeasures1 & MeasureYear == 1961, OrigPlotID1 := paste0(OrigPlotID1, "f")]
