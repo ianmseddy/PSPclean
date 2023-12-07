@@ -1,25 +1,25 @@
-
-# library(data.table)
-# library(rio)
-###with packages - we specify which functions we need
-
-
-PSP_TREE_YIMO <- import ("E:/yimo.NB/send to ian/PSP_TREE_YIMO.xlsx")
-PSP_PLOTS <- import ("E:/yimo.NB/send to ian/PSP_PLOTS.xlsx")
-PSP_TREE_YIMO <- as.data.table(PSP_TREE_YIMO)
-PSP_PLOTS <- as.data.table(PSP_PLOTS)
-
 globalVariables(c(
-  ":=", "sys_Comments", "stand_age","cr","PlotType","Treatment","Plot","GPS_Lat","dbh",
+  "sys_Comments", "stand_age","cr","PlotType","Treatment","Plot","GPS_Lat","dbh",
    "GPS_Long","Status","LSTYR","plot_size","species-code","species","TreeNumber","SpeciesCode","Species","DBH",
    "OrigPlotID1","MeasureYear","PlotSize","baseSA","LATITUDE","LONGITUDE","treenum","MeasNum","RemeasID"
 ))
 
+#' standardize and treat the New Brunswick PSP data
+#'
+#' @param PSP_PLOTS NB plot
+#' @param PSP_TREE_YIMO NB tree
 
+#'
+#' @return a list of plot and tree data.tables
+#'
+#' @export
+#' @importFrom data.table copy data.table set setcolorder setkey
+#'
 dataPurification_NBPSP <- function(PSP_PLOTS, PSP_TREE_YIMO,
                                     codesToExclude = NULL, excludeAllObs = TRUE) {
-  PSP_TREE_YIMO<- copy(PSP_TREE_YIMO)
-  PSP_PLOTS<-copy(PSP_PLOTS)
+
+  PSP_TREE_YIMO <- copy(PSP_TREE_YIMO)
+  PSP_PLOTS <- copy(PSP_PLOTS)
 
   ########################################################################################about plots
   #remove comment colomn
@@ -71,17 +71,22 @@ dataPurification_NBPSP <- function(PSP_PLOTS, PSP_TREE_YIMO,
     "PSP_TREE_YIMO" = PSP_TREE_YIMO))
 }
 
-
-######################################################################################secound fucntion
-
+#' retrieve the New Brunswick PSP raw data
+#' @param dPath data directory for raw data
+#'
+#' @return a list of plot and tree data.tables
+#'
+#' @export
+#' @importFrom reproducible prepInputs
 prepInputsNBPSP <- function(dPath) {
 
-  pspNBtree <- prepInputs(targetFile = file.path(dPath, "PSP_TREE_YIMO.csv"),
-                          url = paste0("https://docs.google.com/spreadsheets/d/1_E-GS44I_nBmBspkX5Q0PLwP1fFTI_Yt/".
+  pspNBtree <- prepInputs(targetFile = "PSP_TREE_YIMO.xlsx",
+                          url = paste0("https://docs.google.com/spreadsheets/d/1_E-GS44I_nBmBspkX5Q0PLwP1fFTI_Yt/",
                                        "edit?usp=drive_link&ouid=105925340091005951003&rtpof=true&sd=true"),
-                          fun = 'fread')
+                          fun = 'fread',
+                          destinationPath = dPath)
 
-  pspNBplot <- prepInputs(targetFile = file.path(dPath, "PSP_PLOTS.csv"),
+  pspNBplot <- prepInputs(targetFile = "PSP_PLOTS.xlsx",
                           url = paste0("https://docs.google.com/spreadsheets/d/18SzMKYE3Q_n4_RJHf8PzN-bX85Al0rDs/",
                                        "edit?usp=drive_link&ouid=105925340091005951003&rtpof=true&sd=true"),
                           destinationPath = dPath,
