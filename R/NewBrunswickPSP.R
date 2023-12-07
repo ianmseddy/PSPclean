@@ -25,7 +25,7 @@ dataPurification_NBPSP <- function(PSP_PLOTS, PSP_TREE_YIMO,
   #remove comment colomn
   PSP_PLOTS[, sys_Comments :=NULL]
   ##filter base on stand age
-  PSP_PLOTS <-   PSP_PLOTS[stand_age != -999,]
+  PSP_PLOTS <-   PSP_PLOTS[Stand_age != -999,]
   #remove plots with 0 code
   PSP_TREE_YIMO <- PSP_TREE_YIMO[cr != 0,]
   ## remain just plot type=M
@@ -80,15 +80,13 @@ dataPurification_NBPSP <- function(PSP_PLOTS, PSP_TREE_YIMO,
 #' @importFrom reproducible prepInputs
 prepInputsNBPSP <- function(dPath) {
 
-  pspNBtree <- prepInputs(targetFile = "PSP_TREE_YIMO.xlsx",
-                          url = paste0("https://docs.google.com/spreadsheets/d/1_E-GS44I_nBmBspkX5Q0PLwP1fFTI_Yt/",
-                                       "edit?usp=drive_link&ouid=105925340091005951003&rtpof=true&sd=true"),
+  pspNBtree <- prepInputs(targetFile = "PSP_TREE_YIMO.csv",
+                          url = "https://drive.google.com/file/d/15znT98F94SE1lH-_GirJcVic0_s4A00d/view?usp=drive_link",
                           fun = 'fread',
                           destinationPath = dPath)
 
-  pspNBplot <- prepInputs(targetFile = "PSP_PLOTS.xlsx",
-                          url = paste0("https://docs.google.com/spreadsheets/d/18SzMKYE3Q_n4_RJHf8PzN-bX85Al0rDs/",
-                                       "edit?usp=drive_link&ouid=105925340091005951003&rtpof=true&sd=true"),
+  pspNBplot <- prepInputs(targetFile = "PSP_PLOTS.csv",
+                          url = "https://drive.google.com/file/d/1Cux9WlOVKFV-mJexlL1phikaxFqbG_eT/view?usp=drive_link",
                           destinationPath = dPath,
                           fun = 'fread')
   return(list(
