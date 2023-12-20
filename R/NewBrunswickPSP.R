@@ -1,96 +1,137 @@
 globalVariables(c(
-  "sys_Comments", "stand_age","cr","PlotType","Treatment","Plot","GPS_Lat","dbh",
-   "GPS_Long","Status","LSTYR","plot_size","species-code","species","TreeNumber","SpeciesCode","Species","DBH",
-   "OrigPlotID1","MeasureYear","PlotSize","baseSA","LATITUDE","LONGITUDE","treenum","MeasNum","RemeasID"
+  ":=", "PlotType","Treatment","Plot", "dbh", "EstabDate", "EstabAge", "EstabYear",
+  "Status","species","TreeNumber","SpeciesCode","Species","MeasNum","RemeasID",
+  "LatinName", "CommonName", "PLOT", "lat", "long_", "MeasYr", "SilvID",
+  "OrigPlotID1","MeasureYear","PlotSize","baseSA","LATITUDE","LONGITUDE","treenum"
 ))
 
 #' standardize and treat the New Brunswick PSP data
 #'
-#' @param PSP_PLOTS NB plot
-#' @param PSP_TREE_YIMO NB tree
-
+#' @param NB_PSP_Data list of data tables resulting from `prepInputsNBPSP`
+#' @param sppEquiv species equivalencies table - see `LandR::sppEquivalencies_CA`
 #'
-#' @return a list of plot and tree data.tables
+#' @return a list of standardized plot and tree data.tables
 #'
 #' @export
-#' @importFrom data.table copy data.table set setcolorder setkey
-#'
-dataPurification_NBPSP <- function(PSP_PLOTS, PSP_TREE_YIMO,
-                                    codesToExclude = NULL, excludeAllObs = TRUE) {
+#' @importFrom data.table set setcolorder
+dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv) {
 
-  PSP_TREE_YIMO <- copy(PSP_TREE_YIMO)
-  PSP_PLOTS <- copy(PSP_PLOTS)
+  PSP_PLOTS <- NB_PSP_Data[["PSP_PLOTS"]]
+  PSP_PLOTS_YR <- NB_PSP_Data[["PSP_PLOTS_YR"]]
+  PSP_TREE_YIMO <- NB_PSP_Data[["PSP_TREE_YIMO"]]
+  PSP_LOC_LAT_LONG <- NB_PSP_Data[["PSP_LOC_LAT_LONG"]]
 
-  ########################################################################################about plots
-  #remove comment colomn
-  PSP_PLOTS[, sys_Comments :=NULL]
-  ##filter base on stand age
-  PSP_PLOTS <-   PSP_PLOTS[Stand_age != -999,]
-  #remove plots with 0 code
-  PSP_TREE_YIMO <- PSP_TREE_YIMO[cr != 0,]
-  ## remain just plot type=M
-  PSP_PLOTS <-   PSP_PLOTS[PlotType != "M",]
-  #selects unmanaged psp
-  PSP_PLOTS<-PSP_PLOTS[!Treatment=="Untreated"]
-  ####### # location
-  PlotLocation <- plot[, .(Plot, GPS_Lat, GPS_Long)]
+  #start by taking the YIMO
+  #these are the young immature mature and overmature plots
+  PSP_PLOTS <- PSP_PLOTS[PlotType == "M",]
+  PSP_PLOTS <- PSP_PLOTS[SilvID == 0]
 
-  PSP_PLOTS <- PSP_PLOTS[, .(Plot, Status, PlotType, GPS_Long, GPS_Lat, stand_age,
-                             PlotSize, Treatment,LSTYR, )]
+  #no dead trees
+  PSP_TREE_YIMO <- PSP_TREE_YIMO[!cause %in% 1:9]
+  # has age
 
-  ####change names
-  setnames(PSP_PLOTS, old = c("Plot", "LSTYR", "plot_size", "Stand_age", "GPS_Long", "GPS_Lat"),
-           new = c("OrigPlotID1", "MeasureYear", "PlotSize", "baseSA", "LATITUDE", "LONGITUDE"))
-  PSP_PLOTS <- unique(PSP_PLOTS, by = c("OrigPlotID1"))
+  #generate eventual plot header
+  PSP_PLOTS_YR <- PSP_PLOTS_YR[Plot %in% PSP_PLOTS$Plot, .(Plot, RemeasID, MeasYr, MeasNum)]
 
-  ##########################################################################################about tree Data
-  ##remove Na and 0 trees in treenum coloumn
-  PSP_TREE_YIMO <- PSP_TREE_YIMO[!treenum == 0 & !is.na(dbh)]
+  #standardize
+  PSP_TREE_YIMO[, DBH := dbh/10] #dbh is measured in mm - convert to cm
+  PSP_PLOTS[, PlotSize := PlotSize/10000] # convert square metres to hectares
 
-  ###filter trees with amount of CR ( we need cr:1,2,3,4,5,6,7,8,9)
+  PSP_TREE_YIMO <- PSP_TREE_YIMO[, .(RemeasID, treenum, species, DBH, Plot, MeasNum)]
+  # internal standardization of DBH (min DBH was 5.1 cm except for plots established in 1987,
+  # or for alder and mountain maple)
+  #to simplify, remove all trees under 5.1 cm DBH
+  PSP_TREE_YIMO <- PSP_TREE_YIMO[DBH > 5.0]
 
-  PSP_TREE_YIMO<- PSP_TREE_YIMO[cr == 1 | cr == 2| cr == 3| cr == 4| cr == 5| cr == 6| cr == 7| cr == 8| cr == 9,
-                                .(Plot, treenum,MeasNum,RemeasID, species-code, treenum, species, dbh)]
+  #join with measurement year
+  PSP_PLOTS <- PSP_PLOTS[, .(Plot, EstabAge, EstabDate, PlotSize)]
+  PSP_PLOTS <- PSP_PLOTS[PSP_PLOTS_YR, on = "Plot"]
+
+  #remove plots without stand age
+  PSP_PLOTS <- PSP_PLOTS[!is.na(EstabAge) & EstabAge != 0,]
+
+  #assume ages were measured at plot establishment year, not measure year
+  PSP_PLOTS[, EstabYear := as.integer(format(EstabDate, "%Y"))]
+  PSP_PLOTS[, baseYear := min(MeasYr), .(Plot)]
+  PSP_PLOTS[, baseSA := EstabAge + c(baseYear-EstabYear)] #there may be a year difference
+
+  sppNB <- NB_PSP_Data[["LookUp_Species"]][, .(species, LatinName, CommonName)]
+  PSP_PLOTS <- PSP_PLOTS[, .(RemeasID, Plot, MeasYr, PlotSize, baseYear, baseSA)]
+
+  sppEquivPrep <- sppEquiv[, .(Latin_full, PSP)]
+  PSP_TREE_YIMO <- sppNB[PSP_TREE_YIMO, on = c("species")]
+  PSP_TREE_YIMO <- sppEquivPrep[PSP_TREE_YIMO, on = c("Latin_full" = "LatinName")]
+  PSP_TREE_YIMO <- PSP_TREE_YIMO[!is.na(species)]
+  PSP_TREE_YIMO[, c("species", "CommonName") := NULL]
+
+  #still need to change column names and drop MeasNum
+  PSP_LOC_LAT_LONG <- PSP_LOC_LAT_LONG[, .(PLOT, lat, long_)]
+  PSP_PLOTS[, Plot := as.integer(Plot)] #default is character...unclear why plot 1001 has period
+  PSP_PLOTS <- PSP_LOC_LAT_LONG[PSP_PLOTS, on = c("PLOT" = "Plot")]
+
+  PSP_TREE_YIMO <- PSP_TREE_YIMO[Plot %in% PSP_PLOTS$PLOT]
+
+  PSP_TREE_YIMO[, MeasNum := NULL] #MeasNum is not necessary
+  PSP_TREE_YIMO <- PSP_TREE_YIMO[PSP_PLOTS[,.(RemeasID, MeasYr)], on = c("RemeasID")] #MeasYr is necessary
 
 
-  ##change names
-  setnames(PSP_TREE_YIMO, c("Plot", "treenum","species-code", "species", "dbh"),
-           c("OrigPlotID1", "TreeNumber", "SpeciesCode", "Species", "DBH"))
+  setnames(PSP_PLOTS,
+           old = c("PLOT", "lat", "long_", "RemeasID", "MeasYr"),
+           new = c("OrigPlotID1", "Latitude", "Longitude", "MeasureID", "MeasureYear"))
 
-  #PSP_TREE_YIMO<- PSP_TREE_YIMO [ OrigPlotID1 %in% unique (PSP_PLOTS$OrigPlotID1]
-  PSP_TREE_YIMO <- PSP_TREE_YIMO[PSP_TREE_YIMO$OrigPlotID1 %in% unique(PSP_PLOTS$OrigPlotID1), ]
+  setnames(PSP_TREE_YIMO,
+           old = c("Latin_full", "PSP", "RemeasID", "treenum", "Plot", "MeasYr"),
+           new = c("Species", "newSpeciesName", "MeasureID", "TreeNumber", "OrigPlotID1", "MeasureYear"))
 
-  ###############################################################################################
-  # unique(treeData$ld)
-  #MAKE the value unique
-  PSP_TREE_YIMO$OrigPlotID1 <- paste0("NB",  PSP_TREE_YIMO$OrigPlotID1)
-  PSP_PLOTS$OrigPlotID1 <- paste0("NB", PSP_PLOTS$OrigPlotID1)
+  setcolorder(PSP_TREE_YIMO, c("MeasureID", "OrigPlotID1", "MeasureYear",
+                               "TreeNumber", "Species", "DBH", "newSpeciesName"))
+  setcolorder(PSP_PLOTS, c("MeasureID", "OrigPlotID1", "MeasureYear", "Longitude",
+                           "Latitude", "PlotSize", "baseYear", "baseSA"))
 
   return(list(
-    "PSP_PLOTS" = PSP_PLOTS,
-    "PSP_TREE_YIMO" = PSP_TREE_YIMO))
+    "plotHeaderData" = PSP_PLOTS,
+    "treeData" = PSP_TREE_YIMO
+  ))
 }
 
 #' retrieve the New Brunswick PSP raw data
 #' @param dPath data directory for raw data
 #'
-#' @return a list of plot and tree data.tables
+#' @return a list of plot, tree, measurement, and location data.tables after exporting mdb to csv txt
 #'
 #' @export
 #' @importFrom reproducible prepInputs
 prepInputsNBPSP <- function(dPath) {
 
-  pspNBtree <- prepInputs(targetFile = "PSP_TREE_YIMO.csv",
-                          url = "https://drive.google.com/file/d/1hoP27GOp1jF23WboAKtPIRzjOKBTXaUi/view?usp=drive_link",
+  pspNBtree <- prepInputs(targetFile = "PSP_TREE_YIMO.txt",
+                          url = "https://drive.google.com/file/d/1o61Ky4HifJlVqQsAVtmhViq6j4J5q5R0/view?usp=drive_link",
                           fun = 'fread',
                           destinationPath = dPath)
 
-  pspNBplot <- prepInputs(targetFile = "PSP_PLOTS.csv",
-                          url = "https://drive.google.com/file/d/1aNdFR48riSENROOKB7oqHk3wyOJ9TzUc/view?usp=drive_link",
+  pspNBplot <- prepInputs(targetFile = "PSP_PLOTS.txt",
+                          url = "https://drive.google.com/file/d/1_a7ciMI_1W7iR60a5uKAqYOJ_W1W6399/view?usp=drive_link",
                           destinationPath = dPath,
                           fun = 'fread')
+
+  pspNByear <- prepInputs(targetFile = "PSP_PLOTS_YR.txt",
+                          url = "https://drive.google.com/file/d/1dfMcCrHGRFIz9S4lH9elqOg5rkVPeAet/view?usp=drive_link",
+                          fun = "fread",
+                          destinationPath = dPath)
+  pspNBloc <- prepInputs(targetFile = "PSP_LOC_LAT_LONG.txt",
+                        url = "https://drive.google.com/file/d/1lBbuXuVIQ0QkO80a6DnxQlXm8wwtWHmN/view?usp=drive_link",
+                        destinationPath = dPath,
+                        fun = "fread")
+
+  lookupSpecies <- prepInputs(targetFile = "LookUp_Species_NB.txt",
+                              url = "https://drive.google.com/file/d/1DBeZ5LOk8Io3Zp2uSeYCDveMsLCy7zei/view?usp=drive_link",
+                              destinationPath = dPath,
+                              fun = "fread")
+
   return(list(
     "PSP_PLOTS" = pspNBplot,
-    "PSP_TREE_YIMO" = pspNBtree
+    "PSP_TREE_YIMO" = pspNBtree,
+    "PSP_PLOTS_YR" = pspNByear,
+    "PSP_LOC_LAT_LONG" = pspNBloc,
+    "LookUp_Species" = lookupSpecies
   ))
 }

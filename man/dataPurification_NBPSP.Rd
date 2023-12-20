@@ -4,20 +4,15 @@
 \alias{dataPurification_NBPSP}
 \title{standardize and treat the New Brunswick PSP data}
 \usage{
-dataPurification_NBPSP(
-  PSP_PLOTS,
-  PSP_TREE_YIMO,
-  codesToExclude = NULL,
-  excludeAllObs = TRUE
-)
+dataPurification_NBPSP(NB_PSP_Data, sppEquiv)
 }
 \arguments{
-\item{PSP_PLOTS}{NB plot}
+\item{NB_PSP_Data}{list of data tables resulting from \code{prepInputsNBPSP}}
 
-\item{PSP_TREE_YIMO}{NB tree}
+\item{sppEquiv}{species equivalencies table - see \code{LandR::sppEquivalencies_CA}}
 }
 \value{
-a list of plot and tree data.tables
+a list of standardized plot and tree data.tables
 }
 \description{
 standardize and treat the New Brunswick PSP data
