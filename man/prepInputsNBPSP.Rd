@@ -10,7 +10,7 @@ prepInputsNBPSP(dPath)
 \item{dPath}{data directory for raw data}
 }
 \value{
-a list of plot and tree data.tables
+a list of plot, tree, measurement, and location data.tables after exporting mdb to csv txt
 }
 \description{
 retrieve the New Brunswick PSP raw data

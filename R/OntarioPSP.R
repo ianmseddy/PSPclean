@@ -195,9 +195,9 @@ dataPurification_ONPSP <- function(ONPSPlist, sppEquiv) {
   rm(temp, meanOfficeAgeDiff, meanFieldAgeDiff)
   treeAges[, firstAgeMsrYear := min(FieldSeasonYear), .(PlotName)]
 
-  # For jurisdictiosn with no estimated stand age,
+  # For jurisdictions with no estimated stand age,
   # the PSPclean approach derives standAge as mean of N trees with crown class Dominant, where N > 1.
-  # if none are available, we take the mean of all dominant and codominant trees
+  # if none are available, we take the mean of all dominant and co-dominant trees
   treeAges[, nDominant := sum(CrownClassCode == "D "), .(PlotName)]
   treeAges[, nCodominant := sum(CrownClassCode == "C "), .(PlotName)]
   treeAges[, standardizedAge := unifiedAge - FieldSeasonYear + firstAgeMsrYear] # standardize

@@ -5,7 +5,7 @@ utils::globalVariables(c(
   "meas_num", "meas_plot_size", "MeasureID", "MeasureYear", "nfi_plot",
   "Northing", "orig_plot_area", "OrigPlotID1", "PlotSize", "site_age",
   "Species", "tree_num", "TreeNumber", "utm_e", "utm_n", "utm_zone",
-  "year", "Zone"
+  "year", "Zone", "meas_date"
 ))
 
 #' standardize and treat the NFI PSP data
@@ -26,8 +26,8 @@ dataPurification_NFIPSP <- function(lgptreeRaw, lgpHeaderRaw, approxLocation, tr
                                     codesToExclude = "IB", excludeAllObs = TRUE) {
   lgptreeRaw <- lgptreeRaw[orig_plot_area == "Y", ]
   # start from tree data to obtain plot infor
-  lgptreeRaw[, year := as.numeric(substr(lgptreeRaw$meas_date, 1, 4))]
-  lgpHeaderRaw[, year := as.numeric(substr(lgpHeaderRaw$meas_date, 1, 4))]
+  lgptreeRaw[, year := as.numeric(substr(meas_date, 1, 4))]
+  lgpHeaderRaw[, year := as.numeric(substr(meas_date, 1, 4))]
   lgpHeader <- lgpHeaderRaw[nfi_plot %in% unique(lgptreeRaw$nfi_plot), ][, .(nfi_plot, year, meas_plot_size, site_age)]
   approxLocation <- approxLocation[, .(nfi_plot, utm_n, utm_e, utm_zone, elevation)]
   approxLocation <- unique(approxLocation, by = "nfi_plot")
