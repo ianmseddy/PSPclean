@@ -69,6 +69,10 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv) {
   PSP_PLOTS[, Plot := as.integer(Plot)] #default is character...unclear why plot 1001 has period
   PSP_PLOTS <- PSP_LOC_LAT_LONG[PSP_PLOTS, on = c("PLOT" = "Plot")]
 
+  PSP_PLOTS <- PSP_PLOTS[!is.na(Latitude) & !is.na(Longitude)]
+  #a dozen plots are missign location date - but do have x and y coordinates
+  #they are not in a UTM projection but lacking additional information, they are filtered
+
   PSP_TREE_YIMO <- PSP_TREE_YIMO[Plot %in% PSP_PLOTS$PLOT]
 
   PSP_TREE_YIMO[, MeasNum := NULL] #MeasNum is not necessary
@@ -87,6 +91,12 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv) {
                                "TreeNumber", "Species", "DBH", "newSpeciesName"))
   setcolorder(PSP_PLOTS, c("MeasureID", "OrigPlotID1", "MeasureYear", "Longitude",
                            "Latitude", "PlotSize", "baseYear", "baseSA"))
+
+  #assign NB
+  PSP_TREE_YIMO[, OrigPlotID1 := paste0("NBPSP_", OrigPlotID1)]
+  PSP_PLOTS[, OrigPlotID1 := paste0("NBPSP_", OrigPlotID1)]
+  PSP_TREE_YIMO[, MeasureID := paste0("NBPSP_", MeasureID)]
+  PSP_PLOTS[, MeasureID := paste0("NBPSP_", MeasureID)]
 
   return(list(
     "plotHeaderData" = PSP_PLOTS,
