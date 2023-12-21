@@ -24,10 +24,16 @@ utils::globalVariables(c(
 #' @importFrom data.table copy setkey set
 dataPurification_NFIPSP <- function(lgptreeRaw, lgpHeaderRaw, approxLocation, treeDamage,
                                     codesToExclude = "IB", excludeAllObs = TRUE) {
+  lgptreeRaw <- copy(lgptreeRaw)
+  lgpHeaderRaw <- copy(lgpHeaderRaw)
+
   lgptreeRaw <- lgptreeRaw[orig_plot_area == "Y", ]
   # start from tree data to obtain plot infor
-  lgptreeRaw[, year := as.numeric(substr(meas_date, 1, 4))]
-  lgpHeaderRaw[, year := as.numeric(substr(meas_date, 1, 4))]
+  lgptreeRaw[, year := as.Date(meas_date, format = "%Y-%B-%d")]
+  lgpHeaderRaw[, year := as.Date(meas_date, format = "%Y-%B-%d")]
+  lgptreeRaw[, year := as.numeric(format(year, "%Y"))]
+  lgpHeaderRaw[, year := as.numeric(format(year, "%Y"))]
+
   lgpHeader <- lgpHeaderRaw[nfi_plot %in% unique(lgptreeRaw$nfi_plot), ][, .(nfi_plot, year, meas_plot_size, site_age)]
   approxLocation <- approxLocation[, .(nfi_plot, utm_n, utm_e, utm_zone, elevation)]
   approxLocation <- unique(approxLocation, by = "nfi_plot")
