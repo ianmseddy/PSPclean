@@ -31,7 +31,7 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv) {
   # has age
 
   #generate eventual plot header
-  PSP_PLOTS_YR <- PSP_PLOTS_YR[Plot %in% PSP_PLOTS$Plot, .(Plot, RemeasID, MeasYr, MeasNum)]
+  PSP_PLOTS_YR <- PSP_PLOTS_YR[Plot %in% PSP_PLOTS$Plot, .(Plot, RemeasID, MeasYr, measNum)]
 
   #standardize
   PSP_TREE_YIMO[, DBH := dbh/10] #dbh is measured in mm - convert to cm
@@ -69,12 +69,11 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv) {
   PSP_PLOTS[, Plot := as.integer(Plot)] #default is character...unclear why plot 1001 has period
   PSP_PLOTS <- PSP_LOC_LAT_LONG[PSP_PLOTS, on = c("PLOT" = "Plot")]
 
-  PSP_PLOTS <- PSP_PLOTS[!is.na(Latitude) & !is.na(Longitude)]
+  PSP_PLOTS <- PSP_PLOTS[!is.na(lat) & !is.na(long_)]
   #a dozen plots are missign location date - but do have x and y coordinates
   #they are not in a UTM projection but lacking additional information, they are filtered
 
   PSP_TREE_YIMO <- PSP_TREE_YIMO[Plot %in% PSP_PLOTS$PLOT]
-
   PSP_TREE_YIMO[, MeasNum := NULL] #MeasNum is not necessary
   PSP_TREE_YIMO <- PSP_TREE_YIMO[PSP_PLOTS[,.(RemeasID, MeasYr)], on = c("RemeasID")] #MeasYr is necessary
 
