@@ -55,14 +55,14 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv) {
   PSP_PLOTS[, baseYear := min(MeasYr), .(Plot)]
   PSP_PLOTS[, baseSA := EstabAge + c(baseYear-EstabYear)] #there may be a year difference
 
+  ##adding in species - decided to allow 'unknown' species but not NA
   sppNB <- NB_PSP_Data[["LookUp_Species"]][, .(species, LatinName, CommonName)]
   PSP_PLOTS <- PSP_PLOTS[, .(RemeasID, Plot, MeasYr, PlotSize, baseYear, baseSA)]
-
   sppEquivPrep <- sppEquiv[, .(Latin_full, PSP)]
   PSP_TREE_YIMO <- sppNB[PSP_TREE_YIMO, on = c("species")]
   PSP_TREE_YIMO <- sppEquivPrep[PSP_TREE_YIMO, on = c("Latin_full" = "LatinName")]
-  PSP_TREE_YIMO <- PSP_TREE_YIMO[!is.na(species)]
-  PSP_TREE_YIMO[, c("species", "CommonName") := NULL]
+  PSP_TREE_YIMO <- PSP_TREE_YIMO[!is.na(species) & CommonName != "Species unknown",]
+   PSP_TREE_YIMO[, c("species", "CommonName") := NULL]
 
   #still need to change column names and drop MeasNum
   PSP_LOC_LAT_LONG <- PSP_LOC_LAT_LONG[, .(PLOT, lat, long_)]
