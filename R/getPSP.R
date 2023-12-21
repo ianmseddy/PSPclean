@@ -89,7 +89,19 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE) {
       PSPon <- dataPurification_ONPSP(PSPon, sppEquiv = sppEquivForON)
       PSPmeasures[["ON"]] <- PSPon$treeData
       PSPplots[["ON"]] <- PSPon$plotHeaderData
+      rm(sppEquivForON)
     }
+
+    if ("NB" %in% PSPdataTypes | "all" %in% PSPdataTypes) {
+      PSPnb <- prepInputsNBPSP(dPath = destinationPath)
+      #sppEquiv should not be subset to species of interest the way LandR requires
+      #the latin is used to translate species into common names for the biomass equations
+      sppEquivForNB <- LandR::sppEquivalencies_CA #make sure this is fresh from the package
+      PSPnb <- dataPurification_NBPSP(PSPnb, sppEquiv = sppEquivForNB)
+      PSPmeasures[["NB"]] <- PSPnb$treeData
+      PSPplots[["NB"]] <- PSPnb$plotHeaderData
+    }
+
 
     if ("NFI" %in% PSPdataTypes | "all" %in% PSPdataTypes) {
 
