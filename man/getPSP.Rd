@@ -4,7 +4,12 @@
 \alias{getPSP}
 \title{return a merged PSP object from a vector of data sources}
 \usage{
-getPSP(PSPdataTypes, destinationPath, forGMCS = FALSE)
+getPSP(
+  PSPdataTypes,
+  destinationPath,
+  forGMCS = FALSE,
+  sppEquiv = LandR::sppEquivalencies_CA
+)
 }
 \arguments{
 \item{PSPdataTypes}{character vector of PSP data sources - e.g. \verb{c("BC", "SK)"}

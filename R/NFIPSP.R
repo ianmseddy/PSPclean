@@ -10,10 +10,7 @@ utils::globalVariables(c(
 
 #' standardize and treat the NFI PSP data
 #'
-#' @param lgptreeRaw the tree measurement data
-#' @param lgpHeaderRaw the plot header data
-#' @param approxLocation the location data
-#' @param treeDamage the tree damage data
+#' @param NFIdata list of NFI tree, plot, and location data
 #' @param codesToExclude damage agents to exclude from measurements
 #' @param excludeAllObs if removing observations of individual trees due to damage codes,
 #' remove all prior and future observations if `TRUE`.
@@ -22,10 +19,12 @@ utils::globalVariables(c(
 #'
 #' @export
 #' @importFrom data.table copy setkey set
-dataPurification_NFIPSP <- function(lgptreeRaw, lgpHeaderRaw, approxLocation, treeDamage,
-                                    codesToExclude = "IB", excludeAllObs = TRUE) {
-  lgptreeRaw <- copy(lgptreeRaw)
-  lgpHeaderRaw <- copy(lgpHeaderRaw)
+dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllObs = TRUE) {
+
+  lgptreeRaw <- copy(NFIdata[["pspTreeMeasure"]])
+  lgpHeaderRaw <- copy(NFIdata[["pspHeader"]])
+  approxLocation <- NFIdata[["pspLocation"]]
+  treeDamage <- NFIdata[["pspTreeDamage"]]
 
   lgptreeRaw <- lgptreeRaw[orig_plot_area == "Y", ]
   # start from tree data to obtain plot infor
@@ -79,7 +78,6 @@ dataPurification_NFIPSP <- function(lgptreeRaw, lgpHeaderRaw, approxLocation, tr
   treeData <- setkey(treeData, OrigPlotID1)
   treeData <- treeData[newheader, on = c("OrigPlotID1", "MeasureYear")]
   lgpHeader <- setkey(lgpHeader, OrigPlotID1)[setkey(newheader, OrigPlotID1), nomatch = 0]
-  # above line changed as now there are repeat measures in NFI, so join must be on MeasureID as well as OrigPlotID1
   lgpHeader <- setkey(lgpHeader, OrigPlotID1)
   lgpHeader <- lgpHeader[newheader, on = c("OrigPlotID1", "MeasureID")]
 

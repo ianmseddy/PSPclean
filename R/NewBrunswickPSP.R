@@ -8,7 +8,7 @@ globalVariables(c(
 #' standardize and treat the New Brunswick PSP data
 #'
 #' @param NB_PSP_Data list of data tables resulting from `prepInputsNBPSP`
-#' @param sppEquiv species equivalencies table - see `LandR::sppEquivalencies_CA`
+#' @param sppEquiv species equivalencies table with column `Latin-full`
 #'
 #' @return a list of standardized plot and tree data.tables
 #'
@@ -55,18 +55,18 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv) {
   PSP_PLOTS[, baseYear := min(MeasYr), .(Plot)]
   PSP_PLOTS[, baseSA := EstabAge + c(baseYear-EstabYear)] #there may be a year difference
 
-  ##adding in species - decided to allow 'unknown' species but not NA
+  #species may be unknown in NB data - but there should be no NA due to bad joins
   sppNB <- NB_PSP_Data[["LookUp_Species"]][, .(species, LatinName, CommonName)]
-  PSP_PLOTS <- PSP_PLOTS[, .(RemeasID, Plot, MeasYr, PlotSize, baseYear, baseSA)]
+  PSP_TREE_YIMO[is.na(species), species := 999] #coded as unknown in table
   sppEquivPrep <- sppEquiv[, .(Latin_full, PSP)]
   PSP_TREE_YIMO <- sppNB[PSP_TREE_YIMO, on = c("species")]
   PSP_TREE_YIMO <- sppEquivPrep[PSP_TREE_YIMO, on = c("Latin_full" = "LatinName")]
-  PSP_TREE_YIMO <- PSP_TREE_YIMO[!is.na(species) & CommonName != "Species unknown",]
-   PSP_TREE_YIMO[, c("species", "CommonName") := NULL]
+  #note that most species lack biomass equations
+  PSP_TREE_YIMO[is.na(PSP)|PSP == "", PSP := CommonName]
+  PSP_TREE_YIMO[, c("species", "CommonName") := NULL]
 
-  #still need to change column names and drop MeasNum
   PSP_LOC_LAT_LONG <- PSP_LOC_LAT_LONG[, .(PLOT, lat, long_)]
-  PSP_PLOTS[, Plot := as.integer(Plot)] #default is character...unclear why plot 1001 has period
+  PSP_PLOTS[, Plot := as.integer(Plot)]
   PSP_PLOTS <- PSP_LOC_LAT_LONG[PSP_PLOTS, on = c("PLOT" = "Plot")]
 
   PSP_PLOTS <- PSP_PLOTS[!is.na(lat) & !is.na(long_)]
@@ -74,9 +74,11 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv) {
   #they are not in a UTM projection but lacking additional information, they are filtered
 
   PSP_TREE_YIMO <- PSP_TREE_YIMO[Plot %in% PSP_PLOTS$PLOT]
-  PSP_TREE_YIMO[, MeasNum := NULL] #MeasNum is not necessary
-  PSP_TREE_YIMO <- PSP_TREE_YIMO[PSP_PLOTS[,.(RemeasID, MeasYr)], on = c("RemeasID")] #MeasYr is necessary
+  PSP_TREE_YIMO[, MeasNum := NULL]
 
+  #some RemeasIDs exist in the plot table but have no recorded tree measurements, e.g. 9079_5
+  PSP_PLOTS <- PSP_PLOTS[RemeasID %in% PSP_TREE_YIMO$RemeasID]
+  PSP_TREE_YIMO <- PSP_TREE_YIMO[PSP_PLOTS[,.(RemeasID, MeasYr)], on = c("RemeasID")] #MeasYr is necessary
 
   setnames(PSP_PLOTS,
            old = c("PLOT", "lat", "long_", "RemeasID", "MeasYr"),
