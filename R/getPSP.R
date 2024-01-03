@@ -9,7 +9,8 @@
 #'
 #' @importFrom data.table rbindlist
 #' @export
-getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE) {
+getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE, sppEquiv = LandR::sppEquivalencies_CA) {
+
   if ("dummy" %in% PSPdataTypes) {
     message("generating randomized PSP data")
 
@@ -85,8 +86,8 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE) {
       PSPon <- prepInputsOntarioPSP(dPath = destinationPath)
       #sppEquiv should not be subset to species of interest the way LandR requires
       #the latin is used to translate species into common names for the biomass equations
-      sppEquivForON <- LandR::sppEquivalencies_CA #make sure this is fresh from the package
-      PSPon <- dataPurification_ONPSP(PSPon, sppEquiv = sppEquivForON)
+
+      PSPon <- dataPurification_ONPSP(PSPon, sppEquiv = sppEquivPSP)
       PSPmeasures[["ON"]] <- PSPon$treeData
       PSPplots[["ON"]] <- PSPon$plotHeaderData
       rm(sppEquivForON)
@@ -96,8 +97,8 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE) {
       PSPnb <- prepInputsNBPSP(dPath = destinationPath)
       #sppEquiv should not be subset to species of interest the way LandR requires
       #the latin is used to translate species into common names for the biomass equations
-      sppEquivForNB <- LandR::sppEquivalencies_CA #make sure this is fresh from the package
-      PSPnb <- dataPurification_NBPSP(PSPnb, sppEquiv = sppEquivForNB)
+
+      PSPnb <- dataPurification_NBPSP(PSPnb, sppEquiv = sppEquivPSP)
       PSPmeasures[["NB"]] <- PSPnb$treeData
       PSPplots[["NB"]] <- PSPnb$plotHeaderData
     }
@@ -107,10 +108,8 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE) {
 
       NFIexclude <- if (forGMCS) {"IB"} else {NULL}
       PSPnfi <- prepInputsNFIPSP(dPath = destinationPath)
-      PSPnfi <- dataPurification_NFIPSP(lgptreeRaw = PSPnfi$pspTreeMeasure,
-                                        lgpHeaderRaw = PSPnfi$pspHeader,
-                                        approxLocation = PSPnfi$pspLocation,
-                                        treeDamage = PSPnfi$pspTreeDamage,
+      PSPnfi <- dataPurification_NFIPSP(PSPnfi,
+                                        sppEquiv = sppEquivPSP,
                                         codesToExclude = NFIexclude)
       PSPmeasures[["NFI"]] <- PSPnfi$treeData
       PSPplots[["NFI"]] <- PSPnfi$plotHeaderData

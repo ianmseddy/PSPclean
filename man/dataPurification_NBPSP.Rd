@@ -9,7 +9,7 @@ dataPurification_NBPSP(NB_PSP_Data, sppEquiv)
 \arguments{
 \item{NB_PSP_Data}{list of data tables resulting from \code{prepInputsNBPSP}}
 
-\item{sppEquiv}{species equivalencies table - see \code{LandR::sppEquivalencies_CA}}
+\item{sppEquiv}{species equivalencies table with column \code{Latin-full}}
 }
 \value{
 a list of standardized plot and tree data.tables
