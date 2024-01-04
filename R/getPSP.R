@@ -84,21 +84,16 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE, sppEquiv = La
 
     if ("ON" %in% PSPdataTypes | "all" %in% PSPdataTypes) {
       PSPon <- prepInputsOntarioPSP(dPath = destinationPath)
-      #sppEquiv should not be subset to species of interest the way LandR requires
       #the latin is used to translate species into common names for the biomass equations
-
-      PSPon <- dataPurification_ONPSP(PSPon, sppEquiv = sppEquivPSP)
+      PSPon <- dataPurification_ONPSP(PSPon, sppEquiv)
       PSPmeasures[["ON"]] <- PSPon$treeData
       PSPplots[["ON"]] <- PSPon$plotHeaderData
-      rm(sppEquivForON)
     }
 
     if ("NB" %in% PSPdataTypes | "all" %in% PSPdataTypes) {
       PSPnb <- prepInputsNBPSP(dPath = destinationPath)
-      #sppEquiv should not be subset to species of interest the way LandR requires
       #the latin is used to translate species into common names for the biomass equations
-
-      PSPnb <- dataPurification_NBPSP(PSPnb, sppEquiv = sppEquivPSP)
+      PSPnb <- dataPurification_NBPSP(PSPnb, sppEquiv)
       PSPmeasures[["NB"]] <- PSPnb$treeData
       PSPplots[["NB"]] <- PSPnb$plotHeaderData
     }
@@ -108,9 +103,7 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE, sppEquiv = La
 
       NFIexclude <- if (forGMCS) {"IB"} else {NULL}
       PSPnfi <- prepInputsNFIPSP(dPath = destinationPath)
-      PSPnfi <- dataPurification_NFIPSP(PSPnfi,
-                                        sppEquiv = sppEquivPSP,
-                                        codesToExclude = NFIexclude)
+      PSPnfi <- dataPurification_NFIPSP(PSPnfi, codesToExclude = NFIexclude)
       PSPmeasures[["NFI"]] <- PSPnfi$treeData
       PSPplots[["NFI"]] <- PSPnfi$plotHeaderData
     }
