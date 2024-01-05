@@ -438,7 +438,7 @@ standardizeSpeciesNames <- function(speciesTable, forestInventorySource) {
     ] #
     speciesTable[
       Genus == "THUJ" & Species == "OCC",
-      newSpeciesName := "eastern white cedar"
+      newSpeciesName := "eastern white-cedar"
     ] #
     speciesTable[
       Genus == "THUJ" & Species == "PLI",

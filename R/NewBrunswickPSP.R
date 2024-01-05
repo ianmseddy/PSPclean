@@ -14,7 +14,7 @@ globalVariables(c(
 #'
 #' @export
 #' @importFrom data.table set setcolorder
-dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv) {
+dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalencies_CA) {
 
   PSP_PLOTS <- NB_PSP_Data[["PSP_PLOTS"]]
   PSP_PLOTS_YR <- NB_PSP_Data[["PSP_PLOTS_YR"]]
@@ -64,6 +64,9 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv) {
   #note that most species lack biomass equations
   PSP_TREE_YIMO[is.na(PSP)|PSP == "", PSP := CommonName]
   PSP_TREE_YIMO[, c("species", "CommonName") := NULL]
+
+  #this ensures elm trees have biomass equations (they are very likely white elms)...
+  PSP_TREE_YIMO[Species == "Ulmus spp.", CommonName := "white elm"]
 
   PSP_LOC_LAT_LONG <- PSP_LOC_LAT_LONG[, .(PLOT, lat, long_)]
   PSP_PLOTS[, Plot := as.integer(Plot)]
