@@ -14,15 +14,10 @@ globalVariables(c(
 #' @return a list of standardized plot and tree data.tables
 #'
 #' @export
-#' @importFrom data.table merge setnames
+#' @importFrom data.table setnames
 dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllObs = TRUE) {
 
-  # PLACETTE <- import ("D:/Quebec 12 December/RAW_CODE/PLACETTE.txt")
-  # PLACETTE_MES <- import ("D:/Quebec 12 December/RAW_CODE/PLACETTE_MES.txt")
-  # STATION_PE <- import ("D:/Quebec 12 December/RAW_CODE/STATION_PE.txt")
-  # DENDRO_ARBRES_ETUDES <- import("D:/Quebec 12 December/RAW_CODE/DENDRO_ARBRES_ETUDES.txt")
-  #
-  #
+
   PLACETTE <- QuebecPSP[["PLACETTE"]]
   PLACETTE_MES <- QuebecPSP[["PLACETTE_MES"]]
   STATION_PE <- QuebecPSP[["STATION_PE"]]
@@ -30,10 +25,12 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
 
 
   PLACETTE <- PLACETTE[, .(ID_PE, NO_PRJ,NO_PE,RESEAU, LATITUDE,LONGITUDE, IN_GPS,DERN_SOND)]
-  PLACETTE_MES[, c("OBJECTID", "DIMENSION", "STATUT_MES","VER_PEP") := NULL]
-  PLACETTE_FINAL<-merge(PLACETTE_MES,PLACETTE,by = "ID_PE")
-  STATION_PE <- STATION_PE[, .(ID_PE,ID_PE_MES, ALTITUDE,CL_HAUT,CL_AGE,CL_DENS,HAUT_DOMI,DEP_SUR,STADE_DEV, ORIGINE, PERTURB)]
+  # PLACETTE_MES[, c("OBJECTID", "DIMENSION", "STATUT_MES","VER_PEP") := NULL] These are not in PLACETTE_MES....
+  PLACETTE_FINAL <- merge(PLACETTE_MES,PLACETTE,by = "ID_PE")
+  STATION_PE <- STATION_PE[, .(ID_PE,ID_PE_MES, ALTITUDE,CL_HAUT,CL_AGE,CL_DENS,
+                               HAUT_DOMI,DEP_SUR,STADE_DEV, ORIGINE, PERTURB)]
   PLACETTE_FINAL <- merge(STATION_PE, PLACETTE_FINAL, by = c("ID_PE_MES", "ID_PE"))
+
   #Filtered base on ORIGINE and PERTURB column (BR Means TOTALLY BURNED)
   PLACETTE_FINAL  <- PLACETTE_FINAL[ORIGINE == "" | ORIGINE == "BR"]
   PLACETTE_FINAL  <- PLACETTE_FINAL[PERTURB == "" ]
@@ -45,14 +42,17 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   #PLACETTE_AGE <- PLACETTE_AGE[!is.na(DBH)]
   #PLACETTE_AGE <- PLACETTE_AGE[NO_MES == 1 ##& !crown_class %in% c("I", "S"),]
 
-  DENDRO_ARBRES_ETUDES <- DENDRO_ARBRES_ETUDES[, .(ID_PE,ID_ARBRE, NO_MES,ID_PE_MES,NO_ARBRE, ID_ARB_MES,ETAT,ESSENCE,HAUT_ARBRE,
+  DENDRO_ARBRES_ETUDES <- DENDRO_ARBRES_ETUDES[, .(ID_PE,ID_ARBRE, NO_MES,ID_PE_MES,NO_ARBRE,
+                                                   ID_ARB_MES,ETAT,ESSENCE,HAUT_ARBRE,
                                                    DHP,CL_QUAL,ETAGE_ARB,AGE,AGE_SANSOP, SOURCE_AGE)]
   #Different VIVANT trees with these codes
   DENDRO_ARBRES_ETUDES  <- DENDRO_ARBRES_ETUDES[ETAT == "10"|ETAT =="12"|ETAT =="40"|ETAT ==""|ETAT =="50"|ETAT =="30"]
   #ADD Measure Year to DENDRO_ARBRES FIL
   DENDRO_ARBRES_ETUDES <- merge(DENDRO_ARBRES_ETUDES, PLACETTE_FINAL[, c("ID_PE_MES", "DERN_SOND")], by = "ID_PE_MES")
-  setnames(DENDRO_ARBRES_ETUDES, c("ESSENCE", "DHP", "HAUT_ARBRE", "ID_ARBRE", "DERN_SOND"), c("Species", "DBH", "Height", "TreeNumber","MeasureYear"))
+  setnames(DENDRO_ARBRES_ETUDES, c("ESSENCE", "DHP", "HAUT_ARBRE", "ID_ARBRE", "DERN_SOND"),
+           c("Species", "DBH", "Height", "TreeNumber","MeasureYear"))
   #DENDRO_ARBRES <- standardizeSpeciesNames(DENDRO_ARBRES, forestInventorySource = "QCPSP")
+  DENDRO_ARBRES_ETUDES[, MeasureYear := format(MeasureYear, "%Y")]
 
   DENDRO_ARBRES_ETUDES <- DENDRO_ARBRES_ETUDES[DENDRO_ARBRES_ETUDES$ID_PE %in% unique(PLACETTE_FINAL$ID_PE), ]
   DENDRO_ARBRES_ETUDES$ID_PE <- paste0("QC", DENDRO_ARBRES_ETUDES$ID_PE)
@@ -78,7 +78,7 @@ prepInputsQCPSP <- function(dPath) {
                               fun = "data.table::fread",
                               destinationPath = dPath)
 
-  PLACETTE_MES <- prepInputs(targetFile = "PLACETTE_FINAL.txt",
+  PLACETTE_MES <- prepInputs(targetFile = "PLACETTE_MES.txt",
                              url = "https://drive.google.com/file/d/1iC2utoWxn81kAWLX9R85xh9c2_o3nM11/view?usp=drive_link",
                              destinationPath = dPath,
                              fun = "data.table::fread")
