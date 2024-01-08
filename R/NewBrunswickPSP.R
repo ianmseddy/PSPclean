@@ -66,7 +66,7 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalenci
   PSP_TREE_YIMO[, c("species", "CommonName") := NULL]
 
   #this ensures elm trees have biomass equations (they are very likely white elms)...
-  PSP_TREE_YIMO[Species == "Ulmus spp.", CommonName := "white elm"]
+  PSP_TREE_YIMO[Latin_full == "Ulmus spp.", PSP := "white elm"]
 
   PSP_LOC_LAT_LONG <- PSP_LOC_LAT_LONG[, .(PLOT, lat, long_)]
   PSP_PLOTS[, Plot := as.integer(Plot)]
