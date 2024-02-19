@@ -77,7 +77,7 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   # 11	Carotte incomplète pour analyse en laboratoire.(incomplete core for lab analysis)
   # 12	Carotte incomplète analysée en forêt. (incomplete core analyzed in field)
   # 13	Carotte incomplète analysée en laboratoire avec plus de cinq cernes absents
-        #(incomplete core, analyzed in lab, with more than five missign tree rings)
+        #(incomplete core, analyzed in lab, with more than five missing tree rings)
   # 14	Carotte non analysée (unanalyzed core)
   # 2	Carotte en attente d'une analyse.(core awaiting analysis)
   # 3	Carotte complète analysée en forêt.(complete core analyzed in field)
@@ -90,8 +90,7 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   # 9	Carotte absente. (missing core)
 
   #remove NA age, trees without cores or with rotten cores, and trees where age is inferred from prior measurement
-  StandAge <- StandAge[!is.na(SOURCE_AGE) & SOURCE_AGE %in% c(4, 3, )]
-
+  StandAge <- StandAge[!is.na(SOURCE_AGE) & SOURCE_AGE %in% c(4, 3, )] #possibly 7 or 5 - #5 is fewer than 5 years missing
 
 
   #ADD Measure Year to DENDRO_ARBRES FIL
