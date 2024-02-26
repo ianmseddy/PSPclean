@@ -4,7 +4,7 @@
 \alias{dataPurification_NBPSP}
 \title{standardize and treat the New Brunswick PSP data}
 \usage{
-dataPurification_NBPSP(NB_PSP_Data, sppEquiv)
+dataPurification_NBPSP(NB_PSP_Data, sppEquiv = LandR::sppEquivalencies_CA)
 }
 \arguments{
 \item{NB_PSP_Data}{list of data tables resulting from \code{prepInputsNBPSP}}
