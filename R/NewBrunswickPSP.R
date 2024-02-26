@@ -26,6 +26,12 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalenci
   PSP_PLOTS <- PSP_PLOTS[PlotType == "M",]
   PSP_PLOTS <- PSP_PLOTS[SilvID == 0]
 
+  #get rid of bad plot - trees were numbered differently in 4th measure of 5 (many trees in common in 3 and 5)
+  PSP_PLOTS_YR <- PSP_PLOTS_YR[!RemeasID %in% "10405_4",]
+  PSP_TREE_YIMO <- PSP_TREE_YIMO[!RemeasID %in% "10405_4"]
+
+  #this rejects most of the data, unfortunately
+  PSP_PLOTS <- PSP_PLOTS[YearTreated == 0]
   #no dead trees
   PSP_TREE_YIMO <- PSP_TREE_YIMO[!cause %in% 1:9]
   # has age

@@ -4,7 +4,12 @@
 \alias{dataPurification_QCPSP}
 \title{standardize and treat the QUEBEC PSP data}
 \usage{
-dataPurification_QCPSP(QuebecPSP, codesToExclude = NULL, excludeAllObs = TRUE)
+dataPurification_QCPSP(
+  QuebecPSP,
+  codesToExclude = NULL,
+  excludeAllObs = TRUE,
+  sppEquiv = LandR::sppEquivalencies_CA
+)
 }
 \arguments{
 \item{QuebecPSP}{list of PSP data.tables obtained via \code{prepInputsQCPSP}}
