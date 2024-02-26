@@ -15,7 +15,8 @@ globalVariables(c(
 #'
 #' @export
 #' @importFrom data.table setnames
-dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllObs = TRUE) {
+dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllObs = TRUE,
+                                   sppEquiv = LandR::sppEquivalencies_CA) {
 
   PLACETTE <- QuebecPSP[["PLACETTE"]]
   PLACETTE_MES <- QuebecPSP[["PLACETTE_MES"]]
@@ -56,13 +57,13 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   #assume area of 400m from radius of 11.28 m
 
   DENDRO_ARBRES_ETUDES <- DENDRO_ARBRES_ETUDES[, .(ID_PE,ID_ARBRE, NO_MES,ID_PE_MES,NO_ARBRE,
-                                                   ID_ARB_MES,ETAT,ESSENCE,HAUT_ARBRE,
+                                                   ID_ARB_MES,ETAT,ESSENCE,HAUT_ARBRE, AGE_SANSOP,
                                                    DHP,CL_QUAL,ETAGE_ARB,AGE, SOURCE_AGE)]
   #Filter to living (VIVANT) trees with these codes
   #10 = living, 12 = living snag, 40 = living recruit (Google Translate), 30 = living/forgotten (?)
   DENDRO_ARBRES_ETUDES  <- DENDRO_ARBRES_ETUDES[ETAT == "10"|ETAT =="12"|ETAT =="40"|ETAT ==""|ETAT =="50"|ETAT =="30"]
 
-  StandAge <- DENDRO_ARBRES_ETUDES[!is.na(AGE) | !is.na(AGE_SANSOP)]
+  standAge <- DENDRO_ARBRES_ETUDES[!is.na(AGE) | !is.na(AGE_SANSOP)]
   #use STAND_AGE$ETAGE_ARB to estimate stand age from trees that are codominant or dominant
   #C Codominant, D Dominant, F = NonApplicable car fut casse (no Fs..)
   # I = Intermediaire, O = Opprime (oppressed or suppressed), V = Veteran
@@ -90,9 +91,39 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   # 9	Carotte absente. (missing core)
 
   #remove NA age, trees without cores or with rotten cores, and trees where age is inferred from prior measurement
-  StandAge <- StandAge[!is.na(SOURCE_AGE) & SOURCE_AGE %in% c(4, 3, )] #possibly 7 or 5 - #5 is fewer than 5 years missing
+  standAge <- standAge[!is.na(SOURCE_AGE) & SOURCE_AGE %in% c(4, 3),
+                       .(ID_PE_MES, ID_ARB_MES, AGE, ETAGE_ARB)] #don't need species or state
+  standAge <- PLACETTE_FINAL[standAge, on = c("ID_PE_MES")]
+  standAge <- standAge[!is.na(baseYear) & ETAGE_ARB %in% c("C", "D")]
+  standAge[, baseTreeAge := AGE - MeasureYear + baseYear] #some plots have different trees measured at different times
+  browser() #TODO: review these are correct by comparing with DENDRO_ARBRES_ETUDES[!is.na(Age) & blah blah blah]
+  # to avoid counting the same tree twice, take .N
+  #TODO: for now just drop the harvested ones like so
+
+  standAge <- standAge[ID_PE %in% PLACETTE_FINAL$ID_PE,]
+  standAge <- standAge[, .N, .(baseTreeAge, ID_PE, ETAGE_ARB)]
+  #join with measure year to get year age was recorded - estimate revised age - find etage
+  # the PSPclean approach derives standAge as mean of N trees with crown class Dominant, where N > 1.
+  # if none are available, we take the mean of all dominant and co-dominant trees
+  standRep <- standAge[, .N, .(ETAGE_ARB, ID_PE)]
+
+  standRep[ETAGE_ARB == "D" & N > 1, group := "D"]
+  standRep[is.na(group), group := "CandD"]
+
+  #TODO: review - you want unique tree age so you aren't double-counting trees in subsequent measurements
+  standAge[ID_PE %in% standRep[group == "D",]$ID_PE & ETAGE_ARB == "D",
+           baseStandAge := as.integer(mean(baseTreeAge)), .(ID_PE)]
+  standAge[ID_PE %in% standRep[group == "CandD",]$ID_PE,
+           baseStandAge := as.integer(mean(baseTreeAge)), .(ID_PE)]
+  standAge <- standAge[!is.na(baseStandAge)] #drop the C trees in plots with > 1 D trees
+  standAge <- unique(standAge[, .(baseStandAge, ID_PE)])
 
 
+  PLACETTE_FINAL <- standAge[PLACETTE_FINAL, on = c("ID_PE")]
+  PLACETTE_FINAL <- PLACETTE_FINAL[!is.na(baseStandAge)]
+
+  #fix species
+  browser()
   #ADD Measure Year to DENDRO_ARBRES FIL
   DENDRO_ARBRES_ETUDES <- merge(DENDRO_ARBRES_ETUDES, PLACETTE_FINAL[, c("ID_PE_MES", "DERN_SOND")], by = "ID_PE_MES")
   setnames(DENDRO_ARBRES_ETUDES, c("ESSENCE", "DHP", "HAUT_ARBRE", "ID_ARBRE", "DERN_SOND"),
@@ -104,6 +135,14 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   DENDRO_ARBRES_ETUDES$ID_PE <- paste0("QC", DENDRO_ARBRES_ETUDES$ID_PE)
   PLACETTE_FINAL$ID_PE <- paste0("QC", PLACETTE_FINAL$ID_PE)
 
+
+  setnames(PLACETTE_FINAL,
+           old = c("ID_PE", "ID_PE_MES", "ALTITUDE", "NO_MES", "baseStandAge", "LATITUDE", "LONGITUDE"),
+           new = c("OrigPlotID1", "MeasureID", "Elevation", "Measurement", "baseSA", "Latitude", "Longitude"))
+
+  setnames(DENDRO_ARBRES_ETUDES,
+           old = c("ID_PE", "ID_PE_MES", "ESSENCE", ""),
+           new = c("OrigPlotID1", "MeasureID", "Measurement", "baseSA"))
 
 
   return(list(PLOTQC = PLACETTE_FINAL,
@@ -152,39 +191,39 @@ prepInputsQCPSP <- function(dPath) {
 
 # #(forestInventorySource == "QCPSP") {
 # #### QUEBEC ####
-# # speciesTable[Species == "  ", newSpeciesName := "unknown"]
-# speciesTable[Species == "ERS", newSpeciesName := "sugar maple"]
-# speciesTable[Species == "ERR", newSpeciesName := "red maple"]
-# speciesTable[Species == "OSV", newSpeciesName := "hop-hornbeam"]
-# speciesTable[Species == "BOJ", newSpeciesName := "yellow birch"]
-# speciesTable[Species == "HEG", newSpeciesName := "beech"]
-# speciesTable[Species == "TIL", newSpeciesName := "trembling aspen"]
-# speciesTable[Species == "FRA", newSpeciesName := "white ash"]
-# speciesTable[Species == "PRU", newSpeciesName := "eastern hemlock"]
-# speciesTable[Species == "EPB", newSpeciesName := "white spruce"]
-# speciesTable[Species == "EPR", newSpeciesName := "red spruce"]
-# speciesTable[Species == "SAB", newSpeciesName := "balsam fir"]
-# speciesTable[Species == "EPN", newSpeciesName := "black spruce"]
-# speciesTable[Species == "BOP", newSpeciesName := "alaska paper birch"]
-# speciesTable[Species == "PET", newSpeciesName := "trembling aspen"]
-# speciesTable[Species == "MEL", newSpeciesName := "tamarack larch"]
-# speciesTable[Species == "THO", newSpeciesName := "eastern white cedar"]
-# speciesTable[Species == "PIB", newSpeciesName := "white pine"]
-# speciesTable[Species == "ORA", newSpeciesName := " "]
-# speciesTable[Species == "CET", newSpeciesName := "black cherry"]
-# speciesTable[Species == "FRN", newSpeciesName := "black ash"]
-# speciesTable[Species == "CHG", newSpeciesName := "bur oak"]
-# speciesTable[Species == "PIG", newSpeciesName := "jack pine"]
-# speciesTable[Species == "BOG", newSpeciesName := "grey birch"]
-# speciesTable[Species == "ERA", newSpeciesName := "silver maple"]
-# speciesTable[Species == "FRP", newSpeciesName := "green ash"]
-# speciesTable[Species == "PEB", newSpeciesName := "balsam poplar"]
-# speciesTable[Species == "PEG", newSpeciesName := "lagretooth aspen"]
-# speciesTable[Species == "PIR", newSpeciesName := "red pine"]
-# speciesTable[Species == "CHR", newSpeciesName := "red oak"]
+# # speciesTable[Species == "  ", newSpeciesName := "unknown"] done
+# speciesTable[Species == "ERS", newSpeciesName := "sugar maple"] done
+# speciesTable[Species == "ERR", newSpeciesName := "red maple"] done
+# speciesTable[Species == "OSV", newSpeciesName := "hop-hornbeam"] done
+# speciesTable[Species == "BOJ", newSpeciesName := "yellow birch"] done
+# speciesTable[Species == "HEG", newSpeciesName := "beech"] done
+# speciesTable[Species == "TIL", newSpeciesName := "trembling aspen"] done
+# speciesTable[Species == "FRA", newSpeciesName := "white ash"] done
+# speciesTable[Species == "PRU", newSpeciesName := "eastern hemlock"] done
+# speciesTable[Species == "EPB", newSpeciesName := "white spruce"] done
+# speciesTable[Species == "EPR", newSpeciesName := "red spruce"] done
+# speciesTable[Species == "SAB", newSpeciesName := "balsam fir"] done
+# speciesTable[Species == "EPN", newSpeciesName := "black spruce"] done
+# speciesTable[Species == "BOP", newSpeciesName := "alaska paper birch"] done
+# speciesTable[Species == "PET", newSpeciesName := "trembling aspen"] done
+# speciesTable[Species == "MEL", newSpeciesName := "tamarack larch"] done
+# speciesTable[Species == "THO", newSpeciesName := "eastern white cedar"] done
+# speciesTable[Species == "PIB", newSpeciesName := "white pine"] done
+# speciesTable[Species == "ORA", newSpeciesName := "white elm"] done
+# speciesTable[Species == "CET", newSpeciesName := "black cherry"] done
+# speciesTable[Species == "FRN", newSpeciesName := "black ash"] done
+# speciesTable[Species == "CHG", newSpeciesName := "bur oak"] done
+# speciesTable[Species == "PIG", newSpeciesName := "jack pine"] done
+# speciesTable[Species == "BOG", newSpeciesName := "grey birch"] done
+# speciesTable[Species == "ERA", newSpeciesName := "silver maple"] done
+# speciesTable[Species == "FRP", newSpeciesName := "green ash"] done
+# speciesTable[Species == "PEB", newSpeciesName := "balsam poplar"] done
+# speciesTable[Species == "PEG", newSpeciesName := "largetooth aspen"]done
+# speciesTable[Species == "PIR", newSpeciesName := "red pine"]done
+# speciesTable[Species == "CHR", newSpeciesName := "red oak"]done
 # speciesTable[Species == "EPO", newSpeciesName := ""]
-# speciesTable[Species == "CHE", newSpeciesName := "white oak"]
-# speciesTable[Species == "PED", newSpeciesName := "eastern cottonwood"]
+# speciesTable[Species == "CHE", newSpeciesName := "white oak"] done
+# speciesTable[Species == "PED", newSpeciesName := "eastern cottonwood"] done
 # speciesTable[Species == "ORT", newSpeciesName := ""]
 # speciesTable[Species == "AUR", newSpeciesName := ""]
 # speciesTable[Species == "NOC", newSpeciesName := ""]
@@ -198,24 +237,4 @@ prepInputsQCPSP <- function(dPath) {
 # speciesTable[Species == "PID", newSpeciesName := ""]
 # speciesTable[Species == "ERN", newSpeciesName := ""]
 # speciesTable[Species == ""   , newSpeciesName := "unknown"]
-# }
-# #assuming that American ash is white ash(FRA)
-# #aasuming that HEG	Hêtre à grandes feuilles is beech(HEG)
-#
-# #assuming Chêne bicolore is white oak(CHV)
 
-# #assuming Ostryer de Virginie is hop-hornbeam(OSV)
-# #Orme d'Amérique (ORA) =do not know the new name
-# #Érable noir (ERN) =do not know the new name
-# #Sorbier d'Amérique(SOA)=do not know the new name
-# #Orme de Thomas (ORT)=do not know the new name
-# #Pin rigide (PID)=do not know the new name
-# #Caryer à fruits doux(CAF)=do not know the new name
-# #Cerisier de Pennsylvanie(PRP)=do not know the new name
-# #Orme rouge(ORR)=  slipper ehlm
-# #Érable à Giguère(ERG)=do not know the new name Manitoba maple
-# #Noyer cendré(NOC) = White walnut, butternut, juglas cinerea
-# #Aulne rugueu(AUR)=do not know the new name
-# #Épinette de Norvège(EPO)=do not know the new name
-# #assuming that Frêne de Pennsylvanie is green ash(FRP)
-# #assuming that Cerisier tardif is black cherry(CET)

@@ -98,6 +98,12 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE, sppEquiv = La
       PSPplots[["NB"]] <- PSPnb$plotHeaderData
     }
 
+    if ("QC" %in% PSPdataTypes | "all" %in% PSPdataTypes) {
+      PSPqc <- prepInputsQCPSP(dPath = destinationPath)
+      PSPqc <- dataPurification_QCPSP(PSPqc)
+      PSPmeasures[["QC"]] <- PSPqc$treeData
+      PSPplots[["QC"]] <- PSPqc$plotHeaderData
+    }
 
     if ("NFI" %in% PSPdataTypes | "all" %in% PSPdataTypes) {
 
