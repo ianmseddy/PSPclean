@@ -1,10 +1,10 @@
 globalVariables(c(
-  "tot_stand_age", ":=", "utm_zone", "utm_easting", "utm_northing",
-  "area_pm", "stnd_org", "treatment", "SAMP_ID", "treatmenttimes",
-  ".", "elev", "meas_yr", "baseYear", "baseSA", "OrigPlotID1",
-  "Damage Agent Code", "OrigPlotID2", "tree_no", "Elevation", "PlotSize",
-  "dam_1", "dam_2", "dam_3", "dam_4", "dam_5", ".N", "sub_plot_tree",
-  "tree_cls", "MeasureYear", "MeasureID", "zone", "Easting", "Northing"
+  ":=", ".", ".N", "area_pm", "baseSA", "baseYear", "dam_1",
+  "dam_2", "dam_3", "dam_4", "dam_5", "Damage Agent Code", "Easting",
+  "elev", "Elevation", "meas_yr", "MeasureID", "MeasureYear", "Northing",
+  "OrigPlotID1", "OrigPlotID2", "PlotSize", "SAMP_ID", "stnd_org",
+  "sub_plot_tree", "tot_stand_age", "treatment", "treatmenttimes",
+  "tree_cls", "tree_no", "utm_easting", "utm_northing", "utm_zone", "zone"
 ))
 
 #' standardize and treat the BC PSP data
@@ -14,7 +14,7 @@ globalVariables(c(
 #' @param damageAgentCodes vector of damage agent codes
 #' @param codesToExclude damage agents to exclude from measurements
 #' @param excludeAllObs if removing observations of individual trees due to damage codes,
-#' remove all prior and future observations if \code{TRUE}.
+#' remove all prior and future observations if `TRUE`.
 #'
 #' @return a list of plot and tree data.tables
 #'
@@ -28,12 +28,12 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
 
   headerData <- plotHeaderDataRaw[tot_stand_age != -99, ][
     , ":="(utmtimes = length(unique(utm_zone)),
-           eastingtimes = length(unique(utm_easting)),
-           northingtimes = length(unique(utm_northing)),
-           SAtimes = length(unique(tot_stand_age)),
-           plotsizetimes = length(unique(area_pm)),
-           standorigtimes = length(unique(stnd_org)),
-           treatmenttimes = length(unique(treatment))),
+      eastingtimes = length(unique(utm_easting)),
+      northingtimes = length(unique(utm_northing)),
+      SAtimes = length(unique(tot_stand_age)),
+      plotsizetimes = length(unique(area_pm)),
+      standorigtimes = length(unique(stnd_org)),
+      treatmenttimes = length(unique(treatment))),
     by = SAMP_ID
   ]
 

@@ -1,11 +1,11 @@
 globalVariables(c(
-  "TOTAL_AGE", "TREE_STATUS", ":=", "baseYear", "YEAR", "PLOT_ID",
-  "treeAge", "CROWN_CLASS", "NofTrees", "baseSA", ".", "Z13nad83_e",
-  "Z13nad83_n", "PLOT_SIZE", "TREE_NO", "SPECIES", "DBH", "HEIGHT",
-  "CONDITION_CODE1", "CONDITION_CODE2", "CONDITION_CODE3", "MORTALITY",
-  "OrigPlotID1", "OrigPlotID2", "MeausreYear", "OFFICE_ERROR", "IsBad",
-  "MeasureID", "TreeNumber", "Species", "Height", "Zone",
-  "Easting", "Northing", "PlotSize", "species", "dbh", "height"
+  ":=", ".", "baseSA", "baseYear", "CONDITION_CODE1", "CONDITION_CODE2",
+  "CONDITION_CODE3", "CROWN_CLASS", "dbh", "DBH", "Easting", "height",
+  "Height", "HEIGHT", "IsBad", "MeasureID", "MeausreYear", "MORTALITY",
+  "NofTrees", "Northing", "OFFICE_ERROR", "OrigPlotID1", "OrigPlotID2",
+  "PLOT_ID", "PLOT_SIZE", "PlotSize", "species", "Species", "SPECIES",
+  "TOTAL_AGE", "TREE_NO", "TREE_STATUS", "treeAge", "TreeNumber",
+  "YEAR", "Z13nad83_e", "Z13nad83_n", "Zone"
 ))
 
 #' standardize and treat the Saskatchewan PSP data
@@ -19,7 +19,7 @@ globalVariables(c(
 #'  Wind = 5, Snow =  6, Other Trees = 7, Hail or Ice Storm = 8.
 #' Measurements with these codes will be removed
 #' @param excludeAllObs if removing observations of individual trees due to damage codes,
-#' remove all prior and future observations if \code{TRUE}.
+#' remove all prior and future observations if `TRUE`.
 #'
 #' @return a list of plot and tree data.tables
 #'
@@ -27,7 +27,6 @@ globalVariables(c(
 #' @importFrom data.table setnames setkey rbindlist
 dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
                                    treeDataRaw, codesToExclude = NULL, excludeAllObs = TRUE) {
-
   # get rid of artifical trees - plots where the distribution of trees/DBH/species were modelled
   treeDataRaw[, isArtificial := OFFICE_ERROR == "Artificial Tree", ]
   hasArtificial <- treeDataRaw[isArtificial == TRUE, .N, .(PLOT_ID)]
@@ -61,7 +60,7 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   headData_SA <- rbind(header_SA_Dom, header_SA_CoDom)
 
   headData_loca <- plotHeaderRaw[PLOT_ID %in% unique(headData_SA$PLOT_ID), ][, .(PLOT_ID, Z13nad83_e, Z13nad83_n, Zone = 13)]
-  names(headData_loca)[2:3] <- c("Easting", "Northing")
+  setnames(headData_loca, 2:3, c("Easting", "Northing"))
   headData_SALoca <- setkey(headData_SA, PLOT_ID)[setkey(headData_loca, PLOT_ID),
     nomatch = 0
   ]
@@ -117,7 +116,7 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
 
   treeData <- treeData[!is.na(DBH) & DBH != 0, ]
   treeData <- treeData[, .(PLOT_ID, YEAR, TREE_NO, SPECIES, DBH, HEIGHT)]
-  names(treeData) <- c("OrigPlotID1", "MeasureYear", "TreeNumber", "Species", "DBH", "Height")
+  setnames(treeData, new = c("OrigPlotID1", "MeasureYear", "TreeNumber", "Species", "DBH", "Height"))
   setnames(headData, "PLOT_ID", "OrigPlotID1")
   measureidtable <- unique(treeData[, .(OrigPlotID1, MeasureYear)], by = c("OrigPlotID1", "MeasureYear"))
   measureidtable[, MeasureID := paste("SKPSP_", row.names(measureidtable), sep = "")]

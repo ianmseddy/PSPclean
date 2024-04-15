@@ -227,15 +227,16 @@ test_that("geoCleanPSP works", {
   out7 <- geoCleanPSP(nfiClean$plotHeaderData)
 
 
-  #all
+  # all
   out8 <- geoCleanPSP(rbind(onClean$plotHeaderData,
-                            bcClean$plotHeaderData,
-                            abClean$plotHeaderData,
-                            nfiClean$plotHeaderData,
-                            skmClean$plotHeaderData,
-                            skClean$plotHeaderData,
-                            onClean$plotHeaderData,
-                            fill = TRUE))
+    bcClean$plotHeaderData,
+    abClean$plotHeaderData,
+    nfiClean$plotHeaderData,
+    skmClean$plotHeaderData,
+    skClean$plotHeaderData,
+    onClean$plotHeaderData,
+    fill = TRUE
+  ))
   expect_false(any(st_is_empty(out8)))
 
   expect_equal(names(out), names(out2))
