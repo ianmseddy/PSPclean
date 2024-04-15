@@ -353,8 +353,9 @@ prepInputsOntarioPSP <- function(dPath, ...) {
              "tlkpMainCanopyOrigin.csv", "tlkpSpec.csv", "tlkpTreatType.csv",
              "tlkpTreeOrigin.csv", "tlkpVisitType.csv", "tblHt.csv")
 
-  out <- prepInputs(url = "https://drive.google.com/file/d/1ca6TC7952cU4M2dJkT68IOsFmObaDrQn/view?usp=share_link",
+  out <- prepInputs(url = "https://drive.google.com/file/d/1ca6TC7952cU4M2dJkT68IOsFmObaDrQn",
                     targetFile = "tblAgeHeader.csv",
+                    archive = "Ontario_GrowthPlot_Subset.zip",
                     destinationPath = dPath,
                     alsoExtract = toget,
                     fun = "fread",

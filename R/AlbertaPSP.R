@@ -239,6 +239,7 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
 prepInputsAlbertaPSP <- function(dPath) {
   pspABtreeMeasure <- prepInputs(
     targetFile = "trees_measurement.csv",
+    archive = "GOAPSP20191025.zip",
     url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/",
     fun = "data.table::fread",
     overwrite = TRUE,
@@ -247,6 +248,7 @@ prepInputsAlbertaPSP <- function(dPath) {
 
   pspABtree <- prepInputs(
     targetFile = "trees.csv",
+    archive = "GOAPSP20191025.zip",
     url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/",
     fun = "data.table::fread",
     overwrite = TRUE,
@@ -255,6 +257,7 @@ prepInputsAlbertaPSP <- function(dPath) {
 
   pspABplotMeasure <- prepInputs(
     targetFile = "plot_measurement.csv",
+    archive = "GOAPSP20191025.zip",
     url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/",
     destinationPath = dPath,
     overwrite = TRUE,
@@ -263,6 +266,7 @@ prepInputsAlbertaPSP <- function(dPath) {
 
   pspABplot <- prepInputs(
     targetFile = "plot.csv",
+    archive = "GOAPSP20191025.zip",
     url = "https://drive.google.com/file/d/1qGiHEpkeSjiHR73zhmSFEFq8BO8_9GTP/",
     fun = "data.table::fread",
     overwrite = TRUE,
