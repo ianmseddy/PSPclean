@@ -24,7 +24,7 @@ dataPurification_SKPSP(
 
 \item{codesToExclude}{damage agent codes used to filter tree data.
 Natural or Undetermined = 1, Disease = 2, Insect = 3, Human 4,
- Wind = 5, Snow =  6, Other Trees = 7, Hail or Ice Storm = 8.
+Wind = 5, Snow =  6, Other Trees = 7, Hail or Ice Storm = 8.
 Measurements with these codes will be removed}
 
 \item{excludeAllObs}{if removing observations of individual trees due to damage codes,

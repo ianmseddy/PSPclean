@@ -4,23 +4,10 @@
 \alias{dataPurification_NFIPSP}
 \title{standardize and treat the NFI PSP data}
 \usage{
-dataPurification_NFIPSP(
-  lgptreeRaw,
-  lgpHeaderRaw,
-  approxLocation,
-  treeDamage,
-  codesToExclude = "IB",
-  excludeAllObs = TRUE
-)
+dataPurification_NFIPSP(NFIdata, codesToExclude = "IB", excludeAllObs = TRUE)
 }
 \arguments{
-\item{lgptreeRaw}{the tree measurement data}
-
-\item{lgpHeaderRaw}{the plot header data}
-
-\item{approxLocation}{the location data}
-
-\item{treeDamage}{the tree damage data}
+\item{NFIdata}{list of NFI tree, plot, and location data}
 
 \item{codesToExclude}{damage agents to exclude from measurements}
 
