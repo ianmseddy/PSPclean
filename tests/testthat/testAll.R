@@ -19,30 +19,21 @@ test_that("PSP NFI works", {
 
   nfi <- prepInputsNFIPSP(dPath = dPath)
   nfiClean <- dataPurification_NFIPSP(
-    lgptreeRaw = nfi$pspTreeMeasure,
-    lgpHeaderRaw = nfi$pspHeader,
-    approxLocation = nfi$pspLocation,
-    treeDamage = nfi$pspTreeDamage
+    NFIdata = nfi
   )
 
   expect_true(all(colnames(nfiClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(colnames(nfiClean$treeData) %in% standardizedTreeNames))
 
   nfiClean_allDam <- dataPurification_NFIPSP(
-    lgptreeRaw = nfi$pspTreeMeasure,
-    lgpHeaderRaw = nfi$pspHeader,
-    approxLocation = nfi$pspLocation,
-    treeDamage = nfi$pspTreeDamage,
+    NFIdata = nfi,
     codesToExclude = NULL
   )
 
   # filtering should always reduce rows
   # exclude trees if damaged, but not if undamaged in prior/subsequent obs
   nfiClean_someDam <- dataPurification_NFIPSP(
-    lgptreeRaw = nfi$pspTreeMeasure,
-    lgpHeaderRaw = nfi$pspHeader,
-    approxLocation = nfi$pspLocation,
-    treeDamage = nfi$pspTreeDamage,
+    NFIdata = nfi,
     excludeAllObs = FALSE
   )
 
@@ -218,12 +209,7 @@ test_that("geoCleanPSP works", {
 
 
   nfi <- prepInputsNFIPSP(dPath = dPath)
-  nfiClean <- dataPurification_NFIPSP(
-    lgptreeRaw = nfi$pspTreeMeasure,
-    lgpHeaderRaw = nfi$pspHeader,
-    approxLocation = nfi$pspLocation,
-    treeDamage = nfi$pspTreeDamage
-  )
+  nfiClean <- dataPurification_NFIPSP(NFIdata = nfi)
   out7 <- geoCleanPSP(nfiClean$plotHeaderData)
 
 

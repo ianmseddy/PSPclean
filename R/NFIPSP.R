@@ -117,6 +117,7 @@ dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllOb
 prepInputsNFIPSP <- function(dPath) {
   pspNFILocationRaw <- prepInputs(
     targetFile = "all_gp_site_info.csv",
+    archive = "all_gp_climate.zip",
     url = "https://drive.google.com/file/d/1S-4itShMXtwzGxjKPgsznpdTD2ydE9qn/",
     destinationPath = dPath,
     overwrite = TRUE,
@@ -125,6 +126,7 @@ prepInputsNFIPSP <- function(dPath) {
 
   pspNFIHeaderRaw <- prepInputs(
     targetFile = "all_gp_ltp_header.csv",
+    archive = "all_gp_trees.zip",
     url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/",
     destinationPath = dPath,
     fun = "data.table::fread",
@@ -133,6 +135,7 @@ prepInputsNFIPSP <- function(dPath) {
 
   pspNFITreeRaw <- prepInputs(
     targetFile = "all_gp_ltp_tree.csv",
+    archive = "all_gp_trees.zip",
     url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/",
     destinationPath = dPath,
     fun = "data.table::fread",
@@ -141,6 +144,7 @@ prepInputsNFIPSP <- function(dPath) {
 
   pspNFITreeDamage <- prepInputs(
     targetFile = "all_gp_ltp_tree_damage.csv",
+    archive = "all_gp_trees.zip",
     url = "https://drive.google.com/file/d/1i4y1Tfi-kpa5nHnpMbUDomFJOja5uD2g/",
     destinationPath = dPath,
     fun = "data.table::fread",
