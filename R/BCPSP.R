@@ -156,6 +156,7 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
 prepInputsBCPSP <- function(dPath) {
   pspBCtree <- prepInputs(
     targetFile = "PSPtree_BC.csv",
+    archive = "BCpsp.zip",
     url = "https://drive.google.com/file/d/1dEVz7OLhmZ935SWSTC1CRZI_ju4O3UnI/",
     destinationPath = dPath,
     fun = "data.table::fread"
@@ -163,6 +164,7 @@ prepInputsBCPSP <- function(dPath) {
 
   pspBCplot <- prepInputs(
     targetFile = "PSPplot_BC.csv",
+    archive = "BCpsp.zip",
     url = "https://drive.google.com/file/d/1dEVz7OLhmZ935SWSTC1CRZI_ju4O3UnI/",
     destinationPath = dPath,
     fun = "data.table::fread",
@@ -172,6 +174,7 @@ prepInputsBCPSP <- function(dPath) {
   pspBCdamageAgentCodes <- prepInputs(
     url = "https://drive.google.com/file/d/1pBX5txiKFul3CyZ805seQ9-WNx624Mg4/",
     targetFile = "BCForestry_DamageAgentCodes.csv",
+    archive = "BCForestry_DamageAgentCodes.zip",
     destinationPath = dPath,
     fun = "data.table::fread"
   )
