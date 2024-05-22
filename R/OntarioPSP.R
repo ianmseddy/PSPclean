@@ -24,7 +24,7 @@ globalVariables(c(
 #' @export
 #' @importFrom data.table copy data.table set setcolorder setkey dcast
 #'
-dataPurification_ONPSP <- function(ONPSPlist, sppEquiv) {
+dataPurification_ONPSP <- function(ONPSPlist, sppEquiv = LandR::sppEquivalencies_CA) {
   ## TODO: review excludeAllObs - I dont' think we exclude anything at the moment
 
   ##### Location ####
@@ -338,7 +338,7 @@ dataPurification_ONPSP <- function(ONPSPlist, sppEquiv) {
 
   # TODO: review needNewPlotNames - these are renumbered tree
 
-  tree[, c("TreeGrowthPlotKey", "TreeMsrKey", "GrowthPlotNum") := NULL]
+  tree[, c("TreeGrowthPlotKey", "TreeMsrKey", "GrowthPlotNum", "plotArea") := NULL]
   plotData[, OrigPlotID1 := as.factor(paste0("ONPSP_", OrigPlotID1))]
   tree[, OrigPlotID1 := as.factor(paste0("ONPSP_", OrigPlotID1))]
   plotData[, Datum := as.factor(Datum)]
