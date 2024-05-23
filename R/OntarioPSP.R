@@ -338,7 +338,7 @@ dataPurification_ONPSP <- function(ONPSPlist, sppEquiv = LandR::sppEquivalencies
 
   # TODO: review needNewPlotNames - these are renumbered tree
 
-  tree[, c("TreeGrowthPlotKey", "TreeMsrKey", "GrowthPlotNum", "plotArea") := NULL]
+  tree[, c("TreeGrowthPlotKey", "TreeMsrKey", "GrowthPlotNum") := NULL]
   plotData[, OrigPlotID1 := as.factor(paste0("ONPSP_", OrigPlotID1))]
   tree[, OrigPlotID1 := as.factor(paste0("ONPSP_", OrigPlotID1))]
   plotData[, Datum := as.factor(Datum)]

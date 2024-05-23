@@ -136,15 +136,24 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   standAge <- unique(standAge[, .(baseStandAge, ID_PE)])
   PLACETTE_FINAL <- standAge[PLACETTE_FINAL, on = c("ID_PE")]
   PLACETTE_FINAL <- PLACETTE_FINAL[!is.na(baseStandAge)]
-  browser()
+
+  #standardize species
+  sppEquiv <- unique(sppEquiv[, .(QCPSP, PSP)])#unique because some species have multiple rows (e.g. due to common name)
+  setnames(sppEquiv, old = c("QCPSP", "PSP"), new = c("ESSENCE", "newSpeciesName"))
+  DENDRO_ARBRES_ETUDES <- sppEquiv[DENDRO_ARBRES_ETUDES, on = c("ESSENCE")]
   #standardize attribute names
   PLACETTE_FINAL <- PLACETTE_FINAL[, .(ID_PE, ID_PE_MES, MeasureYear, ALTITUDE,
                                        LATITUDE, LONGITUDE, baseStandAge, baseYear)]
+  #per documentation, all PEP (placette echantillon permanente) are 400m2
+  #there does not appear to be an area field that explicitly defines the plot area
+  #see PLAN_DESC_TYPE_PE
+  PLACETTE_FINAL$PlotSize <- 0.04
+
   #ensure all measurements have associated plots
   DENDRO_ARBRES_ETUDES <- DENDRO_ARBRES_ETUDES[PLACETTE_FINAL[, .(ID_PE_MES, MeasureYear)],
                                                on = "ID_PE_MES"]
-  DENDRO_ARBRES_ETUDES <- DENDRO_ARBRES_ETUDES[, .(ID_PE, ID_PE_MES, NO_ARBRE,
-                                                   ESSENCE, DHP, HAUT_ARBRE)]
+  DENDRO_ARBRES_ETUDES <- DENDRO_ARBRES_ETUDES[, .(ID_PE, ID_PE_MES, NO_ARBRE, MeasureYear,
+                                                   ESSENCE, DHP, HAUT_ARBRE, newSpeciesName)]
   setnames(DENDRO_ARBRES_ETUDES,
            c("ESSENCE", "DHP", "HAUT_ARBRE", "NO_ARBRE", "ID_PE", "ID_PE_MES"),
            c("Species", "DBH", "Height", "TreeNumber", "OrigPlotID1", "MeasureID"))
@@ -164,8 +173,8 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   setkey(PLACETTE_FINAL, OrigPlotID1, MeasureID, MeasureYear)
   setcolorder(PLACETTE_FINAL)
 
-  return(list(PLOTQC = PLACETTE_FINAL,
-              TREESQC = DENDRO_ARBRES_ETUDES))
+  return(list(plotHeaderData = PLACETTE_FINAL,
+              treeData = DENDRO_ARBRES_ETUDES))
 }
 
 #' retrieve the Quebec PSP raw data
@@ -180,21 +189,25 @@ prepInputsQCPSP <- function(dPath) {
   DENDRO_ARBRES <- prepInputs(targetFile = "DENDRO_ARBRES_ETUDES.txt",
                               url = "https://drive.google.com/file/d/1llBYSrlusmwF9que40XWEXAWJ6eck0cu/view?usp=drive_link",
                               fun = "data.table::fread",
+                              overwrite = TRUE,
                               destinationPath = dPath)
 
   PLACETTE_MES <- prepInputs(targetFile = "PLACETTE_MES.txt",
                              url = "https://drive.google.com/file/d/1iC2utoWxn81kAWLX9R85xh9c2_o3nM11/view?usp=drive_link",
                              destinationPath = dPath,
+                             overwrite = TRUE,
                              fun = "data.table::fread")
 
   PLACETTE <- prepInputs(targetFile = "PLACETTE.txt",
                          url = "https://drive.google.com/file/d/1WnB__CJpwQhgkidAXQWKkfZx9hX3Y2Pq/view?usp=drive_link",
                          destinationPath = dPath,
+                         overwrite = TRUE,
                          fun = "data.table::fread")
 
   STATION_PE <- prepInputs(targetFile = "STATION.txt",
                            url ="https://drive.google.com/file/d/1vrLb0rkd2cjTNJjDbQCDm2ZkWm1YpDz6/view?usp=drive_link",
                            destinationPath = dPath,
+                           overwrite = TRUE,
                            fun = "data.table::fread")
 
   return(list(
