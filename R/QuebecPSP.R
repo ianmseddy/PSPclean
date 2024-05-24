@@ -148,6 +148,9 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   #there does not appear to be an area field that explicitly defines the plot area
   #see PLAN_DESC_TYPE_PE
   PLACETTE_FINAL$PlotSize <- 0.04
+  #standardize height and dbh
+  DENDRO_ARBRES_ETUDES[, DHP := DHP/10] #from millimetre to centimetre
+  DENDRO_ARBRES_ETUDES[, HAUT_ARBRE := HAUT_ARBRE/10] #from decimetre to metre
 
   #ensure all measurements have associated plots
   DENDRO_ARBRES_ETUDES <- DENDRO_ARBRES_ETUDES[PLACETTE_FINAL[, .(ID_PE_MES, MeasureYear)],
