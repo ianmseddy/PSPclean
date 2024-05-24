@@ -1,8 +1,9 @@
 globalVariables(c(
-  ":=", "PlotType","Treatment","Plot", "dbh", "EstabDate", "EstabAge", "EstabYear",
-  "Status","species","TreeNumber","SpeciesCode","Species","MeasNum","RemeasID",
-  "LatinName", "CommonName", "PLOT", "lat", "long_", "MeasYr", "SilvID",
-  "OrigPlotID1","MeasureYear","PlotSize","baseSA","LATITUDE","LONGITUDE","treenum"
+  ":=", "PlotType","Treatment","Plot", "dbh", "EstabDate", "EstabAge",
+  "EstabYear", "Status","SilvID", "treenum", "YearTreated",
+  "species","TreeNumber","SpeciesCode","Species","MeasNum", "measNum",
+  "RemeasID", "LatinName", "CommonName", "PLOT", "lat", "long_", "MeasYr",
+  "OrigPlotID1","MeasureYear","PlotSize","baseSA","LATITUDE","LONGITUDE"
 ))
 
 #' standardize and treat the New Brunswick PSP data

@@ -28,6 +28,6 @@ Suggests:
     testthat,
     LandR
 Remotes:
-    PredictiveEcology/LandR@development
+    PredictiveEcology/LandR@development (>= 1.1.1.9001)
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1

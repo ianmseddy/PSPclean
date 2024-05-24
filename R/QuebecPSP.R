@@ -1,10 +1,12 @@
 globalVariables(c(
   ":=", "NO_PRJ", "NO_VIREE", "NO_PE", "TYPE_PE",
   "RESEAU", "LATITUDE", "LONGITUDE", "IN_GPS", "DERN_SOND",
+  "ETAGE_ARB", "AGE", "baseTreeAge", "group", "baseStandAge",
   "NO_MES", "ID_PE_MES", "VERSION", " NO_PRJ_MES", "DATE_SOND",
-  "ALTITUDE", "CL_AGE", "CL_HAUT", "CL_DENS", "STADE_DEV", "ORIGINE", "PERTURB",
+  "ALTITUDE", "ORIGINE", "PERTURB",
+  "AGE_SANSOP", "CL_QUAL", "HAUT_ARBRE", "ID_PE", "QCPSP", "SOURCE_AGE",
   "ID_ARBRE", "NO_ARBRE", "ID_ARB_MES", "ETAT", "ESSENCE", "DHP",
-  "STADE_DEGR", "ST_HA", "HAUT_ESTI","Species", "DBH", "Height", "TreeNumber","MeasureYear"
+  "Species", "DBH", "Height", "TreeNumber","MeasureYear"
 ))
 
 
