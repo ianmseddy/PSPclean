@@ -19,6 +19,7 @@ LazyData: true
 License: GPL-3
 Imports:
     data.table,
+    LandR (>= 1.1.1.9001),
     reproducible (>= 2.0.3),
     sf,
     sp,
