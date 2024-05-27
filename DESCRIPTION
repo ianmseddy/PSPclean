@@ -26,8 +26,7 @@ Imports:
 Suggests:
     googledrive,
     testthat,
-    LandR
 Remotes:
-    PredictiveEcology/LandR@development (>= 1.1.1.9001)
+    PredictiveEcology/LandR@development
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
