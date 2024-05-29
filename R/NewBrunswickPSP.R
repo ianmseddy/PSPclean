@@ -1,8 +1,9 @@
 globalVariables(c(
-  ":=", "PlotType","Treatment","Plot", "dbh", "EstabDate", "EstabAge", "EstabYear",
-  "Status","species","TreeNumber","SpeciesCode","Species","MeasNum","RemeasID",
-  "LatinName", "CommonName", "PLOT", "lat", "long_", "MeasYr", "SilvID",
-  "OrigPlotID1","MeasureYear","PlotSize","baseSA","LATITUDE","LONGITUDE","treenum"
+  ":=", "PlotType","Treatment","Plot", "dbh", "EstabDate", "EstabAge",
+  "EstabYear", "Status","SilvID", "treenum", "YearTreated", "long_", "MeasYr",
+  "species","TreeNumber","SpeciesCode","Species","MeasNum", "measNum",
+  "RemeasID", "LatinName", "Latin_full", "PSP", "CommonName", "PLOT", "lat",
+  "OrigPlotID1","MeasureYear","PlotSize","baseSA","LATITUDE","LONGITUDE"
 ))
 
 #' standardize and treat the New Brunswick PSP data
@@ -31,13 +32,30 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalenci
   PSP_TREE_YIMO <- PSP_TREE_YIMO[!RemeasID %in% "10405_4"]
 
   #no treated plots
-  PSP_PLOTS <- PSP_PLOTS[YearTreated == 0]
+  #TODO: investigate what YearTreated actually means.
+  # PSP_PLOTS <- PSP_PLOTS[YearTreated == 0]
+  #Per the manual:
+  # year-treated Year of silviculture treatment for managed stand
+  # a few YIMO are 0, the majority are 2000
+  # however the YIMO are not supposed to be managed, furthermore:
+  # silv_ID Link to management prescription for managed stands
+  # these stands are all silv_ID 0
 
   #no dead trees
   PSP_TREE_YIMO <- PSP_TREE_YIMO[!cause %in% 1:9]
   # has age
 
-  #generate eventual plot header
+  #Miscellaenous fixes - filter before calculating base stand age
+  #these tree numbers are inconsistent in the 5th meaurement -
+  PSP_TREE_YIMO[RemeasID == "5040_5" & treenum  > 100, treenum := treenum + 200]
+  PSP_TREE_YIMO[RemeasID == "5040_5" & treenum  < 100, treenum := treenum + 400]
+  #these all have inconsistent numbering with preceeding plots
+  MiscBad <- c("10308_5", "1035_5", "1066_4", "3091_4", "5037_4", "5038_4", "5042_4",
+               "5044_4", "5046_4", "5047_4", "5048_4", "5050_4", "5051_4", "5053_4",
+               "5055_4", "5056_4", "7089_5")
+  PSP_TREE_YIMO <- PSP_TREE_YIMO[!RemeasID %in% MiscBad]
+
+    #generate eventual plot header
   PSP_PLOTS_YR <- PSP_PLOTS_YR[Plot %in% PSP_PLOTS$Plot, .(Plot, RemeasID, MeasYr, measNum)]
 
   #standardize
@@ -80,7 +98,7 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalenci
   PSP_PLOTS <- PSP_LOC_LAT_LONG[PSP_PLOTS, on = c("PLOT" = "Plot")]
 
   PSP_PLOTS <- PSP_PLOTS[!is.na(lat) & !is.na(long_)]
-  #a dozen plots are missign location date - but do have x and y coordinates
+  #a dozen plots are missing location data - but do have x and y coordinates
   #they are not in a UTM projection but lacking additional information, they are filtered
 
   PSP_TREE_YIMO <- PSP_TREE_YIMO[Plot %in% PSP_PLOTS$PLOT]
@@ -100,8 +118,10 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalenci
 
   setcolorder(PSP_TREE_YIMO, c("MeasureID", "OrigPlotID1", "MeasureYear",
                                "TreeNumber", "Species", "DBH", "newSpeciesName"))
-  setcolorder(PSP_PLOTS, c("MeasureID", "OrigPlotID1", "MeasureYear", "Longitude",
-                           "Latitude", "PlotSize", "baseYear", "baseSA"))
+
+  plotCols <- c("MeasureID", "OrigPlotID1", "MeasureYear", "Longitude",
+                "Latitude", "PlotSize", "baseYear", "baseSA")
+  PSP_PLOTS <- PSP_PLOTS[, .SD, .SDcol = plotCols]
 
   #assign NB
   PSP_TREE_YIMO[, OrigPlotID1 := paste0("NBPSP_", OrigPlotID1)]
