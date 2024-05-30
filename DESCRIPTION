@@ -18,6 +18,7 @@ Language: en-CA
 LazyData: true
 License: GPL-3
 Imports:
+    bit64,
     data.table,
     LandR (>= 1.1.1.9001),
     reproducible (>= 2.0.3),
