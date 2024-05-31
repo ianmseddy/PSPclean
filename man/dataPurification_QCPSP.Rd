@@ -13,6 +13,12 @@ dataPurification_QCPSP(
 }
 \arguments{
 \item{QuebecPSP}{list of PSP data.tables obtained via \code{prepInputsQCPSP}}
+
+\item{codesToExclude}{TODO: eventually add codes for pest disturbance if applicable}
+
+\item{excludeAllObs}{assuming codesToExclude is not NULL, exclude these obs or prior ones too}
+
+\item{sppEquiv}{able of species names - see \code{LandR::sppEquiv}}
 }
 \value{
 a list of standardized plot and tree data.tables

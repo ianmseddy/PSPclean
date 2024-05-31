@@ -15,19 +15,19 @@ globalVariables(c(
 #' @param QuebecPSP list of PSP data.tables obtained via `prepInputsQCPSP`
 #' @param codesToExclude TODO: eventually add codes for pest disturbance if applicable
 #' @param excludeAllObs assuming codesToExclude is not NULL, exclude these obs or prior ones too
-#' @param sppEquiv able of species names - see `LandR::sppEquiv`
+#' @param sppEquiv table of species names - see `LandR::sppEquiv`
 #' @return a list of standardized plot and tree data.tables
 #'
 #' @export
 #' @importFrom data.table setnames
 dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllObs = TRUE,
                                    sppEquiv = LandR::sppEquivalencies_CA) {
-
+ #DENDRO_ARBRES_ETUDES is a subset of DENDRO_ARBRES with additional information (e.g. age, height)
   PLACETTE <- QuebecPSP[["PLACETTE"]]
   PLACETTE_MES <- QuebecPSP[["PLACETTE_MES"]]
   STATION_PE <- QuebecPSP[["STATION_PE"]]
   DENDRO_ARBRES_ETUDES<- QuebecPSP[["DENDRO_ARBRES_ETUDES"]]
-
+  trees <- QuebecPSP[["DENDRO_ARBRES"]]
 
   PLACETTE <- PLACETTE[, .(ID_PE,NO_PE, LATITUDE,LONGITUDE)]
   #keep survey date, plot id and measure ID
@@ -37,6 +37,10 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
 
   STATION_PE <- STATION_PE[, .(ID_PE,ID_PE_MES, ALTITUDE, ORIGINE, PERTURB)]
   PLACETTE_FINAL <- STATION_PE[PLACETTE_FINAL, on = c("ID_PE_MES", "ID_PE")]
+
+  #Miscellaneous clean up
+  badPlots <- c("7501108401") #inconsistent tree numbers across all measures
+  badMeasure <- c("750110930101") #untrustworthy tree numbers in first
 
   #Filtered base on ORIGINE and PERTURB column
   #ORIGINE is stand-originating disturbance, PERTURB is partial disturbance
@@ -63,13 +67,16 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   PLACETTE_FINAL[, c("date", "DATE_SOND") := NULL]
   PLACETTE_FINAL[, baseYear := min(MeasureYear), .(ID_PE)]
   #assume area of 400m from radius of 11.28 m
-  DENDRO_ARBRES_ETUDES <- DENDRO_ARBRES_ETUDES[, .(ID_PE,ID_ARBRE, NO_MES,ID_PE_MES,NO_ARBRE,
-                                                   ID_ARB_MES,ETAT,ESSENCE,HAUT_ARBRE, AGE_SANSOP,
-                                                   DHP,CL_QUAL,ETAGE_ARB,AGE, SOURCE_AGE)]
+  DENDRO_ARBRES_ETUDES <- DENDRO_ARBRES_ETUDES[, .(ID_PE,ID_ARBRE, NO_MES,ID_PE_MES, NO_ARBRE,
+                                                   ID_ARB_MES, ETAT,ESSENCE, HAUT_ARBRE, AGE_SANSOP,
+                                                   DHP, CL_QUAL, ETAGE_ARB, AGE, SOURCE_AGE)]
   #Filter to living (VIVANT) trees
   #By definition the recruits are younger than the stand (even though they may be classified as codominant)
   #10 = living, 12 = living snag, 40 = living recruit (Google Translate), 30 = living/forgotten (?)
   DENDRO_ARBRES_ETUDES  <- DENDRO_ARBRES_ETUDES[ETAT %in% c(10, 12, 30, 40, 50),]
+  #not 100% confident about GA
+  #allow living recruit blowdown (42) and living sapling ("GV") - unsure what GA - "abandoned sapling?" - means
+  trees <- trees[ETAT %in% c("10", "12", "30", "40", "50", "GV", "42")]
 
   #use STAND_AGE$ETAGE_ARB to estimate stand age from trees that are codominant or dominant
   #C Codominant, D Dominant, F = NonApplicable car fut casse (no Fs..)
@@ -142,7 +149,8 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   #standardize species
   sppEquiv <- unique(sppEquiv[, .(QCPSP, PSP)])#unique because some species have multiple rows (e.g. due to common name)
   setnames(sppEquiv, old = c("QCPSP", "PSP"), new = c("ESSENCE", "newSpeciesName"))
-  DENDRO_ARBRES_ETUDES <- sppEquiv[DENDRO_ARBRES_ETUDES, on = c("ESSENCE")]
+  # DENDRO_ARBRES_ETUDES <- sppEquiv[DENDRO_ARBRES_ETUDES, on = c("ESSENCE")]
+  trees <- sppEquiv[trees, on = c("ESSENCE")]
   #standardize attribute names
   PLACETTE_FINAL <- PLACETTE_FINAL[, .(ID_PE, ID_PE_MES, MeasureYear, ALTITUDE,
                                        LATITUDE, LONGITUDE, baseStandAge, baseYear)]
@@ -151,35 +159,42 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   #see PLAN_DESC_TYPE_PE
   PLACETTE_FINAL$PlotSize <- 0.04
   #standardize height and dbh
-  DENDRO_ARBRES_ETUDES[, DHP := DHP/10] #from millimetre to centimetre
-  DENDRO_ARBRES_ETUDES[, HAUT_ARBRE := HAUT_ARBRE/10] #from decimetre to metre
+  height <- DENDRO_ARBRES_ETUDES[, .(ID_PE_MES, NO_ARBRE, HAUT_ARBRE)]
+  trees <- height[trees, on = c("ID_PE_MES" = "ID_PE_MES", "NO_ARBRE" = "NO_ARBRE")]
+  trees[, DHP := DHP/10] #from millimetre to centimetre
+  trees[, HAUT_ARBRE := HAUT_ARBRE/10] #from decimetre to metre
 
   #ensure all measurements have associated plots
-  DENDRO_ARBRES_ETUDES <- DENDRO_ARBRES_ETUDES[PLACETTE_FINAL[, .(ID_PE_MES, MeasureYear)],
+  trees <- trees[PLACETTE_FINAL[, .(ID_PE_MES, MeasureYear)],
                                                on = "ID_PE_MES"]
-  DENDRO_ARBRES_ETUDES <- DENDRO_ARBRES_ETUDES[, .(ID_PE, ID_PE_MES, NO_ARBRE, MeasureYear,
-                                                   ESSENCE, DHP, HAUT_ARBRE, newSpeciesName)]
-  setnames(DENDRO_ARBRES_ETUDES,
-           c("ESSENCE", "DHP", "HAUT_ARBRE", "NO_ARBRE", "ID_PE", "ID_PE_MES"),
-           c("Species", "DBH", "Height", "TreeNumber", "OrigPlotID1", "MeasureID"))
+  trees <- trees[, .(ID_PE, ID_PE_MES, NO_ARBRE, MeasureYear,
+                     ESSENCE, DHP, HAUT_ARBRE, newSpeciesName)]
+  setnames(trees,
+           old = c("ESSENCE", "DHP", "HAUT_ARBRE", "NO_ARBRE", "ID_PE", "ID_PE_MES"),
+           new = c("Species", "DBH", "Height", "TreeNumber", "OrigPlotID1", "MeasureID"))
 
   setnames(PLACETTE_FINAL,
            old = c("ID_PE", "ID_PE_MES", "ALTITUDE", "baseStandAge", "LATITUDE", "LONGITUDE"),
            new = c("OrigPlotID1", "MeasureID", "Elevation", "baseSA", "Latitude", "Longitude"))
 
-  DENDRO_ARBRES_ETUDES[, c("MeasureID", "OrigPlotID1") := .(paste0("QCPSP_", MeasureID),
-                                                            paste0("QCPSP_", OrigPlotID1))]
+  trees[, c("MeasureID", "OrigPlotID1") := .(paste0("QCPSP_", MeasureID),
+                                             paste0("QCPSP_", OrigPlotID1))]
   PLACETTE_FINAL[, c("MeasureID", "OrigPlotID1") := .(paste0("QCPSP_", MeasureID),
                                                       paste0("QCPSP_", OrigPlotID1))]
 
-  setkey(DENDRO_ARBRES_ETUDES, MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, DBH, Height, newSpeciesName)
-  setcolorder(DENDRO_ARBRES_ETUDES)
+  setkey(trees, MeasureID, OrigPlotID1, MeasureYear,
+         TreeNumber, Species, DBH, Height, newSpeciesName)
+  setcolorder(trees)
 
   setkey(PLACETTE_FINAL, OrigPlotID1, MeasureID, MeasureYear)
   setcolorder(PLACETTE_FINAL)
 
+  PLACETTE_FINAL[, source := "QC"]
+  trees[, source := "QC"]
+
+
   return(list(plotHeaderData = PLACETTE_FINAL,
-              treeData = DENDRO_ARBRES_ETUDES))
+              treeData = trees))
 }
 
 #' retrieve the Quebec PSP raw data
@@ -191,11 +206,11 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
 #' @importFrom reproducible prepInputs
 prepInputsQCPSP <- function(dPath) {
 
-  DENDRO_ARBRES <- prepInputs(targetFile = "DENDRO_ARBRES_ETUDES.txt",
-                              url = "https://drive.google.com/file/d/1llBYSrlusmwF9que40XWEXAWJ6eck0cu/view?usp=drive_link",
-                              fun = "data.table::fread",
-                              overwrite = TRUE,
-                              destinationPath = dPath)
+  DENDRO_ARBRES_ETUDES <- prepInputs(targetFile = "DENDRO_ARBRES_ETUDES.txt",
+                                     url = "https://drive.google.com/file/d/1llBYSrlusmwF9que40XWEXAWJ6eck0cu/view?usp=drive_link",
+                                     fun = "data.table::fread",
+                                     overwrite = TRUE,
+                                     destinationPath = dPath)
 
   PLACETTE_MES <- prepInputs(targetFile = "PLACETTE_MES.txt",
                              url = "https://drive.google.com/file/d/1iC2utoWxn81kAWLX9R85xh9c2_o3nM11/view?usp=drive_link",
@@ -215,10 +230,17 @@ prepInputsQCPSP <- function(dPath) {
                            overwrite = TRUE,
                            fun = "data.table::fread")
 
+  DENDRO_ARBRES <- prepInputs(targetFile = "DENDRO_ARBRES.txt",
+                              url = "https://drive.google.com/file/d/1A0hTWZDQwI0262aP8qFHeW7g6QsHgGsq/view?usp=drive_link",
+                              fun = "data.table::fread",
+                              overwrite = TRUE,
+                              destinationPath = dPath)
+
   return(list(
-    "DENDRO_ARBRES_ETUDES" = DENDRO_ARBRES,
+    "DENDRO_ARBRES_ETUDES" = DENDRO_ARBRES_ETUDES,
     "PLACETTE_MES" = PLACETTE_MES,
     "PLACETTE" = PLACETTE,
-    "STATION_PE" = STATION_PE
+    "STATION_PE" = STATION_PE,
+    "DENDRO_ARBRES" = DENDRO_ARBRES
   ))
 }
