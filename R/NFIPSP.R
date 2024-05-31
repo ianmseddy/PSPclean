@@ -101,6 +101,9 @@ dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllOb
   treeData[Height <= 0, Height := NA]
   treeData <- treeData[!is.na(DBH) & DBH > 0]
 
+  lgpHeader[, source := "NFI"]
+  treeData[, source := "NFI"]
+
   return(list(
     "plotHeaderData" = lgpHeader,
     "treeData" = treeData

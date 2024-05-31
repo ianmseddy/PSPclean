@@ -166,6 +166,9 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   treeData[Height <= 0, Height := NA]
   treeData <- treeData[!is.na(DBH) & DBH > 0]
 
+  headData[, source := "SK"]
+  treeData[, source := "SK"]
+
   return(list(
     "plotHeaderData" = headData,
     "treeData" = treeData

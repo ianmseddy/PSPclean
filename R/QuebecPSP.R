@@ -165,8 +165,7 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   trees[, HAUT_ARBRE := HAUT_ARBRE/10] #from decimetre to metre
 
   #ensure all measurements have associated plots
-  trees <- trees[PLACETTE_FINAL[, .(ID_PE_MES, MeasureYear)],
-                                               on = "ID_PE_MES"]
+  trees <- trees[PLACETTE_FINAL[, .(ID_PE_MES, MeasureYear)], on = "ID_PE_MES"]
   trees <- trees[, .(ID_PE, ID_PE_MES, NO_ARBRE, MeasureYear,
                      ESSENCE, DHP, HAUT_ARBRE, newSpeciesName)]
   setnames(trees,
@@ -181,6 +180,10 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
                                              paste0("QCPSP_", OrigPlotID1))]
   PLACETTE_FINAL[, c("MeasureID", "OrigPlotID1") := .(paste0("QCPSP_", MeasureID),
                                                       paste0("QCPSP_", OrigPlotID1))]
+
+  #some plots do not have trees remaining
+  PLACETTE_FINAL <- PLACETTE_FINAL[MeasureID %in% trees$MeasureID]
+
 
   setkey(trees, MeasureID, OrigPlotID1, MeasureYear,
          TreeNumber, Species, DBH, Height, newSpeciesName)
