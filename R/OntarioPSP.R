@@ -349,6 +349,9 @@ dataPurification_ONPSP <- function(ONPSPlist, sppEquiv = LandR::sppEquivalencies
   setkey(plotData, OrigPlotID1, MeasureID, MeasureYear)
   setcolorder(plotData)
 
+  plotData[, source := "ON"]
+  tree[, source := "ON"]
+
   return(list(
     plotHeaderData = plotData,
     treeData = tree

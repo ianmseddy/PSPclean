@@ -129,6 +129,9 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalenci
   PSP_TREE_YIMO[, MeasureID := paste0("NBPSP_", MeasureID)]
   PSP_PLOTS[, MeasureID := paste0("NBPSP_", MeasureID)]
 
+  PSP_PLOTS[, source := "NB"]
+  PSP_TREE_YIMO[, source := "NB"]
+
   return(list(
     "plotHeaderData" = PSP_PLOTS,
     "treeData" = PSP_TREE_YIMO
