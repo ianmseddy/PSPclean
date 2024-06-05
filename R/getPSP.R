@@ -129,6 +129,9 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
     PSPplot <- PSPplot[OrigPlotID1 %in% PSPgis$OrigPlotID1,]
   }
 
+  #safety catch in case for some reason a user has supplied their own outdated sppEquiv
+  PSPmeasure[is.na(newSpeciesName), newSpeciesName := ""] #the convention
+
   return(list(PSPplot = PSPplot,
               PSPmeasure = PSPmeasure,
               PSPgis = PSPgis))
