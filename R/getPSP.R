@@ -16,19 +16,19 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
   if ("dummy" %in% PSPdataTypes) {
     message("generating randomized PSP data")
 
-    PSPmeasure <- prepInputs(targetFile = "randomizedPSPmeasure_sppParams.rds",
+    PSPmeasure <- prepInputs(targetFile = "randomizedPSPmeasure.rds",
                              archive = "randomized_LandR_speciesParameters_Inputs.zip",
                              url =  "https://drive.google.com/file/d/1LmOaEtCZ6EBeIlAm6ttfLqBqQnQu4Ca7/view?usp=sharing",
                              destinationPath = destinationPath,
                              fun = "readRDS")
 
-    PSPplot <- prepInputs(targetFile = "randomizedPSPplot_sppParams.rds",
+    PSPplot <- prepInputs(targetFile = "randomizedPSPplot.rds",
                           archive = "randomized_LandR_speciesParameters_Inputs.zip",
                           url = "https://drive.google.com/file/d/1LmOaEtCZ6EBeIlAm6ttfLqBqQnQu4Ca7/view?usp=sharing",
                           destinationPath = destinationPath,
                           fun = "readRDS")
 
-    PSPgis <- prepInputs(targetFile = "randomizedPSPgis_sppParams.rds",
+    PSPgis <- prepInputs(targetFile = "randomizedPSPgis.rds",
                          archive = "randomized_LandR_speciesParameters_Inputs.zip",
                          url = "https://drive.google.com/file/d/1LmOaEtCZ6EBeIlAm6ttfLqBqQnQu4Ca7/view?usp=sharing",
                          overwrite = TRUE,
