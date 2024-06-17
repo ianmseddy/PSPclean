@@ -4,7 +4,7 @@
 \alias{dataPurification_ONPSP}
 \title{standardize and treat the Ontario PSP data}
 \usage{
-dataPurification_ONPSP(ONPSPlist, sppEquiv)
+dataPurification_ONPSP(ONPSPlist, sppEquiv = LandR::sppEquivalencies_CA)
 }
 \arguments{
 \item{ONPSPlist}{list of relevant plots}

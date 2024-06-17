@@ -24,7 +24,7 @@ globalVariables(c(
 #' @export
 #' @importFrom data.table copy data.table set setcolorder setkey dcast
 #'
-dataPurification_ONPSP <- function(ONPSPlist, sppEquiv) {
+dataPurification_ONPSP <- function(ONPSPlist, sppEquiv = LandR::sppEquivalencies_CA) {
   ## TODO: review excludeAllObs - I dont' think we exclude anything at the moment
 
   ##### Location ####
@@ -348,6 +348,9 @@ dataPurification_ONPSP <- function(ONPSPlist, sppEquiv) {
 
   setkey(plotData, OrigPlotID1, MeasureID, MeasureYear)
   setcolorder(plotData)
+
+  plotData[, source := "ON"]
+  tree[, source := "ON"]
 
   return(list(
     plotHeaderData = plotData,

@@ -36,7 +36,7 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
                          fun = "readRDS")
 
   } else if (!any(PSPdataTypes %in% "none")) {
-    if (!any(c("BC", "AB", "SK", "NFI", "ON", "all") %in% PSPdataTypes)) {
+    if (!any(c("BC", "AB", "SK", "NFI", "ON", "QC", "all") %in% PSPdataTypes)) {
       stop("Please review dataTypes - incorrect value specified")
     }
 
@@ -99,7 +99,15 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
       PSPplots[["NB"]] <- PSPnb$plotHeaderData
     }
 
-    if (any(c("NFI", "all") %in% PSPdataTypes)) {
+    if ("QC" %in% PSPdataTypes | "all" %in% PSPdataTypes) {
+      PSPqc <- prepInputsQCPSP(dPath = destinationPath)
+      PSPqc <- dataPurification_QCPSP(PSPqc)
+      PSPmeasures[["QC"]] <- PSPqc$treeData
+      PSPplots[["QC"]] <- PSPqc$plotHeaderData
+    }
+
+    if ("NFI" %in% PSPdataTypes | "all" %in% PSPdataTypes) {
+
       NFIexclude <- if (forGMCS) {"IB"} else {NULL}
       PSPnfi <- prepInputsNFIPSP(dPath = destinationPath)
       PSPnfi <- dataPurification_NFIPSP(PSPnfi, codesToExclude = NFIexclude)
@@ -120,6 +128,9 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
     PSPmeasure <- PSPmeasure[OrigPlotID1 %in% PSPgis$OrigPlotID1,]
     PSPplot <- PSPplot[OrigPlotID1 %in% PSPgis$OrigPlotID1,]
   }
+
+  #safety catch in case for some reason a user has supplied their own outdated sppEquiv
+  PSPmeasure[is.na(newSpeciesName), newSpeciesName := ""] #the convention
 
   return(list(PSPplot = PSPplot,
               PSPmeasure = PSPmeasure,
