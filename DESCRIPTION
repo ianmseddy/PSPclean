@@ -1,7 +1,7 @@
 Package: PSPclean
 Type: Package
 Title: Sources and standardizes permanent sample plot data
-Version: 0.1.4.9006
+Version: 0.1.5
 Authors@R: c(
     person("Ian M S", "Eddy", email = "ian.eddy@nrcan.rncan.gc.ca",
            role = c("aut", "cre")),
@@ -19,6 +19,7 @@ LazyData: true
 License: GPL-3
 Imports:
     data.table,
+    LandR (>= 1.1.1.9001),
     reproducible (>= 2.0.3),
     sf,
     sp,
@@ -26,7 +27,7 @@ Imports:
 Suggests:
     googledrive,
     testthat,
-    LandR
+    bit64
 Remotes:
     PredictiveEcology/LandR@development
 Roxygen: list(markdown = TRUE)

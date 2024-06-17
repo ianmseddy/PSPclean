@@ -225,6 +225,11 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   treeData[Height <= 0, Height := NA]
   treeData <- treeData[!is.na(DBH) & DBH > 0]
 
+  headerData[, source := "AB"]
+  treeData[, source := "AB"]
+
+  headerData <- headerData[OrigPlotID1 %in% treeData$OrigPlotID1]
+
   return(list(
     plotHeaderData = headerData,
     treeData = treeData
