@@ -34,6 +34,8 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
                          overwrite = TRUE,
                          destinationPath = destinationPath,
                          fun = "readRDS")
+    PSPmeasure[, source := "simulated"]
+    PSPplot[, source := "simulated"]
 
   } else if (!any(PSPdataTypes %in% "none")) {
     if (!any(c("BC", "AB", "SK", "NFI", "ON", "QC", "all") %in% PSPdataTypes)) {
