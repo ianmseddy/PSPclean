@@ -244,3 +244,16 @@ test_that("geoCleanPSP works", {
   expect_equal(names(out), names(out2))
   expect_equal(names(out3), names(out4))
 })
+
+
+test_that("dummy PSP data works", {
+  dPath <- reproducible::checkPath(file.path(tempdir(), "QC"), create = TRUE)
+  on.exit({
+    unlink(dPath, recursive = TRUE)
+  }, add = TRUE)
+  dummy <- getPSP(destinationPath = dPath, PSPdataTypes = "dummy")
+
+  expect_true(all(names(dummy$plotHeaderData) %in% standardizedPlotNames))
+  expect_true(all(names(dummy$treeData) %in% standardizedTreeNames))
+
+})
