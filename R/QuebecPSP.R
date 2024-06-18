@@ -20,6 +20,7 @@ globalVariables(c(
 #'
 #' @export
 #' @importFrom data.table setnames
+#' @importFrom bit64 as.integer64
 dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllObs = TRUE,
                                    sppEquiv = LandR::sppEquivalencies_CA) {
  #DENDRO_ARBRES_ETUDES is a subset of DENDRO_ARBRES with additional information (e.g. age, height)
@@ -30,6 +31,14 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   trees <- QuebecPSP[["DENDRO_ARBRES"]]
 
   PLACETTE <- PLACETTE[, .(ID_PE,NO_PE, LATITUDE,LONGITUDE)]
+  PLACETTE[, ID_PE := as.integer64(ID_PE)] #it is probably already 64bit
+  #because this loads by default as long as bit64 is loaded
+  #but this guarantees the loading
+  STATION_PE[, ID_PE := as.integer64(ID_PE)]
+  PLACETTE_MES[, ID_PE := as.integer64(ID_PE)]
+  DENDRO_ARBRES_ETUDES[, ID_PE := as.integer64(ID_PE)]
+  trees[, ID_PE := as.integer64(ID_PE)]
+
   #keep survey date, plot id and measure ID
   PLACETTE_MES <- PLACETTE_MES[, .(ID_PE, NO_MES, ID_PE_MES, DATE_SOND)]
 
