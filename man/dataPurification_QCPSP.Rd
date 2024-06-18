@@ -18,7 +18,7 @@ dataPurification_QCPSP(
 
 \item{excludeAllObs}{assuming codesToExclude is not NULL, exclude these obs or prior ones too}
 
-\item{sppEquiv}{able of species names - see \code{LandR::sppEquiv}}
+\item{sppEquiv}{table of species names - see \code{LandR::sppEquiv}}
 }
 \value{
 a list of standardized plot and tree data.tables
