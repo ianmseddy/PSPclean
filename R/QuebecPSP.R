@@ -48,7 +48,13 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   PLACETTE_FINAL <- STATION_PE[PLACETTE_FINAL, on = c("ID_PE_MES", "ID_PE")]
 
   #Miscellaneous clean up
-  badPlots <- c("7501108401") #inconsistent tree numbers across all measures
+  #inconsistent tree numbers across all measures, or too many NAs.
+  #or trees were all removed for some reason, but they came back
+  #this could do with further analysis.
+  badPlots <- c("7501108401", "7000408802", "7100400602","7409701402",
+                "7101002302", "7102200101", "7102200302", "7209904202",
+                "7409702801", "7501404801", "7506900302", "7506900601",
+                "7608604902", "7608804202", "7409701702", "7601203202")
   badMeasure <- c("750110930101") #untrustworthy tree numbers in first
 
   #Filtered base on ORIGINE and PERTURB column
