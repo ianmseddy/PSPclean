@@ -96,7 +96,7 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   baseYear[, baseSA := stand_age]
   plotMeasure <- baseYear[, .(company_plot_number, baseYear, baseSA), ][plotMeasure, on = c("company_plot_number")]
 
-  # update standa age by measure year
+  # update stand age by measure year
   plotMeasure[is.na(stand_age), stand_age := baseSA + measurement_year - baseYear]
 
   # clean up
@@ -224,6 +224,11 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   # final clean up
   treeData[Height <= 0, Height := NA]
   treeData <- treeData[!is.na(DBH) & DBH > 0]
+
+  headerData[, source := "AB"]
+  treeData[, source := "AB"]
+
+  headerData <- headerData[OrigPlotID1 %in% treeData$OrigPlotID1]
 
   return(list(
     plotHeaderData = headerData,

@@ -3,11 +3,11 @@
 stopifnot(require("googledrive", quietly = TRUE))
 require("sf")
 standardizedPlotNames <- c(
-  "MeasureID", "OrigPlotID1", "MeasureYear", "Longitude", "Latitude", "Datum",
+  "MeasureID", "OrigPlotID1", "MeasureYear", "Longitude", "Latitude", "Datum", "source",
   "Zone", "Northing", "Easting", "Elevation", "PlotSize", "baseYear", "baseSA"
 )
 standardizedTreeNames <- c(
-  "MeasureID", "OrigPlotID1", "MeasureYear", "TreeNumber", "Species",
+  "MeasureID", "OrigPlotID1", "MeasureYear", "TreeNumber", "Species", "source",
   "DBH", "Height", "newSpeciesName"
 )
 
@@ -154,6 +154,22 @@ test_that("PSP ON works", {
 })
 
 
+test_that("PSP QC works", {
+  dPath <- reproducible::checkPath(file.path(tempdir(), "QC"), create = TRUE)
+  on.exit({
+    unlink(dPath, recursive = TRUE)
+  }, add = TRUE)
+  QC <- prepInputsQCPSP(dPath = dPath)
+
+  sppEquiv <- LandR::sppEquivalencies_CA
+  QCclean <- dataPurification_QCPSP(QuebecPSP = QC,
+                                    sppEquiv = sppEquiv)
+
+  expect_true(all(names(QCclean$plotHeaderData) %in% standardizedPlotNames))
+  expect_true(all(names(QCclean$treeData) %in% standardizedTreeNames))
+
+})
+
 
 test_that("geoCleanPSP works", {
 
@@ -227,4 +243,17 @@ test_that("geoCleanPSP works", {
 
   expect_equal(names(out), names(out2))
   expect_equal(names(out3), names(out4))
+})
+
+
+test_that("dummy PSP data works", {
+  dPath <- reproducible::checkPath(file.path(tempdir(), "QC"), create = TRUE)
+  on.exit({
+    unlink(dPath, recursive = TRUE)
+  }, add = TRUE)
+  dummy <- getPSP(destinationPath = dPath, PSPdataTypes = "dummy")
+
+  expect_true(all(names(dummy$plotHeaderData) %in% standardizedPlotNames))
+  expect_true(all(names(dummy$treeData) %in% standardizedTreeNames))
+
 })
