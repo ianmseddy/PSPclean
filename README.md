@@ -1,6 +1,8 @@
 # PSPclean
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/ianmseddy/PSPclean/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ianmseddy/PSPclean/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/ianmseddy/PSPclean/graph/badge.svg)](https://app.codecov.io/gh/ianmseddy/PSPclean)
 <!-- badges: end -->
 
 Sources and standardizes permanent sample plot data
