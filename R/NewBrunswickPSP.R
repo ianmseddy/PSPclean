@@ -55,7 +55,7 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalenci
                "5055_4", "5056_4", "7089_5")
   PSP_TREE_YIMO <- PSP_TREE_YIMO[!RemeasID %in% MiscBad]
 
-    #generate eventual plot header
+  #generate eventual plot header
   PSP_PLOTS_YR <- PSP_PLOTS_YR[Plot %in% PSP_PLOTS$Plot, .(Plot, RemeasID, MeasYr, measNum)]
 
   #standardize
@@ -66,7 +66,7 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalenci
   # internal standardization of DBH (min DBH was 5.1 cm except for plots established in 1987,
   # or for alder and mountain maple)
   #to simplify, remove all trees under 5.1 cm DBH
-  PSP_TREE_YIMO <- PSP_TREE_YIMO[DBH > 5.0]
+  #PSP_TREE_YIMO <- PSP_TREE_YIMO[DBH > 5.0]
 
   #join with measurement year
   PSP_PLOTS <- PSP_PLOTS[, .(Plot, EstabAge, EstabDate, PlotSize)]
