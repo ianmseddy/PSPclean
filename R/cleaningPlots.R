@@ -67,6 +67,7 @@ detect_DBH_outliers <- function(Trees, maxDBHrealistic = 400) {
 #' @export
 #'
 #' @import data.table
+#' @importFrom dplyr n distinct arrange slice_max group_by mutate ungroup
 #' @importFrom dplyr group_by mutate ungroup
 #' @importFrom magrittr %>%
 #'
@@ -144,7 +145,7 @@ treenum_to_multiplePSP <- function(Trees) {
     regeneration_data %>% mutate(status = "Regeneration"),
     last_measurement_data %>% mutate(status = "Last_measurement"),
     correct_species_data %>% filter(!(OrigPlotID1 %in% regeneration_data$OrigPlotID1 & TreeNumber %in% regeneration_data$TreeNumber) &
-                                  !(OrigPlotID1 %in% last_measurement_data$OrigPlotID1 & TreeNumber %in% last_measurement_data$TreeNumber)),
+                                      !(OrigPlotID1 %in% last_measurement_data$OrigPlotID1 & TreeNumber %in% last_measurement_data$TreeNumber)),
     incorrect_trees %>% anti_join(correct_species_data, by = c("OrigPlotID1", "TreeNumber", "newSpeciesName", "MeasureYear")) %>%
       anti_join(regeneration_data, by = c("OrigPlotID1", "TreeNumber", "newSpeciesName", "MeasureYear")) %>%
       anti_join(last_measurement_data, by = c("OrigPlotID1", "TreeNumber", "newSpeciesName", "MeasureYear")) %>%
@@ -170,7 +171,8 @@ treenum_to_multiplePSP <- function(Trees) {
     correct_species = correct_species,
     regeneration = regeneration_data,
     last_measurement = last_measurement_data,
-    PSP_TREE_YIMO_corrected = final_trees_corrected
+
+    Trees_corrected = final_trees_corrected
   ))
 }
 
@@ -191,8 +193,8 @@ treenum_to_multiplePSP <- function(Trees) {
 #' @importFrom dplyr group_by summarise filter mutate case_when n_distinct
 #' @importFrom magrittr %>%
 #`
-process_dbh_issues <- function(Trees, OrigPlotID1s) {    # two arguments: Trees: a data frame containing tree measurements over time, and OrigPlotID1s: a list of OrigPlotID1 identifiers to focus the processing on.
-  Trees <- Trees %>% filter(OrigPlotID1 %in% OrigPlotID1s)      # Filters the input data to include only the OrigPlotID1s listed in OrigPlotID1s, narrowing down the analysis to relevant data.
+
+process_dbh_issues <- function(Trees) {
 
   # Sorts the data chronologically by OrigPlotID1, tree ID (TreeNumber), and measurement year (MeasureYear).
   # Within each tree’s record across years, calculates the difference in DBH (Diameter at Breast Height) between successive measurements to evaluate growth
@@ -210,12 +212,15 @@ process_dbh_issues <- function(Trees, OrigPlotID1s) {    # two arguments: Trees:
 
   dbh_issues <- Trees %>%
     filter(diff_dbh < 0) %>%                                                       # Filters out all records with negative growth for inspection.
-    select(newSpeciesName, OrigPlotID1, MeasureID, TreeNumber, DBH, MeasureYear, diff_dbh, MeasNum) %>%       # Selects only relevant columns and arranges them for easy review.
+    # select(newSpeciesName, OrigPlotID1, MeasureID, TreeNumber, DBH, MeasureYear, diff_dbh , MeasNum) %>%       # Selects only relevant columns and arranges them for easy review.
+    select(newSpeciesName, OrigPlotID1, MeasureID, TreeNumber, DBH, MeasureYear, diff_dbh) %>%
     arrange(OrigPlotID1, TreeNumber, MeasureYear)
 
   dbh_check <- dbh_issues %>%
     left_join(Trees %>%   #   Joins dbh_issues with additional metadata (e.g., species name, cause of mortality, age class) to assist in diagnosing potential causes of measurement error.
-                select(newSpeciesName, OrigPlotID1, MeasureID, TreeNumber, MeasureYear, Species, cause, agecl, MeasNum),
+
+                # select(newSpeciesName, OrigPlotID1, MeasureID, TreeNumber, MeasureYear, Species, cause, agecl, MeasNum),
+                select(newSpeciesName, OrigPlotID1, MeasureID, TreeNumber, MeasureYear, Species),
               by = c("newSpeciesName", "OrigPlotID1", "MeasureID", "TreeNumber", "MeasureYear"))
 
   # 📊 Calculate total negative growth percentage per OrigPlotID1
@@ -230,9 +235,8 @@ process_dbh_issues <- function(Trees, OrigPlotID1s) {    # two arguments: Trees:
     arrange(OrigPlotID1)
 
   # Exports both the detailed issue log and the summary report to CSV files for further inspection or documentation
-  write.csv(dbh_check, "dbh_issues.csv", row.names = FALSE)
-  write.csv(negative_growth_summary, "negative_growth_summary.csv", row.names = FALSE)
-
+  # write.csv(dbh_check, "dbh_issues.csv", row.names = FALSE)
+  # write.csv(negative_growth_summary, "negative_growth_summary.csv", row.names = FALSE)
   # ❌ Remove OrigPlotID1s with more than 5% negative growth
   OrigPlotID1s_to_keep <- negative_growth_summary %>%
     filter(neg_growth_pct <= 5 | is.na(neg_growth_pct)) %>% # Keeps only OrigPlotID1s where the negative DBH growth percentage is ≤ 5%, or missing (i.e., OrigPlotID1s with no DBH change data).

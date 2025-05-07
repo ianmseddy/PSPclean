@@ -119,6 +119,15 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
 
     PSPmeasure <- rbindlist(PSPmeasures, fill = TRUE)
     PSPplot <- rbindlist(PSPplots, fill = TRUE)
+
+    #add Parvin's cleaning functions here:
+    #first one
+    #second one
+    #third one
+    #fourth one
+
+
+    #fix GIS GIS
     PSPgis <- geoCleanPSP(Locations = PSPplot)
 
     ## clean up
