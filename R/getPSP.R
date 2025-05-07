@@ -38,7 +38,7 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
     PSPplot[, source := "simulated"]
 
   } else if (!any(PSPdataTypes %in% "none")) {
-    if (!any(c("BC", "AB", "SK", "NFI", "ON", "QC", "all") %in% PSPdataTypes)) {
+    if (!any(c("BC", "AB", "SK", "NFI", "ON", "NB", "all") %in% PSPdataTypes)) {
       stop("Please review dataTypes - incorrect value specified")
     }
 
