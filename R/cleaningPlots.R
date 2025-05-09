@@ -68,7 +68,7 @@ detect_DBH_outliers <- function(Trees, maxDBHrealistic = 400) {
 #'
 #' @param Trees A `data.table` of tree observations containing Species identifiers and measurement years.
 #'
-#'@return A list containing:
+#' @return A list containing:
 #' \describe{
 #'   \item{incorrect_data}{Flagged inconsistent species data.}
 #'   \item{correct_species}{Most likely species for each tree.}
@@ -204,13 +204,12 @@ treenum_to_multiplePSP <- function(Trees) {
 #'   \item{OrigPlotID1s}{List of retained OrigPlotID1 identifiers.}
 #' }
 #'
-#'#' @export
+#' @export
 #'
 #' @import data.table
 #' @importFrom dplyr group_by summarise filter mutate select left_join arrange pull
 #' @importFrom magrittr %>%
 #`
-
 process_dbh_issues <- function(Trees) {
 
   # Sort and compute DBH differenc
@@ -275,7 +274,7 @@ process_dbh_issues <- function(Trees) {
 #'
 #' @param Trees A `data.table`  of tree records across multiple measurement years.
 #'
-#' #' @return A list containing:
+#' @return A list containing:
 #' \describe{
 #'   \item{Trees}{The full dataset with status classification.}
 #'   \item{Regeneration}{Trees first appearing after plot monitoring began.}
@@ -283,7 +282,6 @@ process_dbh_issues <- function(Trees) {
 #'   \item{Alive}{Trees present consistently or throughout.}
 #'   \item{OrigPlotID1s}{Unique OrigPlotID1 identifiers.}
 #' }
-#'
 #'
 #' @export
 #'
