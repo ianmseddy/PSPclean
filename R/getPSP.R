@@ -1,7 +1,7 @@
 #' return a merged PSP object from a vector of data sources
 #'
 #' @param PSPdataTypes character vector of PSP data sources - e.g. `c("BC", "SK)"`
-#' Use `"all"` to get all available sources, and `"dummy"` for freely availble data
+#' Use `"all"` to get all available sources, and `"dummy"` for freely available data
 #' @param destinationPath destination folder for downloaded objects
 #' @param forGMCS if `TRUE`, will pre-filter plots with insect mortality to avoid
 #' attributing insect mortality with climate
@@ -10,6 +10,7 @@
 #'
 #' @export
 #' @importFrom data.table rbindlist
+#' @importFrom dplyr
 #' @importFrom reproducible prepInputs
 getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
                    sppEquiv = LandR::sppEquivalencies_CA) {
@@ -119,13 +120,31 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
 
     PSPmeasure <- rbindlist(PSPmeasures, fill = TRUE)
     PSPplot <- rbindlist(PSPplots, fill = TRUE)
+    browser()
 
     #add Parvin's cleaning functions here:
-    #first one
-    #second one
-    #third one
-    #fourth one
 
+    #first one :  Identify and resolves all inconsistencies, when a tree number in a Plot is linked to multiple Species Names
+    cleaningData1 <- treenum_to_multiplePSP(Trees = PSPmeasure)
+    PSPmeasure <- cleaningData1$Trees
+    PSPplot <- cleaningData1$OrigPlotID1s
+
+    #second one : Identifies statistical outliers in key variables (e.g., DBH)
+    cleaningData2 <- detect_DBH_outliers(Trees = PSPmeasure)
+    PSPmeasure <- cleaningData2$Trees
+    PSPplot <- cleaningData2$OrigPlotID1s
+
+    #third one : Process Implausible DBH Changes Across Measurement Years
+    cleaningData3 <- process_dbh_issues(Trees = PSPmeasure)
+    PSPmeasure <- cleaningData3$Trees
+    PSPplot <- cleaningData3$OrigPlotID1s
+
+    #fourth one : Classify Tree Status Based on Measurement History (e.g., Regeneration, Last Measurement, Alive),
+    cleaningData4 <- classify_tree_status(Trees = PSPmeasure)
+    PSPmeasure <- cleaningData4$Trees
+    PSPplot <- cleaningData4$OrigPlotID1s
+
+    #whatever is correctred needs ot be called PSPPlot, PSPmeasure still
 
     #fix GIS GIS
     PSPgis <- geoCleanPSP(Locations = PSPplot)
