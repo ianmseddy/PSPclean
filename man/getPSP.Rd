@@ -13,7 +13,7 @@ getPSP(
 }
 \arguments{
 \item{PSPdataTypes}{character vector of PSP data sources - e.g. \verb{c("BC", "SK)"}
-Use \code{"all"} to get all available sources, and \code{"dummy"} for freely availble data}
+Use \code{"all"} to get all available sources, and \code{"dummy"} for freely available data}
 
 \item{destinationPath}{destination folder for downloaded objects}
 

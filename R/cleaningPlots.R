@@ -20,7 +20,7 @@
 #' }
 #'
 #' @export
-#' @importFrom  dplyr data.table as.data.table setorderv fifelse
+#' @importFrom data.table as.data.table setorderv fifelse
 #'
 detect_DBH_outliers <- function(Trees, maxDBHrealistic = 400) {
   Trees <- as.data.table(Trees)

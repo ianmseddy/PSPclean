@@ -10,7 +10,6 @@
 #'
 #' @export
 #' @importFrom data.table rbindlist
-#' @importFrom dplyr
 #' @importFrom reproducible prepInputs
 getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
                    sppEquiv = LandR::sppEquivalencies_CA) {
