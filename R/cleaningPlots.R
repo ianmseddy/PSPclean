@@ -81,7 +81,7 @@ detect_DBH_outliers <- function(Trees, maxDBHrealistic = 400) {
 #' @export
 #'
 #' @importFrom data.table as.data.table
-#' @importFrom dplyr n distinct arrange slice_max group_by mutate ungroup filter summarise case_when semi_join anti_join inner_join bind_rows select
+#' @importFrom dplyr n distinct n_distinct row_number arrange slice_max group_by mutate ungroup filter summarise case_when semi_join anti_join inner_join bind_rows select
 #' @importFrom magrittr %>%
 #'
 treenum_to_multiplePSP <- function(Trees) {
@@ -261,7 +261,7 @@ process_dbh_issues <- function(Trees) {
     Trees = Trees_corrected,      # the cleaned and filtered tree dataset.
     dbh_check = dbh_check,       # the table of detected DBH inconsistencies.
     negative_growth_summary = negative_growth_summary,     # OrigPlotID1-level statistics on negative growth.
-    OrigPlotID1s = OrigPlotID1s_to_keep,
+    OrigPlotID1s = OrigPlotID1s_to_keep
   ))
 }
 
@@ -332,7 +332,7 @@ classify_tree_status <- function(Trees) {
    #  Returns a list of datasets:Full tree data with status and Subsets by classification.
   return(list(
     Trees = Trees,
-    Regeneration = Regen,
+    Regeneration = Regeneration,
     Last_Measurement = Last_Measurement,
     Alive = Alive,
     OrigPlotID1s = unique(Trees$OrigPlotID1)

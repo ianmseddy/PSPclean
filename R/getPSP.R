@@ -121,7 +121,7 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
     PSPplot <- rbindlist(PSPplots, fill = TRUE)
 
     #add Parvin's cleaning functions here:
-
+   browser()
     #first one :  Identify and resolves all inconsistencies, when a tree number in a Plot is linked to multiple Species Names
     cleaningData1 <- treenum_to_multiplePSP(Trees = PSPmeasure)
     PSPmeasure <- cleaningData1$Trees
