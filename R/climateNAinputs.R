@@ -1,5 +1,5 @@
 globalVariables(c(
-  "coordinates", "estimatedElevation", "id2"
+  "coordinates", "estimatedElevation", "id2", "geometry", "baseSA"
 ))
 
 #' standardize and treat the BC PSP data
@@ -13,9 +13,8 @@ globalVariables(c(
 #'
 #' @export
 #' @importFrom data.table as.data.table setnames setcolorder fwrite
-#' @importFrom raster extract
-#' @importFrom sf as_Spatial
-#' @importFrom sp coordinates
+#' @importFrom terra extract
+#' @importFrom sf as_Spatial st_coordinates
 #' @importFrom reproducible prepInputs
 #'
 
@@ -29,32 +28,36 @@ prepPSP_climateNA <- function(dPath, filename2, PSPplot, PSPgis) {
     url = "https://drive.google.com/file/d/121x_CfWy2XP_-1av0cYE7sxUfb4pmsup/",
     destinationPath = dPath
   )
+
+  if (is.null(PSPplot$Elevation)) {
+    PSPplot[, Elevation := NA]
+  }
+
   missingIDs <- PSPplot[is.na(Elevation), ]$OrigPlotID1
-  missingElevation <- sf::as_Spatial(PSPgis[PSPgis$OrigPlotID1 %in% missingIDs, ])
-  missingElevation <- data.table(
-    OrigPlotID1 = missingElevation$OrigPlotID1,
-    estimatedElevation = raster::extract(CanadaDEM, missingElevation)
-  )
+  missingElevation <- PSPgis[PSPgis$OrigPlotID1 %in% missingIDs, ]
+  hasElevation <- PSPgis[!PSPgis$OrigPlotID1 %in% missingIDs, ]
+
+  estimatedElevation <- terra::extract(CanadaDEM, missingElevation)
+  missingElevation$Elevation <- estimatedElevation[2]
   if (anyNA(missingElevation$estimatedElevation)) {
     warning("Extracting elevation from DEM has failed for some plots")
   }
 
-  PSPgis <- as_Spatial(PSPgis)
-  PSPcoord <- as.data.table(coordinates(PSPgis))
-  PSPcoord[, OrigPlotID1 := PSPgis$OrigPlotID1]
-
-  PSPcoord <- PSPplot[, .(OrigPlotID1, Elevation)][PSPcoord, on = c("OrigPlotID1")]
-  PSPcoord <- missingElevation[PSPcoord, on = c("OrigPlotID1")]
-  PSPcoord[is.na(Elevation), Elevation := estimatedElevation]
-
-  PSPcoord[, estimatedElevation := NULL]
+  newPSPgis <- rbind(hasElevation, missingElevation)
+  PSPcoord <- as.data.table(newPSPgis)
+  coords <- as.data.table(st_coordinates(newPSPgis))
+  PSPcoord[, geometry := NULL]
+  PSPcoord <- cbind(PSPcoord, coords)
 
   # prep for climateNA
+  PSPcoord[, baseSA := NULL]
+  PSPcoord <- setcolorder(PSPcoord, neworder = c("OrigPlotID1", "X", "Y", "Elevation"))
   # the columns have to be called "id1", "id2", "lat", "long", "elev"
   # sampleData <- fread("C:/users/ieddy/Downloads/ClimateNA_v640/inputFiles/input_test.csv")
   setnames(
-    PSPcoord, c("OrigPlotID1", "coords.x1", "coords.x2", "Elevation"),
-    c("id1", "long", "lat", "elev")
+    PSPcoord,
+    # c("OrigPlotID1", "X", "Y", "Elevation"),
+      new = c("id1", "long", "lat", "elev")
   )
   PSPcoord[, id2 := ""]
   setcolorder(PSPcoord, neworder = c("id1", "id2", "lat", "long", "elev"))
