@@ -1,64 +1,75 @@
 #'
-#'#-----------------------------------------------------------   detect_DBH_outliers function()  ----------------------------------------------
-#' Detect and Flag DBH Outliers
+#' -----------------------------------------------------------   detect_dbh_outliers function()  ----------------------------------------------
+#' Detect and Flag DBH Outliers using Quantile Regression
 #'
 #' @description
-#' Flags implausible DBH values (static outliers) and unusual year-over-year DBH changes (dynamic outliers)
+#' Flags implausible DBH values (static outliers) using quantile regression,
 #' to help identify data issues in repeated tree measurements.
 #'
-#' @param Trees A `data.table` with columns: "DBH", "OrigPlotID1", "TreeNumber", and "MeasureYear".
-#' @param maxDBHrealistic threshold for realistic DBH that is not an error
+#' @param Trees A `data.table` or `data.frame` with columns: "DBH", "OrigPlotID1", "TreeNumber", "MeasureYear", etc.
+#' @param lower_tau Lower quantile threshold (default = 0.05)
+#' @param upper_tau Upper quantile threshold (default = 0.95)
 #'
 #' @return A list containing:
 #' \describe{
-#'   \item{Trees}{The full data.table with `DBH_flag`, `DBH_growth`, and `Growth_flag`.}
-#'   \item{Sapling}{Subset flagged as "Sapling".}
-#'   \item{Impossible}{Subset flagged as "Impossible".}
-#'   \item{Exceptional}{Subset flagged as "Exceptional".}
-#'   \item{VerifyData}{Subset flagged as "VerifyData".}
-#'   \item{OrigPlotID1s}{Unique OrigPlotID1 identifiers.}
+#'   \item{Trees}{The full data.table with `outlier_5th`, `outlier_95th`, and `outlier_type`.}
+#'   \item{OrigPlotID1s}{Unique `OrigPlotID1` identifiers.}
 #' }
 #'
 #' @export
 #' @importFrom data.table as.data.table setorderv fifelse
+#' @importFrom quantreg rq
 #'
-detect_DBH_outliers <- function(Trees, maxDBHrealistic = 400) {
-  Trees <- as.data.table(Trees)
 
-  # A: Static DBH flag (changed "Small_Sapling" to "Sapling")
-  Trees[, DBH_flag := fifelse(DBH <= 0, "Invalid",
-                              fifelse(DBH <= 5, "Sapling",
-                                      fifelse(DBH > maxDBHrealistic, "Impossible",
-                                              fifelse(DBH > 200, "Exceptional",
-                                                      fifelse(DBH > 90 & DBH <= 200, "VerifyData", "OK")))))]
+detect_dbh_outliers <- function(Trees, lower_tau = 0.05, upper_tau = 0.95) {
+  # Load required package
+  if (!requireNamespace("quantreg", quietly = TRUE)) {
+    stop("Package 'quantreg' is required. Please install it.")
+  }
 
-  # Sort for time sequence
-  setorderv(Trees, cols = c("OrigPlotID1", "TreeNumber", "MeasureYear"))
+  # Convert to data.table
+  Trees <- data.table::as.data.table(Trees)
 
-  # Calculate DBH growth per tree over years
-  Trees[, DBH_growth := c(NA, diff(DBH)) / c(NA, diff(MeasureYear)),
-        by = .(OrigPlotID1, TreeNumber)]
+  # Check required columns
+  required_cols <- c("MeasureID", "OrigPlotID1", "MeasureYear", "TreeNumber",
+                     "Species", "DBH", "newSpeciesName", "source")
+  missing_cols <- setdiff(required_cols, names(Trees))
+  if (length(missing_cols) > 0) {
+    stop(paste("Missing columns:", paste(missing_cols, collapse = ", ")))
+  }
 
-  # D: Flag dynamic outliers
-  Trees[, Growth_flag := fifelse(DBH_growth < -0.5, "Negative",
-                                 fifelse(DBH_growth > 2.5, "TooFast", "OK"))]
+  # Remove rows with missing DBH or predictors
+  Trees <- Trees[!is.na(DBH) & !is.na(newSpeciesName) &
+                   !is.na(MeasureYear) & !is.na(OrigPlotID1)]
 
-  # Extract flagged subsets
-  Sapling     <- Trees[DBH_flag == "Sapling"]
-  Impossible  <- Trees[DBH_flag == "Impossible"]
-  Exceptional <- Trees[DBH_flag == "Exceptional"]
-  VerifyData  <- Trees[DBH_flag == "VerifyData"]
+  # Convert categorical variables to factors
+  Trees[, newSpeciesName := as.factor(newSpeciesName)]
+  Trees[, OrigPlotID1 := as.factor(OrigPlotID1)]
 
+  # Define formula
+  formula <- DBH ~ newSpeciesName + MeasureYear
+
+  # Fit quantile regressions
+  fit_low <- quantreg::rq(formula, data = Trees, tau = lower_tau, method = "fn")
+  fit_high <- quantreg::rq(formula, data = Trees, tau = upper_tau, method = "fn")
+
+  # Predict bounds
+  Trees[, predicted_5th := predict(fit_low, newdata = Trees)]
+  Trees[, predicted_95th := predict(fit_high, newdata = Trees)]
+
+  # Flag outliers
+  Trees[, outlier_5th := DBH < predicted_5th]
+  Trees[, outlier_95th := DBH > predicted_95th]
+  Trees[, outlier_type := fifelse(outlier_5th, "low",
+                                  fifelse(outlier_95th, "high", "none"))]
+
+  # Return list
   return(list(
     Trees = Trees,
-    Sapling = Sapling,
-    Impossible = Impossible,
-    Exceptional = Exceptional,
-    VerifyData = VerifyData,
     OrigPlotID1s = unique(Trees$OrigPlotID1)
   ))
 }
-#'
+
 #' #------------------------------------------------------------  treenum_to_multiplePSP function()   ----------------------------------------------------------
 #' Identify Tree Numbers Linked to Multiple Species Names in a Plot
 #'
