@@ -121,26 +121,29 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
     PSPplot <- rbindlist(PSPplots, fill = TRUE)
 
     #add Parvin's cleaning functions here:
-
-    #first one :  Identify and resolves all inconsistencies, when a tree number in a Plot is linked to multiple Species Names
-    cleaningData1 <- treenum_to_multiplePSP(Trees = PSPmeasure)
+    browser()
+    #first one : Identifies statistical outliers in key variables (e.g., DBH)
+    cleaningData1 <- detect_dbh_outliers(Trees = PSPmeasure)
     PSPmeasure <- cleaningData1$Trees
-    PSPplot <- cleaningData1$OrigPlotID1s
+    outliers <- PSPmeasure[outlier_type != "none"] # List of outliers
+    table(PSPmeasure$outlier_type)
+    PSPplot <- PSPplot[OrigPlotID1 %in% cleaningData1$OrigPlotID1s,]
 
-    #second one : Identifies statistical outliers in key variables (e.g., DBH)
-    cleaningData2 <- detect_DBH_outliers(Trees = PSPmeasure)
+    #second one : Identify and resolves all inconsistencies, when a tree number in a Plot is linked to multiple Species Names
+    cleaningData2 <- treenum_to_multiplePSP(Trees = PSPmeasure)
     PSPmeasure <- cleaningData2$Trees
-    PSPplot <- cleaningData2$OrigPlotID1s
+    PSPmeasure_incorrect_data <- cleaningData2$incorrect_data
+    PSPplot <- PSPplot[OrigPlotID1 %in% cleaningData2$OrigPlotID1s,]
 
     #third one : Process Implausible DBH Changes Across Measurement Years
     cleaningData3 <- process_dbh_issues(Trees = PSPmeasure)
     PSPmeasure <- cleaningData3$Trees
-    PSPplot <- cleaningData3$OrigPlotID1s
+    PSPplot <- PSPplot[OrigPlotID1 %in% cleaningData3$OrigPlotID1s,]
 
     #fourth one : Classify Tree Status Based on Measurement History (e.g., Regeneration, Last Measurement, Alive),
     cleaningData4 <- classify_tree_status(Trees = PSPmeasure)
     PSPmeasure <- cleaningData4$Trees
-    PSPplot <- cleaningData4$OrigPlotID1s
+    PSPplot <- PSPplot[OrigPlotID1 %in%cleaningData4$OrigPlotID1s,]
 
     #whatever is correctred needs ot be called PSPPlot, PSPmeasure still
 
