@@ -68,6 +68,17 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalenci
   #to simplify, remove all trees under 5.1 cm DBH
   PSP_TREE_YIMO <- PSP_TREE_YIMO[DBH > 5.0]
 
+  # Edited DBH outliers believed to be typos (Parvin added this part)
+  PSP_TREE_YIMO <- PSP_TREE_YIMO %>%
+    mutate(DBH = case_when(
+      Plot == 33047 & treenum == 815 & DBH == 995.4 & MeasYr == 2010 ~ 9.5,
+      Plot == 1076  & treenum == 284 & DBH == 224.3 & MeasYr == 2012 ~ 24.3,
+      Plot == 2057  & treenum == 197 & DBH == 120.8 & MeasYr == 2011 ~ 20.8,
+      Plot == 2063  & treenum == 25  & DBH == 116.9 & MeasYr == 2011 ~ 16.9,
+      Plot == 38040 & treenum == 492 & DBH == 221.4 & MeasYr == 2010 ~ 21.4,
+      TRUE ~ DBH  # Keep DBH unchanged if no condition is met
+    ))
+
   #join with measurement year
   PSP_PLOTS <- PSP_PLOTS[, .(Plot, EstabAge, EstabDate, PlotSize)]
   PSP_PLOTS <- PSP_PLOTS[PSP_PLOTS_YR, on = "Plot"]
