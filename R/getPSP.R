@@ -123,7 +123,7 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
     #add Parvin's cleaning functions here:
     browser()
     #first one : Identifies statistical outliers in key variables (e.g., DBH)
-    # cleaningData1 <- detect_dbh_outliers(Trees = PSPmeasure)
+    cleaningData1 <- detect_dbh_outliers(Trees = PSPmeasure)
     PSPmeasure <- cleaningData1$Trees
     outliers <- PSPmeasure[outlier_type != "none"] # List of outliers
     table(PSPmeasure$outlier_type)
