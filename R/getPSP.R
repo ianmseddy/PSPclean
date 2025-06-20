@@ -155,11 +155,15 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
     set(PSPplot, NULL, toRemove, NULL)
 
     #keep only plots with valid coordinates
-    PSPmeasure <- PSPmeasure[OrigPlotID1 %in% PSPgis$OrigPlotID1,]
-    PSPplot <- PSPplot[OrigPlotID1 %in% PSPgis$OrigPlotID1,]
+    # PSPmeasure <- PSPmeasure[OrigPlotID1 %in% PSPgis$OrigPlotID1,]
+    # PSPplot <- PSPplot[OrigPlotID1 %in% PSPgis$OrigPlotID1,]
+    PSPmeasure <- PSPmeasure[PSPmeasure$OrigPlotID1 %in% PSPgis$OrigPlotID1, ]
+    PSPplot <- PSPplot[PSPplot$OrigPlotID1 %in% PSPgis$OrigPlotID1, ]
   }
 
   #safety catch in case for some reason a user has supplied their own outdated sppEquiv
+  library(data.table)
+  setDT(PSPmeasure)
   PSPmeasure[is.na(newSpeciesName), newSpeciesName := ""] #the convention
 
   return(list(PSPplot = PSPplot,
