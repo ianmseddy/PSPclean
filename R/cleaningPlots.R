@@ -17,7 +17,7 @@
 #' }
 #'
 #' @export
-#' @importFrom data.table as.data.table setorderv fifelse
+#' @importFrom data.table as.data.table setorderv fifelse copy
 #' @importFrom quantreg rq
 #'
 
@@ -28,7 +28,7 @@ detect_dbh_outliers <- function(Trees, lower_tau = 0.05, upper_tau = 0.95) {
   }
 
   # Convert to data.table
-  Trees <- data.table::as.data.table(Trees)
+  Trees <- data.table::copy(Trees)
 
   # Check required columns
   required_cols <- c("MeasureID", "OrigPlotID1", "MeasureYear", "TreeNumber",
@@ -91,11 +91,12 @@ detect_dbh_outliers <- function(Trees, lower_tau = 0.05, upper_tau = 0.95) {
 #'
 #' @export
 #'
-#' @importFrom data.table as.data.table
+#' @importFrom data.table as.data.table copy
 #' @importFrom dplyr n distinct n_distinct row_number arrange slice_max group_by mutate ungroup filter summarise case_when semi_join anti_join inner_join bind_rows select
 #' @importFrom magrittr %>%
 #'
 treenum_to_multiplePSP <- function(Trees) {
+  Trees <- copy(Trees)
   Trees <- as.data.table(Trees)
 
   # Step 1: Identify a tree number assigned to multiple Species
@@ -222,6 +223,7 @@ treenum_to_multiplePSP <- function(Trees) {
 #' @importFrom magrittr %>%
 #`
 process_dbh_issues <- function(Trees) {
+
 
   # Sort and compute DBH differenc
   Trees <- Trees %>%
