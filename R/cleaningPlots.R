@@ -28,7 +28,8 @@ detect_dbh_outliers <- function(Trees, lower_tau = 0.05, upper_tau = 0.95) {
   }
 
   # Convert to data.table
-  Trees <- data.table::copy(Trees)
+  Trees <- copy(Trees)
+  Trees <- as.data.table(Trees)
 
   # Check required columns
   required_cols <- c("MeasureID", "OrigPlotID1", "MeasureYear", "TreeNumber",
@@ -96,6 +97,8 @@ detect_dbh_outliers <- function(Trees, lower_tau = 0.05, upper_tau = 0.95) {
 #' @importFrom magrittr %>%
 #'
 treenum_to_multiplePSP <- function(Trees) {
+
+  # Convert to data.table
   Trees <- copy(Trees)
   Trees <- as.data.table(Trees)
 
@@ -218,12 +221,15 @@ treenum_to_multiplePSP <- function(Trees) {
 #'
 #' @export
 #'
-#' @import data.table
+#' @import data.table copy
 #' @importFrom dplyr group_by summarise filter mutate select left_join arrange pull
 #' @importFrom magrittr %>%
 #`
 process_dbh_issues <- function(Trees) {
 
+  # Convert to data.table
+  Trees <- copy(Trees)
+  Trees <- as.data.table(Trees)
 
   # Sort and compute DBH differenc
   Trees <- Trees %>%
@@ -298,12 +304,17 @@ process_dbh_issues <- function(Trees) {
 #'
 #' @export
 #'
-#' @importFrom data.table data.table
+#' @importFrom data.table data.table copy
 #' @importFrom dplyr filter mutate group_by summarise left_join ungroup case_when
 #' @importFrom magrittr %>%
 #'
 
 classify_tree_status <- function(Trees) {
+
+  # Convert to data.table
+  Trees <- copy(Trees)
+  Trees <- as.data.table(Trees)
+
   # Determine first and last year of measurement per plot
   MeasureYear_interval_per_OrigPlotID1 <- Trees %>%
     group_by(OrigPlotID1) %>%
