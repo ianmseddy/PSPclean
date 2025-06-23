@@ -221,7 +221,7 @@ treenum_to_multiplePSP <- function(Trees) {
 #'
 #' @export
 #'
-#' @import data.table copy
+#' @importFrom data.table as.data.table copy
 #' @importFrom dplyr group_by summarise filter mutate select left_join arrange pull
 #' @importFrom magrittr %>%
 #`
