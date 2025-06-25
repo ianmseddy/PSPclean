@@ -69,6 +69,8 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalenci
   PSP_TREE_YIMO <- PSP_TREE_YIMO[DBH > 5.0]
 
   # Edited DBH outliers believed to be typos (Parvin added this part)
+  # Add MeasYr column for use in correction
+  PSP_TREE_YIMO <- PSP_TREE_YIMO[PSP_PLOTS_YR[, .(RemeasID, MeasYr)], on = "RemeasID"]
   PSP_TREE_YIMO <- PSP_TREE_YIMO %>%
     mutate(DBH = case_when(
       Plot == 33047 & treenum == 815 & DBH == 995.4 & MeasYr == 2010 ~ 9.5,

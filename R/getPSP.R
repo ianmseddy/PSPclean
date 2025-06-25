@@ -9,6 +9,7 @@
 #' @return a list of standardized plot and tree data.tables
 #'
 #' @export
+#' @importFrom data.table as.data.table
 #' @importFrom data.table rbindlist
 #' @importFrom reproducible prepInputs
 getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
@@ -52,6 +53,14 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
                                       plotHeaderDataRaw = PSPbc$plotHeaderDataRaw,
                                       damageAgentCodes = PSPbc$pspBCdamageAgentCodes,
                                       codesToExclude = BCexclude)
+      # Parvin added this part to Preserve original TreeNumber (character) + extract numeric TreeNumber part
+      PSPbc$treeData <- PSPbc$treeData %>%
+        mutate(
+          original_TreeNumber = TreeNumber,
+          TreeNumber = as.numeric(as.factor(TreeNumber))
+          # TreeNumber = as.integer(gsub(".*_(\\d+)_.*", "\\1", TreeNumber))
+        )
+
       PSPmeasures[["BC"]] <- PSPbc$treeData
       PSPplots[["BC"]] <- PSPbc$plotHeaderData
     }
@@ -162,7 +171,7 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
   }
 
   #safety catch in case for some reason a user has supplied their own outdated sppEquiv
-  library(data.table)
+  #library(data.table)
   setDT(PSPmeasure)
   PSPmeasure[is.na(newSpeciesName), newSpeciesName := ""] #the convention
 
