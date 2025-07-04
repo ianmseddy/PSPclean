@@ -64,6 +64,9 @@ detect_dbh_outliers <- function(Trees, lower_tau = 0.05, upper_tau = 0.95) {
   Trees[, outlier_type := fifelse(outlier_5th, "low",
                                   fifelse(outlier_95th, "high", "none"))]
 
+  Trees[, newSpeciesName := as.character(newSpeciesName)]
+  Trees[, OrigPlotID1 := as.character(OrigPlotID1)]
+
   # Return list
   return(list(
     Trees = Trees,
