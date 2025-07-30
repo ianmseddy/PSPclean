@@ -2,8 +2,7 @@
 % Please edit documentation in R/cleaningPlots.R
 \name{process_dbh_issues}
 \alias{process_dbh_issues}
-\title{#-------------------------------------------------------------   process_dbh_issues function()    ----------------------------------------------------------
-Process Implausible DBH Changes Across Measurement Years}
+\title{Process Implausible DBH Changes Across Measurement Years}
 \usage{
 process_dbh_issues(Trees)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/cleaningPlots.R
 \name{classify_tree_status}
 \alias{classify_tree_status}
-\title{#--------------------------------------------------------------------   Classify tree status function() ---------------------------------------------------------------------}
+\title{Classify Tree Status Based on Measurement History}
 \usage{
 classify_tree_status(Trees)
 }
@@ -21,7 +21,4 @@ A list containing:
 }
 \description{
 Assigns status to each tree based on its observation history. Detects new regeneration, lost trees, and survivors.
-}
-\details{
-Classify Tree Status Based on Measurement History
 }

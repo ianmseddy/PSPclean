@@ -2,26 +2,32 @@
 % Please edit documentation in R/cleaningPlots.R
 \name{detect_dbh_outliers}
 \alias{detect_dbh_outliers}
-\title{-----------------------------------------------------------   detect_dbh_outliers function()  ----------------------------------------------
-Detect and Flag DBH Outliers using Quantile Regression}
+\title{Detect and flag DBH outliers using z-scores by plot}
 \usage{
-detect_dbh_outliers(Trees, lower_tau = 0.05, upper_tau = 0.95)
+detect_dbh_outliers(
+  Trees,
+  dbh_col = "DBH",
+  plot_col = "OrigPlotID1",
+  z_thresh = 7
+)
 }
 \arguments{
-\item{Trees}{A \code{data.table} or \code{data.frame} with columns: "DBH", "OrigPlotID1", "TreeNumber", "MeasureYear", etc.}
+\item{Trees}{A \code{data.table} or \code{data.frame} containing DBH and plot columns.}
 
-\item{lower_tau}{Lower quantile threshold (default = 0.05)}
+\item{dbh_col}{Character. Name of the DBH column. Default is "DBH".}
 
-\item{upper_tau}{Upper quantile threshold (default = 0.95)}
+\item{plot_col}{Character. Name of the plot/grouping column. Default is "OrigPlotID1".}
+
+\item{z_thresh}{Numeric. Z-score threshold for identifying outliers. Default is 7.}
 }
 \value{
-A list containing:
+A list with:
 \describe{
-\item{Trees}{The full data.table with \code{outlier_5th}, \code{outlier_95th}, and \code{outlier_type}.}
-\item{OrigPlotID1s}{Unique \code{OrigPlotID1} identifiers.}
+\item{Trees}{The modified \code{data.table} with added columns: meanDBH, sdDBH, zscore, is_outlier_z}
+\item{plotIDs}{Unique plot/group IDs used in analysis}
 }
 }
 \description{
-Flags implausible DBH values (static outliers) using quantile regression,
-to help identify data issues in repeated tree measurements.
+Flags statistically implausible DBH values based on the z-score method #' (using mean and standard deviation)
+within each plot group. This can help identify data entry or measurement errors in repeated tree measurements.
 }

@@ -2,8 +2,7 @@
 % Please edit documentation in R/cleaningPlots.R
 \name{treenum_to_multiplePSP}
 \alias{treenum_to_multiplePSP}
-\title{#------------------------------------------------------------  treenum_to_multiplePSP function()   ----------------------------------------------------------
-Identify Tree Numbers Linked to Multiple Species Names in a Plot}
+\title{Identify Tree Numbers Linked to Multiple Species Names in a Plot}
 \usage{
 treenum_to_multiplePSP(Trees)
 }
