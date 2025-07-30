@@ -1,81 +1,57 @@
-#'
-#' -----------------------------------------------------------   detect_dbh_outliers function()  ----------------------------------------------
-#' Detect and Flag DBH Outliers using Quantile Regression
+
+#' @title Detect and flag DBH outliers using z-scores by plot
 #'
 #' @description
-#' Flags implausible DBH values (static outliers) using quantile regression,
-#' to help identify data issues in repeated tree measurements.
+#' Flags statistically implausible DBH values based on the z-score method #' (using mean and standard deviation)
+#' within each plot group. This can help identify data entry or measurement errors in repeated tree measurements.
 #'
-#' @param Trees A `data.table` or `data.frame` with columns: "DBH", "OrigPlotID1", "TreeNumber", "MeasureYear", etc.
-#' @param lower_tau Lower quantile threshold (default = 0.05)
-#' @param upper_tau Upper quantile threshold (default = 0.95)
+#' @param Trees A `data.table` or `data.frame` containing DBH and plot columns.
+#' @param dbh_col Character. Name of the DBH column. Default is "DBH".
+#' @param plot_col Character. Name of the plot/grouping column. Default is "OrigPlotID1".
+#' @param z_thresh Numeric. Z-score threshold for identifying outliers. Default is 7.
 #'
-#' @return A list containing:
+#' @return A list with:
 #' \describe{
-#'   \item{Trees}{The full data.table with `outlier_5th`, `outlier_95th`, and `outlier_type`.}
-#'   \item{OrigPlotID1s}{Unique `OrigPlotID1` identifiers.}
+#'   \item{Trees}{The modified `data.table` with added columns: meanDBH, sdDBH, zscore, is_outlier_z}
+#'   \item{plotIDs}{Unique plot/group IDs used in analysis}
 #' }
 #'
+#' @importFrom data.table as.data.table copy fifelse
 #' @export
-#' @importFrom data.table as.data.table fifelse copy
-#' @importFrom quantreg rq
 #'
-
-detect_dbh_outliers <- function(Trees, lower_tau = 0.05, upper_tau = 0.95) {
-  # Load required package
-  if (!requireNamespace("quantreg", quietly = TRUE)) {
-    stop("Package 'quantreg' is required. Please install it.")
-  }
-
-  # Convert to data.table
+detect_dbh_outliers <- function(Trees, dbh_col = "DBH", plot_col = "OrigPlotID1", z_thresh = 7) {
+  # Ensure Trees is a data.table
   Trees <- copy(Trees)
-  Trees <- as.data.table(Trees)
+  Trees <- data.table::as.data.table(Trees)
 
-  # Check required columns
-  required_cols <- c("MeasureID", "OrigPlotID1", "MeasureYear", "TreeNumber",
-                     "Species", "DBH", "newSpeciesName", "source")
-  missing_cols <- setdiff(required_cols, names(Trees))
-  if (length(missing_cols) > 0) {
-    stop(paste("Missing columns:", paste(missing_cols, collapse = ", ")))
+  # Validate inputs
+  if (!all(c(dbh_col, plot_col) %in% names(Trees))) {
+    stop("Both `dbh_col` and `plot_col` must exist in the input data.")
   }
 
-  # Remove rows with missing DBH or predictors
-  Trees <- Trees[!is.na(DBH) & !is.na(newSpeciesName) &
-                   !is.na(MeasureYear) & !is.na(OrigPlotID1)]
+  # Ensure DBH is numeric
+  if (!is.numeric(Trees[[dbh_col]])) {
+    stop("The DBH column must be numeric.")
+  }
+  # Calculate statistics and flag outliers
+  Trees[, `:=`(
+    meanDBH = mean(get(dbh_col), na.rm = TRUE),
+    sdDBH   = sd(get(dbh_col), na.rm = TRUE)
+  ), by = plot_col]
 
-  # Convert categorical variables to factors
-  Trees[, newSpeciesName := as.factor(newSpeciesName)]
-  Trees[, OrigPlotID1 := as.factor(OrigPlotID1)]
+  Trees[, zscore := (get(dbh_col) - meanDBH) / sdDBH]
 
-  # Define formula
-  formula <- DBH ~ newSpeciesName + MeasureYear
+  Trees[, is_outlier_z := abs(zscore) > z_thresh]
 
-  # Fit quantile regressions
-  fit_low <- quantreg::rq(formula, data = Trees, tau = lower_tau, method = "fn")
-  fit_high <- quantreg::rq(formula, data = Trees, tau = upper_tau, method = "fn")
-
-  # Predict bounds
-  Trees[, predicted_5th := predict(fit_low, newdata = Trees)]
-  Trees[, predicted_95th := predict(fit_high, newdata = Trees)]
-
-  # Flag outliers
-  Trees[, outlier_5th := DBH < predicted_5th]
-  Trees[, outlier_95th := DBH > predicted_95th]
-  Trees[, outlier_type := fifelse(outlier_5th, "low",
-                                  fifelse(outlier_95th, "high", "none"))]
-
-  Trees[, newSpeciesName := as.character(newSpeciesName)]
-  Trees[, OrigPlotID1 := as.character(OrigPlotID1)]
-
-  # Return list
+  # Return output
   return(list(
     Trees = Trees,
-    OrigPlotID1s = unique(Trees$OrigPlotID1)
+    plotIDs = unique(Trees[[plot_col]])
   ))
 }
 
-#' #------------------------------------------------------------  treenum_to_multiplePSP function()   ----------------------------------------------------------
-#' Identify Tree Numbers Linked to Multiple Species Names in a Plot
+
+#' @title Identify Tree Numbers Linked to Multiple Species Names in a Plot
 #'
 #' @description
 #' Ensures consistent tree numbering when a tree (TreeNumber) in a plot (OrigPlotID1) is associated with multiple species over time.
@@ -99,7 +75,7 @@ detect_dbh_outliers <- function(Trees, lower_tau = 0.05, upper_tau = 0.95) {
 #' @importFrom dplyr last first
 #' @importFrom dplyr n distinct n_distinct row_number arrange slice_max
 #' @importFrom dplyr group_by mutate ungroup filter summarise case_when
-#' @importFrom dplyr semi_join anti_join inner_join bind_rows select
+#' @importFrom dplyr semi_join anti_join left_join bind_rows select
 #' @importFrom magrittr %>%
 #'
 treenum_to_multiplePSP <- function(Trees) {
@@ -108,13 +84,13 @@ treenum_to_multiplePSP <- function(Trees) {
   Trees <- copy(Trees)
   Trees <- as.data.table(Trees)
 
-  # Step 1: Identify a tree number assigned to multiple Species
+  # Identify a tree number assigned to multiple Species in the same plot
   incorrect_trees <- Trees %>%
     group_by(OrigPlotID1, TreeNumber) %>%
     filter(n_distinct(newSpeciesName) > 1) %>%
     ungroup()
 
-   # Step 2: Identify correct species by most frequent combination
+   # Identify correct species by most frequent combination within each Plot
    correct_species <- incorrect_trees %>%
     group_by(OrigPlotID1, TreeNumber, newSpeciesName, Species) %>%
     summarise(count = n(), .groups = "drop") %>%
@@ -124,102 +100,23 @@ treenum_to_multiplePSP <- function(Trees) {
     ungroup() %>%
     distinct(OrigPlotID1, TreeNumber, newSpeciesName, Species)
 
-  # Step 3: Identify non-positive DBH growth for possible regeneration or disappearance
-    growth_info <- incorrect_trees %>%
-    group_by(OrigPlotID1, TreeNumber) %>%
-    arrange(MeasureYear) %>%
-    summarise(
-      first_DBH = first(DBH[!is.na(DBH)]),
-      last_DBH = last(DBH[!is.na(DBH)]),
-      diff_DBH = last(DBH[!is.na(DBH)]) - first(DBH[!is.na(DBH)]),
-      .groups = "drop"
-    )
+   # Correct PSP and Latin_full in the original dataset
+   trees_corrected <- Trees %>%
+     left_join(correct_species, by = c("OrigPlotID1", "TreeNumber")) %>%
+     mutate(
+       Species= coalesce(Species.y, Species.x),
+       newSpeciesName = coalesce(newSpeciesName.y, newSpeciesName.x)) %>%
+     select(-Species.x, -Species.y, -newSpeciesName.x, -newSpeciesName.y)  # Remove extra columns
 
-    non_positive_growth <- growth_info %>%
-      filter(diff_DBH <= 0) %>%
-      inner_join(correct_species, by = c("OrigPlotID1", "TreeNumber"))
-
-  Trees_subset <- Trees %>%
-    semi_join(non_positive_growth, by = c("OrigPlotID1", "TreeNumber", "newSpeciesName", "Species"))
-
-  dbh_range <- Trees_subset %>%
-    group_by(OrigPlotID1) %>%
-    summarise(
-      min_DBH = if (all(is.na(DBH))) NA_real_ else min(DBH, na.rm = TRUE),
-      max_DBH = if (all(is.na(DBH))) NA_real_ else max(DBH, na.rm = TRUE),
-      .groups = "drop"
-    )
-
-  Trees_classified <- Trees_subset %>%
-    left_join(dbh_range, by = "OrigPlotID1") %>%
-    group_by(OrigPlotID1) %>%
-    mutate(
-      new_TreeNumber = ifelse(DBH == min_DBH, max(Trees$TreeNumber) + row_number(), TreeNumber),
-      status = case_when(
-        DBH == min_DBH ~ "Regeneration",
-        DBH == max_DBH ~ "Last_measurement",
-        TRUE ~ "Unclassified"
-      )
-    ) %>%
-    ungroup()
-
-  regeneration_data <- Trees_classified %>%
-    filter(status == "Regeneration") %>%
-    mutate(TreeNumber = new_TreeNumber) %>%
-    select(-min_DBH, -max_DBH, -new_TreeNumber)
-
-  last_measurement_data <- Trees_classified %>%
-    filter(status == "Last_measurement") %>%
-    select(-min_DBH, -max_DBH, -new_TreeNumber)
-
-  # Step 4: Identify all rows part of correct species combo
-  correct_species_data <- Trees %>%
-    inner_join(correct_species, by = c("OrigPlotID1", "TreeNumber")) %>%
-    mutate(
-      newSpeciesName = newSpeciesName.y,
-      Species = Species.y,
-      status = "Correct_Species"
-    ) %>%
-    select(-newSpeciesName.x, -newSpeciesName.y, -Species.x, -Species.y)
-
-  # Step 5: Merge all flagged incorrect rows
-  incorrect_data <- bind_rows(
-    regeneration_data %>% mutate(status = "Regeneration"),
-    last_measurement_data %>% mutate(status = "Last_measurement"),
-    correct_species_data %>% filter(!(OrigPlotID1 %in% regeneration_data$OrigPlotID1 & TreeNumber %in% regeneration_data$TreeNumber) &
-                                      !(OrigPlotID1 %in% last_measurement_data$OrigPlotID1 & TreeNumber %in% last_measurement_data$TreeNumber)),
-    incorrect_trees %>% anti_join(correct_species_data, by = c("OrigPlotID1", "TreeNumber", "newSpeciesName", "MeasureYear")) %>%
-      anti_join(regeneration_data, by = c("OrigPlotID1", "TreeNumber", "newSpeciesName", "MeasureYear")) %>%
-      anti_join(last_measurement_data, by = c("OrigPlotID1", "TreeNumber", "newSpeciesName", "MeasureYear")) %>%
-      mutate(status = "Other_incorrect")
-  ) %>%
-    distinct(OrigPlotID1, TreeNumber, newSpeciesName, MeasureYear, .keep_all = TRUE)
-
-  # Step 6: Remove incorrect data from main table
-  clean_trees <- Trees %>%
-    anti_join(incorrect_data, by = c("OrigPlotID1", "TreeNumber", "newSpeciesName", "MeasureYear"))
-
-  # Step 7: Final corrected dataset
-  final_trees_corrected <- bind_rows(
-    clean_trees,
-    correct_species_data,
-    regeneration_data,
-    last_measurement_data
-  ) %>%
-    arrange(OrigPlotID1, TreeNumber, MeasureYear)
-
-  return(list(
-    incorrect_data = incorrect_data,
-    correct_species = correct_species,
-    regeneration = regeneration_data,
-    last_measurement = last_measurement_data,
-    Trees_corrected = final_trees_corrected,
-    OrigPlotID1s = unique(Trees$OrigPlotID1)
-  ))
+   return(list(
+     incorrect_trees = incorrect_trees,
+               correct_species = correct_species,
+               Trees_corrected = trees_corrected,
+               OrigPlotID1s = unique(Trees$OrigPlotID1)
+     ))
 }
-#'
-#' #-------------------------------------------------------------   process_dbh_issues function()    ----------------------------------------------------------
-#' Process Implausible DBH Changes Across Measurement Years
+
+#' @title Process Implausible DBH Changes Across Measurement Years
 #'
 #' @description
 #' Detects and manages inconsistencies in tree DBH (Diameter at Breast Height) measurements across years within species.
@@ -250,7 +147,7 @@ process_dbh_issues <- function(Trees) {
   # Sort before computing change
   data.table::setorder(Trees, OrigPlotID1, TreeNumber, MeasureYear)
 
-  # Compute incremental DBH change
+  # Compute year-over-year DBH change for each tree
   Trees[, diff_dbh := DBH - data.table::shift(DBH), by = .(OrigPlotID1, TreeNumber)]
 
   # Creates two diagnostic subsets:negative_growth and na_values
@@ -273,20 +170,20 @@ process_dbh_issues <- function(Trees) {
                 by = c("newSpeciesName", "OrigPlotID1", "MeasureID", "TreeNumber", "MeasureYear")
       )
 
-  # Summarize negative growth
+ # Summarize negative growth
   negative_growth_summary <- Trees %>%
-    filter(!is.na(diff_dbh)) %>%
     group_by(OrigPlotID1) %>%
     summarise(
-      total_neg_growth = sum(diff_dbh[diff_dbh < 0], na.rm = TRUE),                  # the sum of all negative DBH changes.
-      total_growth = sum(abs(diff_dbh), na.rm = TRUE),                               # the sum of absolute DBH changes (positive and negative).
+      total_neg_growth = sum(diff_dbh[!is.na(diff_dbh) & diff_dbh < 0], na.rm = TRUE),
+      total_growth = sum(abs(diff_dbh[!is.na(diff_dbh)]), na.rm = TRUE),
       neg_growth_pct = ifelse(total_growth > 0,
                               100 * abs(total_neg_growth) / total_growth,
-                              NA_real_) #  the percentage of negative growth relative to total measured change
+                              NA_real_)  # Will be NA for plots with only 1 measurement
     ) %>%
     arrange(OrigPlotID1)
 
-  #  Filter by acceptable negative growth threshold  (
+
+  # Identify plots to keep: either low negative growth or no growth data
   OrigPlotID1s_to_keep <- negative_growth_summary %>%
     filter(neg_growth_pct <= 5 | is.na(neg_growth_pct)) %>% # Keeps only OrigPlotID1s where the negative DBH growth percentage is ≤ 5%, or missing (i.e., OrigPlotID1s with no DBH change data).
     pull(OrigPlotID1)
@@ -303,9 +200,8 @@ process_dbh_issues <- function(Trees) {
   ))
 }
 
-#' #--------------------------------------------------------------------   Classify tree status function() ---------------------------------------------------------------------
-#'
-#' Classify Tree Status Based on Measurement History
+
+#' @title Classify Tree Status Based on Measurement History
 #'
 #' @description
 #' Assigns status to each tree based on its observation history. Detects new regeneration, lost trees, and survivors.
