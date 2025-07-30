@@ -3,3 +3,7 @@
 .RData
 .Ruserdata
 .Rprofile
+cache/
+inputs/
+modules/
+home/
