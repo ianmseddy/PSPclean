@@ -24,7 +24,6 @@ Imports:
     googledrive,
     LandR (>= 1.1.1.9001),
     magrittr, 
-    quantreg, 
     reproducible (>= 2.0.3),
     sf,
     terra,

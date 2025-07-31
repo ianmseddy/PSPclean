@@ -1,4 +1,11 @@
 
+# To rewrite this part regarding the functions
+globalVariables(c(
+  "status", "zscore", "meanDBH", "sdDBH", "is_outlier_z", "diff_dbh", "total_growth",
+  "total_neg_growth", "neg_growth_pct", "desc", "count", "coalesce", "Species.y",
+  "Species.x", "newSpeciesName.y", "newSpeciesName.x"
+))
+
 #' @title Detect and flag DBH outliers using z-scores by plot
 #'
 #' @description
@@ -17,6 +24,7 @@
 #' }
 #'
 #' @importFrom data.table as.data.table copy fifelse
+#' @importFrom stats sd
 #' @export
 #'
 detect_dbh_outliers <- function(Trees, dbh_col = "DBH", plot_col = "OrigPlotID1", z_thresh = 7) {
@@ -100,7 +108,7 @@ treenum_to_multiplePSP <- function(Trees) {
     ungroup() %>%
     distinct(OrigPlotID1, TreeNumber, newSpeciesName, Species)
 
-   # Correct PSP and Latin_full in the original dataset
+   # Correct Species and newSpeciesName in the original dataset
    trees_corrected <- Trees %>%
      left_join(correct_species, by = c("OrigPlotID1", "TreeNumber")) %>%
      mutate(

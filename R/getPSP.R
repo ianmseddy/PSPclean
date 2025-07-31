@@ -131,17 +131,13 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
 
     #second one : Identify and resolves all inconsistencies, when a tree number in a Plot is linked to multiple Species Names
     cleaningData2 <- treenum_to_multiplePSP(Trees = PSPmeasure)
-    PSPmeasure <- cleaningData2$Trees
-    #View  PSPmeasure_incorrect_data
-    PSPmeasure_incorrect_data <- cleaningData2$incorrect_data
+    PSPmeasure <- cleaningData2$Trees_corrected                 # Update PSPmeasure with corrected data
+    PSPmeasure_incorrect_data <- cleaningData2$incorrect_trees  # Store the records that had inconsistent species
     PSPplot <- PSPplot[OrigPlotID1 %in% cleaningData2$OrigPlotID1s,]
 
     #third one : Process Implausible DBH Changes Across Measurement Years
     cleaningData3 <- process_dbh_issues(Trees = PSPmeasure)
     PSPmeasure <- cleaningData3$Trees
-    Trees = Trees_corrected      # the cleaned and filtered tree dataset.
-    dbh_check = dbh_check      # the table of detected DBH inconsistencies.
-    negative_growth_summary = negative_growth_summary # OrigPlotID1-level statistics on negative growth.
     PSPplot <- PSPplot[OrigPlotID1 %in% cleaningData3$OrigPlotID1s,]
 
     #fourth one : Classify Tree Status Based on Measurement History (e.g., Regeneration, Last Measurement, Alive),
