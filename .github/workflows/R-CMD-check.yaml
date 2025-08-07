@@ -27,6 +27,7 @@ jobs:
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      GOOGLE_AUTH: ${{ secrets.PSPAUTH }}
       R_KEEP_PKG_SOURCE: yes
 
     steps:
@@ -49,3 +50,5 @@ jobs:
         with:
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
+
+

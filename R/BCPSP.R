@@ -139,6 +139,8 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
     treeData[, OrigPlotID2 := NULL]
   }
 
+  treeData[, TreeNumber := as.numeric(as.factor(TreeNumber))]
+
   headerData[, source := "BC"]
   treeData[, source := "BC"]
 

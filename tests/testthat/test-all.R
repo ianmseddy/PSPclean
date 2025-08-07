@@ -1,7 +1,4 @@
-## googledrive needed in suggests b/c used by reproducible, where it's also suggested and therefore
-##   not installed by default with this package
-stopifnot(require("googledrive", quietly = TRUE))
-require("sf")
+
 standardizedPlotNames <- c(
   "MeasureID", "OrigPlotID1", "MeasureYear", "Longitude", "Latitude", "Datum", "source",
   "Zone", "Northing", "Easting", "Elevation", "PlotSize", "baseYear", "baseSA"
@@ -12,10 +9,8 @@ standardizedTreeNames <- c(
 )
 
 test_that("PSP NFI works", {
-  dPath <- reproducible::checkPath(file.path(tempdir(), "NFI"), create = TRUE)
-  on.exit({
-    unlink(dPath, recursive = TRUE)
-  }, add = TRUE)
+  testthat::skip_if_not_installed("withr")
+  dPath <- withr::local_tempdir(pattern = "NFI_")
 
   nfi <- prepInputsNFIPSP(dPath = dPath)
   nfiClean <- dataPurification_NFIPSP(
@@ -44,10 +39,8 @@ test_that("PSP NFI works", {
 })
 
 test_that("PSP BC works", {
-  dPath <- reproducible::checkPath(file.path(tempdir(), "BC"), create = TRUE)
-  on.exit({
-    unlink(dPath, recursive = TRUE)
-  }, add = TRUE)
+  testthat::skip_if_not_installed("withr")
+  dPath <- withr::local_tempdir(pattern = "BC_")
 
   bc <- prepInputsBCPSP(dPath = dPath)
   bcClean <- dataPurification_BCPSP(
@@ -78,10 +71,8 @@ test_that("PSP BC works", {
 })
 
 test_that("PSP AB works", {
-  dPath <- reproducible::checkPath(file.path(tempdir(), "AB"), create = TRUE)
-  on.exit({
-    unlink(dPath, recursive = TRUE)
-  }, add = TRUE)
+  testthat::skip_if_not_installed("withr")
+  dPath <- withr::local_tempdir(pattern = "AB_")
 
   ab <- prepInputsAlbertaPSP(dPath = dPath)
   abClean <- dataPurification_ABPSP(
@@ -114,10 +105,9 @@ test_that("PSP AB works", {
 })
 
 test_that("PSP SK works", {
-  dPath <- reproducible::checkPath(file.path(tempdir(), "SK"), create = TRUE)
-  on.exit({
-    unlink(dPath, recursive = TRUE)
-  }, add = TRUE)
+  testthat::skip_if_not_installed("withr")
+  dPath <- withr::local_tempdir(pattern = "SK_")
+
   sk <- prepInputsSaskatchwanPSP(dPath = dPath)
 
   skClean <- dataPurification_SKPSP(
@@ -138,10 +128,9 @@ test_that("PSP SK works", {
 
 
 test_that("PSP ON works", {
-  dPath <- reproducible::checkPath(file.path(tempdir(), "ON"), create = TRUE)
-  on.exit({
-    unlink(dPath, recursive = TRUE)
-  }, add = TRUE)
+  testthat::skip_if_not_installed("withr")
+  dPath <- withr::local_tempdir(pattern = "ON_")
+
   ON <- prepInputsOntarioPSP(dPath = dPath)
 
   sppEquiv <- LandR::sppEquivalencies_CA
@@ -155,10 +144,9 @@ test_that("PSP ON works", {
 
 
 test_that("PSP QC works", {
-  dPath <- reproducible::checkPath(file.path(tempdir(), "QC"), create = TRUE)
-  on.exit({
-    unlink(dPath, recursive = TRUE)
-  }, add = TRUE)
+  testthat::skip_if_not_installed("withr")
+  dPath <- withr::local_tempdir(pattern = "QC_")
+
   QC <- prepInputsQCPSP(dPath = dPath)
 
   sppEquiv <- LandR::sppEquivalencies_CA
@@ -172,11 +160,8 @@ test_that("PSP QC works", {
 
 
 test_that("geoCleanPSP works", {
-
-  dPath <- reproducible::checkPath(file.path(tempdir(), "AB"), create = TRUE)
-  on.exit({
-    unlink(dPath, recursive = TRUE)
-  }, add = TRUE)
+  testthat::skip_if_not_installed("withr")
+  dPath <- withr::local_tempdir(pattern = "geoPSP_")
 
   #with alberta - all lat lon
   ab <- prepInputsAlbertaPSP(dPath = dPath)
@@ -239,7 +224,7 @@ test_that("geoCleanPSP works", {
     onClean$plotHeaderData,
     fill = TRUE
   ))
-  expect_false(any(st_is_empty(out8)))
+  expect_false(any(sf::st_is_empty(out8)))
 
   expect_equal(names(out), names(out2))
   expect_equal(names(out3), names(out4))
@@ -247,7 +232,8 @@ test_that("geoCleanPSP works", {
 
 
 test_that("dummy PSP data works", {
-  dPath <- reproducible::checkPath(file.path(tempdir(), "QC"), create = TRUE)
+  testthat::skip_if_not_installed("withr")
+  dPath <- withr::local_tempdir(pattern = "dummy_")
   on.exit({
     unlink(dPath, recursive = TRUE)
   }, add = TRUE)

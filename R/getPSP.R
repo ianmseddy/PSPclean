@@ -1,7 +1,7 @@
 #' return a merged PSP object from a vector of data sources
 #'
 #' @param PSPdataTypes character vector of PSP data sources - e.g. `c("BC", "SK)"`
-#' Use `"all"` to get all available sources, and `"dummy"` for freely availble data
+#' Use `"all"` to get all available sources, and `"dummy"` for freely available data
 #' @param destinationPath destination folder for downloaded objects
 #' @param forGMCS if `TRUE`, will pre-filter plots with insect mortality to avoid
 #' attributing insect mortality with climate
@@ -9,6 +9,7 @@
 #' @return a list of standardized plot and tree data.tables
 #'
 #' @export
+#' @importFrom data.table as.data.table
 #' @importFrom data.table rbindlist
 #' @importFrom reproducible prepInputs
 getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
@@ -38,7 +39,7 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
     PSPplot[, source := "simulated"]
 
   } else if (!any(PSPdataTypes %in% "none")) {
-    if (!any(c("BC", "AB", "SK", "NFI", "ON", "QC", "all") %in% PSPdataTypes)) {
+    if (!any(c("BC", "AB", "SK", "NFI", "ON", "QC", "NB", "all") %in% PSPdataTypes)) {
       stop("Please review dataTypes - incorrect value specified")
     }
 
@@ -52,6 +53,7 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
                                       plotHeaderDataRaw = PSPbc$plotHeaderDataRaw,
                                       damageAgentCodes = PSPbc$pspBCdamageAgentCodes,
                                       codesToExclude = BCexclude)
+
       PSPmeasures[["BC"]] <- PSPbc$treeData
       PSPplots[["BC"]] <- PSPbc$plotHeaderData
     }
@@ -119,6 +121,33 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
 
     PSPmeasure <- rbindlist(PSPmeasures, fill = TRUE)
     PSPplot <- rbindlist(PSPplots, fill = TRUE)
+    #add Parvin's cleaning functions here:
+    #first one : Identifies statistical outliers in key variables (e.g., DBH)
+    #  cleaningData1 <- detect_dbh_outliers(Trees = PSPmeasure)
+    #  PSPmeasure <- cleaningData1$Trees
+    #  #View outliers
+    #  outliers <- PSPmeasure[is_outlier_z == TRUE]
+    # PSPplot <- PSPplot[OrigPlotID1 %in% cleaningData1$OrigPlotID1s,]
+
+    #second one : Identify and resolves all inconsistencies, when a tree number in a Plot is linked to multiple Species Names
+    cleaningData2 <- treenum_to_multiplePSP(Trees = PSPmeasure)
+    PSPmeasure <- cleaningData2$Trees_corrected                 # Update PSPmeasure with corrected data
+    PSPmeasure_incorrect_data <- cleaningData2$incorrect_trees  # Store the records that had inconsistent species
+    PSPplot <- PSPplot[OrigPlotID1 %in% cleaningData2$OrigPlotID1s,]
+
+    #third one : Process Implausible DBH Changes Across Measurement Years
+    cleaningData3 <- process_dbh_issues(Trees = PSPmeasure)
+    PSPmeasure <- cleaningData3$Trees
+    PSPplot <- PSPplot[OrigPlotID1 %in% cleaningData3$OrigPlotID1s,]
+
+    #fourth one : Classify Tree Status Based on Measurement History (e.g., Regeneration, Last Measurement, Alive),
+    cleaningData4 <- classify_tree_status(Trees = PSPmeasure)
+    PSPmeasure <- cleaningData4$Trees
+    PSPplot <- PSPplot[OrigPlotID1 %in%cleaningData4$OrigPlotID1s,]
+
+    #whatever is correctred needs ot be called PSPPlot, PSPmeasure still
+
+    #fix GIS GIS
     PSPgis <- geoCleanPSP(Locations = PSPplot)
 
     ## clean up
@@ -127,14 +156,20 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
     set(PSPplot, NULL, toRemove, NULL)
 
     #keep only plots with valid coordinates
-    PSPmeasure <- PSPmeasure[OrigPlotID1 %in% PSPgis$OrigPlotID1,]
-    PSPplot <- PSPplot[OrigPlotID1 %in% PSPgis$OrigPlotID1,]
+    # PSPmeasure <- PSPmeasure[OrigPlotID1 %in% PSPgis$OrigPlotID1,]
+    # PSPplot <- PSPplot[OrigPlotID1 %in% PSPgis$OrigPlotID1,]
+    PSPmeasure <- PSPmeasure[PSPmeasure$OrigPlotID1 %in% PSPgis$OrigPlotID1, ]
+    PSPplot <- PSPplot[PSPplot$OrigPlotID1 %in% PSPgis$OrigPlotID1, ]
+
   }
 
   #safety catch in case for some reason a user has supplied their own outdated sppEquiv
+  #library(data.table)
+  setDT(PSPmeasure)
   PSPmeasure[is.na(newSpeciesName), newSpeciesName := ""] #the convention
 
   return(list(PSPplot = PSPplot,
               PSPmeasure = PSPmeasure,
               PSPgis = PSPgis))
+
 }
