@@ -2,7 +2,7 @@
 # To rewrite this part regarding the functions
 globalVariables(c(
   "status", "zscore", "meanDBH", "sdDBH", "is_outlier_z", "diff_dbh", "total_growth",
-  "total_neg_growth", "neg_growth_pct", "desc", "count", "coalesce", "Species.y",
+  "total_neg_growth", "neg_growth_pct", "desc", "count", "Species.y",
   "Species.x", "newSpeciesName.y", "newSpeciesName.x"
 ))
 
