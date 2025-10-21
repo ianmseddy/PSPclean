@@ -20,6 +20,14 @@ test_that("PSP NFI works", {
   expect_true(all(colnames(nfiClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(colnames(nfiClean$treeData) %in% standardizedTreeNames))
 
+  notStandardizedTree <- colnames(nfiClean$treeData)
+  notStandardizedTree <- notStandardizedTree[!notStandardizedTree %in% standardizedTreeNames]
+  expect_true(length(notStandardizedTree) == 0)
+
+  notStandardizedPlot <- colnames(nfiClean$plotData)
+  notStandardizedPlot <- notStandardizedPlot[!notStandardizedPlot %in% standardizedPlotNames]
+  expect_true(length(notStandardizedPlot) == 0)
+
   nfiClean_allDam <- dataPurification_NFIPSP(
     NFIdata = nfi,
     codesToExclude = NULL
@@ -68,6 +76,17 @@ test_that("PSP BC works", {
   nodamN <- nrow(bcClean$treeData)
   alldamN <- nrow(bcClean_allDam$treeData)
   expect_true(somedamN > nodamN & somedamN < alldamN)
+
+  notStandardizedTree <- colnames(bcClean$treeData)
+  notStandardizedTree <- notStandardizedTree[!notStandardizedTree %in% standardizedTreeNames]
+  expect_true(length(notStandardizedTree) == 0)
+
+  notStandardizedPlot <- colnames(bcClean$plotData)
+  notStandardizedPlot <- notStandardizedPlot[!notStandardizedPlot %in% standardizedPlotNames]
+  expect_true(length(notStandardizedPlot) == 0)
+
+
+
 })
 
 test_that("PSP AB works", {
@@ -83,6 +102,15 @@ test_that("PSP AB works", {
 
   expect_true(all(names(abClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(names(abClean$treeData) %in% standardizedTreeNames))
+
+  notStandardizedTree <- colnames(abClean$treeData)
+  notStandardizedTree <- notStandardizedTree[!notStandardizedTree %in% standardizedTreeNames]
+  expect_true(length(notStandardizedTree) == 0)
+
+  notStandardizedPlot <- colnames(abClean$plotData)
+  notStandardizedPlot <- notStandardizedPlot[!notStandardizedPlot %in% standardizedPlotNames]
+  expect_true(length(notStandardizedPlot) == 0)
+
 
   abClean_allDam <- dataPurification_ABPSP(
     treeMeasure = ab$pspABtreeMeasure,
@@ -124,6 +152,14 @@ test_that("PSP SK works", {
   )
   expect_true(all(names(skmClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(names(skmClean$treeData) %in% standardizedTreeNames))
+
+  notStandardizedTree <- colnames(skClean$treeData)
+  notStandardizedTree <- notStandardizedTree[!notStandardizedTree %in% standardizedTreeNames]
+  expect_true(length(notStandardizedTree) == 0)
+
+  notStandardizedPlot <- colnames(skClean$plotData)
+  notStandardizedPlot <- notStandardizedPlot[!notStandardizedPlot %in% standardizedPlotNames]
+  expect_true(length(notStandardizedPlot) == 0)
 })
 
 
@@ -140,6 +176,14 @@ test_that("PSP ON works", {
   expect_true(all(names(onClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(names(onClean$treeData) %in% standardizedTreeNames))
 
+  notStandardizedTree <- colnames(onClean$treeData)
+  notStandardizedTree <- notStandardizedTree[!notStandardizedTree %in% standardizedTreeNames]
+  expect_true(length(notStandardizedTree) == 0)
+
+  notStandardizedPlot <- colnames(onClean$plotData)
+  notStandardizedPlot <- notStandardizedPlot[!notStandardizedPlot %in% standardizedPlotNames]
+  expect_true(length(notStandardizedPlot) == 0)
+
 })
 
 
@@ -150,11 +194,42 @@ test_that("PSP QC works", {
   QC <- prepInputsQCPSP(dPath = dPath)
 
   sppEquiv <- LandR::sppEquivalencies_CA
-  QCclean <- dataPurification_QCPSP(QuebecPSP = QC,
+  qcClean <- dataPurification_QCPSP(QuebecPSP = QC,
                                     sppEquiv = sppEquiv)
 
-  expect_true(all(names(QCclean$plotHeaderData) %in% standardizedPlotNames))
-  expect_true(all(names(QCclean$treeData) %in% standardizedTreeNames))
+  expect_true(all(names(qcClean$plotHeaderData) %in% standardizedPlotNames))
+  expect_true(all(names(qcClean$treeData) %in% standardizedTreeNames))
+
+  notStandardizedTree <- colnames(qcClean$treeData)
+  notStandardizedTree <- notStandardizedTree[!notStandardizedTree %in% standardizedTreeNames]
+  expect_true(length(notStandardizedTree) == 0)
+
+  notStandardizedPlot <- colnames(qcClean$plotData)
+  notStandardizedPlot <- notStandardizedPlot[!notStandardizedPlot %in% standardizedPlotNames]
+  expect_true(length(notStandardizedPlot) == 0)
+
+})
+
+test_that("PSP NB works", {
+  testthat::skip_if_not_installed("withr")
+  dPath <- withr::local_tempdir(pattern = "QC_")
+
+  NB <- prepInputsNBPSP(dPath = dPath)
+
+  sppEquiv <- LandR::sppEquivalencies_CA
+  nbClean <- dataPurification_NBPSP(NB_PSP_Data = NB,
+                                    sppEquiv = sppEquiv)
+  browser()
+  expect_true(all(names(nbClean$plotHeaderData) %in% standardizedPlotNames))
+  expect_true(all(names(nbClean$treeData) %in% standardizedTreeNames))
+
+  notStandardizedTree <- colnames(nbClean$treeData)
+  notStandardizedTree <- notStandardizedTree[!notStandardizedTree %in% standardizedTreeNames]
+  expect_true(length(notStandardizedTree) == 0)
+
+  notStandardizedPlot <- colnames(nbClean$plotData)
+  notStandardizedPlot <- notStandardizedPlot[!notStandardizedPlot %in% standardizedPlotNames]
+  expect_true(length(notStandardizedPlot) == 0)
 
 })
 

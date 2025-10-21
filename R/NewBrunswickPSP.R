@@ -119,7 +119,8 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalenci
 
   #some RemeasIDs exist in the plot table but have no recorded tree measurements, e.g. 9079_5
   PSP_PLOTS <- PSP_PLOTS[RemeasID %in% PSP_TREE_YIMO$RemeasID]
-  PSP_TREE_YIMO <- PSP_TREE_YIMO[PSP_PLOTS[,.(RemeasID, MeasYr)], on = c("RemeasID")] #MeasYr is necessary
+
+  PSP_TREE_YIMO <- PSP_TREE_YIMO[PSP_PLOTS[,.(RemeasID, MeasYr)], on = c("RemeasID", "MeasYr")]
 
   setnames(PSP_PLOTS,
            old = c("PLOT", "lat", "long_", "RemeasID", "MeasYr"),
