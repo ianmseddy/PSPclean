@@ -83,7 +83,7 @@ detect_dbh_outliers <- function(Trees, dbh_col = "DBH", plot_col = "OrigPlotID1"
 #' @importFrom dplyr last first
 #' @importFrom dplyr n distinct n_distinct row_number arrange slice_max
 #' @importFrom dplyr group_by mutate ungroup filter summarise case_when
-#' @importFrom dplyr semi_join anti_join left_join bind_rows select
+#' @importFrom dplyr semi_join anti_join left_join bind_rows select coalesce
 #' @importFrom magrittr %>%
 #'
 treenum_to_multiplePSP <- function(Trees) {
