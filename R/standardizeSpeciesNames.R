@@ -79,7 +79,7 @@ standardizeSpeciesNames <- function(speciesTable, forestInventorySource) {
     speciesTable[Species == "DM", newSpeciesName := "mountain alder"]
     speciesTable[Species == "PJ", newSpeciesName := "jack pine"]
     speciesTable[Species == "ZH", newSpeciesName := "hardwood"]
-    speciesTable[Species == "SXW", newSpeciesName := "white spruce"]
+    speciesTable[Species == "SXW", newSpeciesName := "engelmann spruce"]
     # SXW is hybrid between engelmann and white spruce
     speciesTable[Species == "XH", newSpeciesName := "hardwood"]
     speciesTable[Species == "SX", newSpeciesName := "white spruce"]
