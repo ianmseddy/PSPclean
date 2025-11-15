@@ -11,11 +11,16 @@ globalVariables(c(
 #' @param NB_PSP_Data list of data tables resulting from `prepInputsNBPSP`
 #' @param sppEquiv species equivalencies table with column `Latin-full`
 #'
+#' @param sppEquiv sdfsd
+#' @param sppEquivCol sdfd
+#'
 #' @return a list of standardized plot and tree data.tables
 #'
 #' @export
 #' @importFrom data.table set setcolorder
-dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalencies_CA) {
+dataPurification_NBPSP <- function(NB_PSP_Data,
+                                   sppEquiv = LandR::sppEquivalencies_CA,
+                                   sppEquivCol = "LandR") {
 
   PSP_PLOTS <- NB_PSP_Data[["PSP_PLOTS"]]
   PSP_PLOTS_YR <- NB_PSP_Data[["PSP_PLOTS_YR"]]
@@ -31,16 +36,6 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalenci
   PSP_PLOTS_YR <- PSP_PLOTS_YR[!RemeasID %in% "10405_4",]
   PSP_TREE_YIMO <- PSP_TREE_YIMO[!RemeasID %in% "10405_4"]
 
-  #no treated plots
-  #TODO: investigate what YearTreated actually means.
-  # PSP_PLOTS <- PSP_PLOTS[YearTreated == 0]
-  #Per the manual:
-  # year-treated Year of silviculture treatment for managed stand
-  # a few YIMO are 0, the majority are 2000
-  # however the YIMO are not supposed to be managed, furthermore:
-  # silv_ID Link to management prescription for managed stands
-  # these stands are all silv_ID 0
-
   #no dead trees
   PSP_TREE_YIMO <- PSP_TREE_YIMO[!cause %in% 1:9]
   # has age
@@ -55,7 +50,7 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalenci
                "5055_4", "5056_4", "7089_5")
   PSP_TREE_YIMO <- PSP_TREE_YIMO[!RemeasID %in% MiscBad]
 
-    #generate eventual plot header
+  #generate eventual plot header
   PSP_PLOTS_YR <- PSP_PLOTS_YR[Plot %in% PSP_PLOTS$Plot, .(Plot, RemeasID, MeasYr, measNum)]
 
   #standardize
@@ -137,6 +132,29 @@ dataPurification_NBPSP <- function(NB_PSP_Data, sppEquiv = LandR::sppEquivalenci
                 "Latitude", "PlotSize", "baseYear", "baseSA")
   PSP_PLOTS <- PSP_PLOTS[, .SD, .SDcol = plotCols]
 
+  # -------------------------------------------------------------------------------------------------
+  #Parvin added this part
+  # Make sure join columns are uppercase / standardized
+  sppEquiv[, NB_forestry := toupper(NB_forestry)]
+  setnames(sppEquiv,
+           old = c(sppEquivCol, "PSP"),
+           new = c("Species", "newSpeciesName"))
+
+  sppEquiv[, newSpeciesName := tolower(newSpeciesName)]
+  PSP_TREE_YIMO[, newSpeciesName := tolower(newSpeciesName)]
+
+  # Remove empty rows and keep unique NB_forestry
+  sppEquiv <- sppEquiv[NB_forestry != "", .SD[1], by = NB_forestry]
+  sppEquiv <- sppEquiv[, .SD, .SDcols = c("NB_forestry", "Species", "newSpeciesName")]
+
+  # Join PSP_TREE_YIMO with sppEquiv by newSpeciesName
+  PSP_TREE_YIMO <- sppEquiv[PSP_TREE_YIMO, on = c("newSpeciesName"), allow.cartesian = TRUE]
+
+  PSP_TREE_YIMO[, .(NB_forestry, Species, newSpeciesName)]
+  PSP_TREE_YIMO[, i.Species := NULL]
+
+  # -------------------------------------------------------------------------------------------------------
+
   #assign NB
   PSP_TREE_YIMO[, OrigPlotID1 := paste0("NBPSP_", OrigPlotID1)]
   PSP_PLOTS[, OrigPlotID1 := paste0("NBPSP_", OrigPlotID1)]
@@ -176,9 +194,9 @@ prepInputsNBPSP <- function(dPath) {
                           fun = "fread",
                           destinationPath = dPath)
   pspNBloc <- prepInputs(targetFile = "PSP_LOC_LAT_LONG.txt",
-                        url = "https://drive.google.com/file/d/1lBbuXuVIQ0QkO80a6DnxQlXm8wwtWHmN/view?usp=drive_link",
-                        destinationPath = dPath,
-                        fun = "fread")
+                         url = "https://drive.google.com/file/d/1lBbuXuVIQ0QkO80a6DnxQlXm8wwtWHmN/view?usp=drive_link",
+                         destinationPath = dPath,
+                         fun = "fread")
 
   lookupSpecies <- prepInputs(targetFile = "LookUp_Species_NB.txt",
                               url = "https://drive.google.com/file/d/1DBeZ5LOk8Io3Zp2uSeYCDveMsLCy7zei/view?usp=drive_link",

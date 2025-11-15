@@ -3,7 +3,7 @@ globalVariables(c(
   "CONDITION_CODE3", "CROWN_CLASS", "dbh", "DBH", "Easting", "height",
   "Height", "HEIGHT", "IsBad", "MeasureID", "MeausreYear", "MORTALITY",
   "NofTrees", "Northing", "OFFICE_ERROR", "OrigPlotID1", "OrigPlotID2",
-  "PLOT_ID", "PLOT_SIZE", "PlotSize", "species", "Species", "SPECIES",
+  "PLOT_ID", "PLOT_SIZE", "PlotSize", "SK_Forestry", "species", "Species", "SPECIES",
   "TOTAL_AGE", "TREE_NO", "TREE_STATUS", "treeAge", "TreeNumber",
   "YEAR", "Z13nad83_e", "Z13nad83_n", "Zone"
 ))
@@ -21,12 +21,18 @@ globalVariables(c(
 #' @param excludeAllObs if removing observations of individual trees due to damage codes,
 #' remove all prior and future observations if `TRUE`.
 #'
+#' @param sppEquiv sdfsd
+#' @param sppEquivCol sdfd
+#'
 #' @return a list of plot and tree data.tables
 #'
 #' @export
 #' @importFrom data.table setnames setkey rbindlist
 dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
-                                   treeDataRaw, codesToExclude = NULL, excludeAllObs = TRUE) {
+                                   treeDataRaw, codesToExclude = NULL, excludeAllObs = TRUE
+                                   , sppEquiv = LandR::sppEquivalencies_CA,
+                                   sppEquivCol = "LandR") {
+  browser()
   # get rid of artifical trees - plots where the distribution of trees/DBH/species were modelled
   treeDataRaw[, isArtificial := OFFICE_ERROR == "Artificial Tree", ]
   hasArtificial <- treeDataRaw[isArtificial == TRUE, .N, .(PLOT_ID)]
@@ -62,7 +68,7 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   headData_loca <- plotHeaderRaw[PLOT_ID %in% unique(headData_SA$PLOT_ID), ][, .(PLOT_ID, Z13nad83_e, Z13nad83_n, Zone = 13)]
   setnames(headData_loca, 2:3, c("Easting", "Northing"))
   headData_SALoca <- setkey(headData_SA, PLOT_ID)[setkey(headData_loca, PLOT_ID),
-    nomatch = 0
+                                                  nomatch = 0
   ]
   headData_PS <- measureHeaderRaw[PLOT_ID %in% unique(headData_SALoca$PLOT_ID), ][, .(PLOT_ID, PLOT_SIZE)][!is.na(PLOT_SIZE), ]
   headData_PS <- unique(headData_PS, by = "PLOT_ID")
@@ -99,9 +105,9 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   #     8 8 Down snag
   #     9 9 Stump
   treeData <- treeDataRaw[is.na(TREE_STATUS) | # conservatively
-    TREE_STATUS == 0 |
-    TREE_STATUS == 1 |
-    TREE_STATUS == 2, ]
+                            TREE_STATUS == 0 |
+                            TREE_STATUS == 1 |
+                            TREE_STATUS == 2, ]
   # 2. by mortality codes
   #     Null 0
   #     Natural or Undetermined 1
@@ -125,11 +131,47 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   treeData <- treeData[, .(MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, DBH, Height)]
   headData <- setkey(measureidtable, OrigPlotID1)[setkey(headData, OrigPlotID1), nomatch = 0]
   headData <- headData[, .(MeasureID, OrigPlotID1, MeasureYear,
-    Longitude = NA,
-    Latitude = NA, Zone, Easting, Northing, PlotSize, baseYear, baseSA
+                           Longitude = NA,
+                           Latitude = NA, Zone, Easting, Northing, PlotSize, baseYear, baseSA
   )]
 
+  # ------------------------- capitalize because of inconsistencies through time  ----------------------------
+  # Uppercase to standardize
+  treeData[, Species := toupper(Species)]
+  sppEquiv[, SK_Forestry := toupper(SK_Forestry)]
+
+  # Keep only valid, unique SK_Forestry rows
+  sppEquiv <- sppEquiv[SK_Forestry != "", .SD[1], by = SK_Forestry]
+  sppEquiv <- sppEquiv[, .SD, .SDcols = c("SK_Forestry", sppEquivCol, "PSP")]
+
+  # Join to treeData
+  #treeData <- sppEquiv[treeData, on = c("SK_Forestry" = "Species")]
+  treeData <- sppEquiv[SK_Forestry != "", .SD, .SDcols = c("SK_Forestry", sppEquivCol, "PSP")][
+    treeData, on = c("SK_Forestry" = "Species"), allow.cartesian = TRUE
+  ]
+
+  setnames(treeData, old = c(sppEquivCol, "PSP"), new = c("Species", "newSpeciesName"))
+
+  # Map SK_Forestry to Species and newSpeciesName via lookup
+  lookup <- data.table(
+    SK_Forestry = c("BF", "BP", "BS", "GA", "JP", "MM", "TA", "TL", "WB", "WE", "WS"),
+    Species = c("Abie_bal", "Popu_bap", "Pice_pun", "Fra_ash", "Pin_jun", "Acer_man",
+                "Popu_tre", "Lar_tam", "Betu_pap", "Ulmus_alb", "Pice_koy"),
+    newSpeciesName = c("balsam fir", "balsam poplar", "black spruce", "green ash",
+                       "jack pine", "manitoba maple", "trembling aspen", "tamarack larch",
+                       "white birch", "white elm", "white spruce")
+  )
+
+  # Fill Species and newSpeciesName from lookup
+  treeData <- lookup[treeData, on = "SK_Forestry"]
+
+  treeData[, c("i.Species", "i.newSpeciesName") := NULL]
+
+  # Check
+  treeData[, .(SK_Forestry, Species, newSpeciesName)]
+
   treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "SKPSP") # Need to add to pemisc
+  # -------------------------------------------------------------------------------------------------------
 
   treeData[MeasureYear == 2044, MeasureYear := 2014] # correct obvious error
   headData[MeasureYear == 2044, MeasureYear := 2014]

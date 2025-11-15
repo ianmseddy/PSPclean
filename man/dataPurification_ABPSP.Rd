@@ -11,7 +11,9 @@ dataPurification_ABPSP(
   plot,
   codesToExclude = 3,
   excludeAllObs = TRUE,
-  areaDiffThresh = 0.95
+  areaDiffThresh = 0.95,
+  sppEquiv = LandR::sppEquivalencies_CA,
+  sppEquivCol = "LandR"
 )
 }
 \arguments{
@@ -31,6 +33,10 @@ Measurements with these codes will be removed}
 \item{areaDiffThresh}{the threshold of plot size discrepancy to allow below which
 plots will be given a new ID column. Expressed as \code{min(PlotSize)/max(PlotSize)}
 remove all prior and future observations if \code{TRUE}.}
+
+\item{sppEquiv}{sdfsd}
+
+\item{sppEquivCol}{sdfd}
 }
 \value{
 a list of plot and tree data.tables

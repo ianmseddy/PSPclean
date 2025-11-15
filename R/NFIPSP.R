@@ -15,11 +15,16 @@ utils::globalVariables(c(
 #' @param excludeAllObs if removing observations of individual trees due to damage codes,
 #' remove all prior and future observations if `TRUE`.
 #'
+#' @param sppEquiv sdfsd
+#' @param sppEquivCol sdfd
+#'
 #' @return a list of plot and tree data.tables
 #'
 #' @export
 #' @importFrom data.table copy setkey set
-dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllObs = TRUE) {
+dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllObs = TRUE
+                                    , sppEquiv = LandR::sppEquivalencies_CA,
+                                    sppEquivCol = "LandR") {
 
   lgptreeRaw <- copy(NFIdata[["pspTreeMeasure"]])
   lgpHeaderRaw <- copy(NFIdata[["pspHeader"]])

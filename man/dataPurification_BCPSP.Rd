@@ -9,7 +9,8 @@ dataPurification_BCPSP(
   plotHeaderDataRaw,
   damageAgentCodes,
   codesToExclude = "IBM",
-  excludeAllObs = TRUE
+  excludeAllObs = TRUE,
+  sppEquiv = LandR::sppEquivalencies_CA
 )
 }
 \arguments{

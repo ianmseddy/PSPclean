@@ -19,12 +19,17 @@ globalVariables(c(
 #' @param sppEquiv table of species names - see `LandR::sppEquiv`-
 #' must have column 'latin' and 'PSP'
 #'
+#' @param sppEquiv sdfsd
+#' @param sppEquivCol sdfd
+#'
 #' @return a list of plot and tree data.tables
 #'
 #' @export
 #' @importFrom data.table copy data.table set setcolorder setkey dcast
 #'
-dataPurification_ONPSP <- function(ONPSPlist, sppEquiv = LandR::sppEquivalencies_CA) {
+dataPurification_ONPSP <- function(ONPSPlist,
+                                   sppEquiv = LandR::sppEquivalencies_CA,
+                                   sppEquivCol = "LandR") {
   ## TODO: review excludeAllObs - I dont' think we exclude anything at the moment
 
   ##### Location ####

@@ -13,7 +13,8 @@
 #' @importFrom data.table rbindlist
 #' @importFrom reproducible prepInputs
 getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
-                   sppEquiv = LandR::sppEquivalencies_CA) {
+                   sppEquiv = LandR::sppEquivalencies_CA,
+                   sppEquivCol = "LandR") {
   if ("dummy" %in% PSPdataTypes) {
     message("generating randomized PSP data")
 
@@ -52,7 +53,9 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
       PSPbc <- dataPurification_BCPSP(treeDataRaw = PSPbc$treeDataRaw,
                                       plotHeaderDataRaw = PSPbc$plotHeaderDataRaw,
                                       damageAgentCodes = PSPbc$pspBCdamageAgentCodes,
-                                      codesToExclude = BCexclude)
+                                      codesToExclude = BCexclude,
+                                      sppEquiv = sppEquiv,
+                                      sppEquivCol = sppEquivCol)
 
       PSPmeasures[["BC"]] <- PSPbc$treeData
       PSPplots[["BC"]] <- PSPbc$plotHeaderData
@@ -65,7 +68,9 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
                                       plotMeasure = PSPab$pspABplotMeasure,
                                       tree = PSPab$pspABtree,
                                       plot = PSPab$pspABplot,
-                                      codesToExclude = ABexclude)
+                                      codesToExclude = ABexclude,
+                                      sppEquiv = sppEquiv,
+                                      sppEquivCol = sppEquivCol)
       ## TODO: confirm if they really didn't record species on 11K trees
       PSPmeasures[["AB"]] <- PSPab$treeData
       PSPplots[["AB"]] <- PSPab$plotHeaderData
@@ -76,7 +81,9 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
       PSPsk <- dataPurification_SKPSP(SADataRaw = PSPsk$SADataRaw,
                                       plotHeaderRaw = PSPsk$plotHeaderRaw,
                                       measureHeaderRaw = PSPsk$measureHeaderRaw,
-                                      treeDataRaw = PSPsk$treeDataRaw)
+                                      treeDataRaw = PSPsk$treeDataRaw,
+                                      sppEquiv = sppEquiv,
+                                      sppEquivCol = sppEquivCol)
       PSPmeasures[["SK"]] <- PSPsk$treeData
       PSPplots[["SK"]] <- PSPsk$plotHeaderData
 
@@ -90,7 +97,9 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
     if (any(c("ON", "all") %in% PSPdataTypes)) {
       PSPon <- prepInputsOntarioPSP(dPath = destinationPath)
       ## the latin is used to translate species into common names for the biomass equations
-      PSPon <- dataPurification_ONPSP(PSPon, sppEquiv)
+      PSPon <- dataPurification_ONPSP(PSPon,
+                                      sppEquiv = sppEquiv,
+                                      sppEquivCol = sppEquivCol)
       PSPmeasures[["ON"]] <- PSPon$treeData
       PSPplots[["ON"]] <- PSPon$plotHeaderData
     }
@@ -98,14 +107,16 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
     if (any(c("NB", "all") %in% PSPdataTypes)) {
       PSPnb <- prepInputsNBPSP(dPath = destinationPath)
       ## the latin is used to translate species into common names for the biomass equations
-      PSPnb <- dataPurification_NBPSP(PSPnb, sppEquiv)
+      PSPnb <- dataPurification_NBPSP(PSPnb, sppEquiv = sppEquiv,
+                                      sppEquivCol = sppEquivCol)
       PSPmeasures[["NB"]] <- PSPnb$treeData
       PSPplots[["NB"]] <- PSPnb$plotHeaderData
     }
 
     if ("QC" %in% PSPdataTypes | "all" %in% PSPdataTypes) {
       PSPqc <- prepInputsQCPSP(dPath = destinationPath)
-      PSPqc <- dataPurification_QCPSP(PSPqc)
+      PSPqc <- dataPurification_QCPSP(PSPqc, sppEquiv = sppEquiv,
+                                      sppEquivCol = sppEquivCol)
       PSPmeasures[["QC"]] <- PSPqc$treeData
       PSPplots[["QC"]] <- PSPqc$plotHeaderData
     }
@@ -114,7 +125,9 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
 
       NFIexclude <- if (forGMCS) {"IB"} else {NULL}
       PSPnfi <- prepInputsNFIPSP(dPath = destinationPath)
-      PSPnfi <- dataPurification_NFIPSP(PSPnfi, codesToExclude = NFIexclude)
+      PSPnfi <- dataPurification_NFIPSP(PSPnfi, codesToExclude = NFIexclude,
+                                        sppEquiv = sppEquiv,
+                                        sppEquivCol = sppEquivCol)
       PSPmeasures[["NFI"]] <- PSPnfi$treeData
       PSPplots[["NFI"]] <- PSPnfi$plotHeaderData
     }
@@ -123,11 +136,11 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
     PSPplot <- rbindlist(PSPplots, fill = TRUE)
     #add Parvin's cleaning functions here:
     #first one : Identifies statistical outliers in key variables (e.g., DBH)
-    #  cleaningData1 <- detect_dbh_outliers(Trees = PSPmeasure)
-    #  PSPmeasure <- cleaningData1$Trees
-    #  #View outliers
-    #  outliers <- PSPmeasure[is_outlier_z == TRUE]
-    # PSPplot <- PSPplot[OrigPlotID1 %in% cleaningData1$OrigPlotID1s,]
+    cleaningData1 <- detect_dbh_outliers(Trees = PSPmeasure)
+    PSPmeasure <- cleaningData1$Trees
+    #View outliers
+    outliers <- PSPmeasure[is_outlier_z == TRUE]
+    PSPplot <- PSPplot[OrigPlotID1 %in% cleaningData1$OrigPlotID1s,]
 
     #second one : Identify and resolves all inconsistencies, when a tree number in a Plot is linked to multiple Species Names
     cleaningData2 <- treenum_to_multiplePSP(Trees = PSPmeasure)

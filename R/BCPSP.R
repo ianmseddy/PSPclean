@@ -16,24 +16,29 @@ globalVariables(c(
 #' @param excludeAllObs if removing observations of individual trees due to damage codes,
 #' remove all prior and future observations if `TRUE`.
 #'
+#' @param sppEquiv sdfsd
+#' @param sppEquivCol sdfd
+#'
 #' @return a list of plot and tree data.tables
 #'
 #' @export
 #' @importFrom data.table setnames setkey copy
 #'
 dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCodes,
-                                   codesToExclude = "IBM", excludeAllObs = TRUE) {
+                                   codesToExclude = "IBM", excludeAllObs = TRUE,
+                                   sppEquiv = LandR::sppEquivalencies_CA,
+                                   sppEquivCol = "LandR") {
   treeDataRaw <- copy(treeDataRaw)
   plotHeaderDataRaw <- copy(plotHeaderDataRaw)
 
   headerData <- plotHeaderDataRaw[tot_stand_age != -99, ][
     , ":="(utmtimes = length(unique(utm_zone)),
-      eastingtimes = length(unique(utm_easting)),
-      northingtimes = length(unique(utm_northing)),
-      SAtimes = length(unique(tot_stand_age)),
-      plotsizetimes = length(unique(area_pm)),
-      standorigtimes = length(unique(stnd_org)),
-      treatmenttimes = length(unique(treatment))),
+           eastingtimes = length(unique(utm_easting)),
+           northingtimes = length(unique(utm_northing)),
+           SAtimes = length(unique(tot_stand_age)),
+           plotsizetimes = length(unique(area_pm)),
+           standorigtimes = length(unique(stnd_org)),
+           treatmenttimes = length(unique(treatment))),
     by = SAMP_ID
   ]
 
@@ -60,8 +65,8 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
   headerData <- headerData[!is.na(area_pm), ][, ":="(tot_stand_age = NULL, meas_yr = NULL)]
 
   setnames(headerData,
-    old = c("SAMP_ID", "utm_zone", "utm_easting", "utm_northing", "area_pm"),
-    new = c("OrigPlotID1", "Zone", "Easting", "Northing", "PlotSize")
+           old = c("SAMP_ID", "utm_zone", "utm_easting", "utm_northing", "area_pm"),
+           new = c("OrigPlotID1", "Zone", "Easting", "Northing", "PlotSize")
   )
   headerData <- unique(headerData, by = c("OrigPlotID1"))
 
@@ -105,12 +110,12 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
 
   # unique(treeData$ld)
   setnames(treeData,
-    old = c("meas_yr", "tree_no", "species", "dbh", "height"),
-    new = c("MeasureYear", "TreeNumber", "Species", "DBH", "Height")
+           old = c("meas_yr", "tree_no", "species", "dbh", "height"),
+           new = c("MeasureYear", "TreeNumber", "Species", "DBH", "Height")
   )
 
   measureidtable <- unique(treeData[, .(OrigPlotID1, OrigPlotID2, MeasureYear)],
-    by = c("OrigPlotID1", "OrigPlotID2", "MeasureYear")
+                           by = c("OrigPlotID1", "OrigPlotID2", "MeasureYear")
   )
   measureidtable[, MeasureID := paste("BCPSP_", row.names(measureidtable), sep = "")]
   measureidtable <- measureidtable[, .(MeasureID, OrigPlotID1, OrigPlotID2, MeasureYear)]
@@ -119,14 +124,36 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
 
   set(headerData, NULL, "OrigPlotID2", NULL)
   headerData <- headerData[, .(MeasureID, OrigPlotID1, MeasureYear,
-    Longitude = NA,
-    Latitude = NA, Zone, Easting, Northing, Elevation,
-    PlotSize, baseYear, baseSA
+                               Longitude = NA,
+                               Latitude = NA, Zone, Easting, Northing, Elevation,
+                               PlotSize, baseYear, baseSA
   )]
   measureidtable <- setkey(measureidtable, OrigPlotID1, OrigPlotID2, MeasureYear)
   treeData <- measureidtable[setkey(treeData, OrigPlotID1, OrigPlotID2, MeasureYear), nomatch = 0]
 
+  # -------------------------------------------------------------------------------------------------
+  # Uppercase to standardize
+  treeData[, Species := toupper(Species)]
+  sppEquiv[, BC_Forestry := toupper(BC_Forestry)]
+
+  # # Keep only valid, unique BC_Forestry rows
+  sppEquiv <- sppEquiv[BC_Forestry != "", .SD[1], by = BC_Forestry]
+  sppEquiv <- sppEquiv[, .SD, .SDcols = c("BC_Forestry", sppEquivCol, "PSP")]
+
+  # Join to treeData
+  treeData <- sppEquiv[BC_Forestry != "", .SD, .SDcols = c("BC_Forestry", sppEquivCol, "PSP")][
+    treeData, on = c("BC_Forestry" = "Species"), allow.cartesian = TRUE
+  ]
+  #treeData <- sppEquiv[treeData, on = c("AB_forestry" = "Species")]
+
+  setnames(treeData, old = c(sppEquivCol, "PSP"), new = c("Species", "newSpeciesName"))
+
+
+  # Check
+  treeData[, .(BC_Forestry, Species, newSpeciesName)]
+
   treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "BCPSP") # Need to add to pemisc
+  # -------------------------------------------------------------------------------------------------------
 
   treeData$OrigPlotID1 <- paste0("BCPSP", treeData$OrigPlotID1)
   headerData$OrigPlotID1 <- paste0("BCPSP", headerData$OrigPlotID1)

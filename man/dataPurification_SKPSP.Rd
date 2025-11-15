@@ -10,7 +10,9 @@ dataPurification_SKPSP(
   measureHeaderRaw,
   treeDataRaw,
   codesToExclude = NULL,
-  excludeAllObs = TRUE
+  excludeAllObs = TRUE,
+  sppEquiv = LandR::sppEquivalencies_CA,
+  sppEquivCol = "LandR"
 )
 }
 \arguments{
@@ -29,6 +31,10 @@ Measurements with these codes will be removed}
 
 \item{excludeAllObs}{if removing observations of individual trees due to damage codes,
 remove all prior and future observations if \code{TRUE}.}
+
+\item{sppEquiv}{sdfsd}
+
+\item{sppEquivCol}{sdfd}
 }
 \value{
 a list of plot and tree data.tables

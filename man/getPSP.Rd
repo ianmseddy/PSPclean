@@ -8,7 +8,8 @@ getPSP(
   PSPdataTypes,
   destinationPath,
   forGMCS = FALSE,
-  sppEquiv = LandR::sppEquivalencies_CA
+  sppEquiv = LandR::sppEquivalencies_CA,
+  sppEquivCol = "LandR"
 )
 }
 \arguments{

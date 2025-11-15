@@ -4,7 +4,12 @@
 \alias{dataPurification_NFIPSP}
 \title{standardize and treat the NFI PSP data}
 \usage{
-dataPurification_NFIPSP(NFIdata, codesToExclude = "IB", excludeAllObs = TRUE)
+dataPurification_NFIPSP(
+  NFIdata,
+  codesToExclude = "IB",
+  excludeAllObs = TRUE,
+  sppEquiv = LandR::sppEquivalencies_CA
+)
 }
 \arguments{
 \item{NFIdata}{list of NFI tree, plot, and location data}

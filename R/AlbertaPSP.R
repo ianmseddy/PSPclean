@@ -22,6 +22,9 @@ globalVariables(c(
 #' plots will be given a new ID column. Expressed as `min(PlotSize)/max(PlotSize)`
 #' remove all prior and future observations if `TRUE`.
 #'
+#' @param sppEquiv sdfsd
+#' @param sppEquivCol sdfd
+#'
 #' @return a list of plot and tree data.tables
 #'
 #' @export
@@ -29,7 +32,9 @@ globalVariables(c(
 #'
 dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
                                    codesToExclude = 3, excludeAllObs = TRUE,
-                                   areaDiffThresh = 0.95) {
+                                   areaDiffThresh = 0.95,
+                                   sppEquiv = LandR::sppEquivalencies_CA,
+                                   sppEquivCol = "LandR") {
   plot <- copy(plot)
   plotMeasure <- copy(plotMeasure)
   treeMeasure <- copy(treeMeasure)
@@ -76,7 +81,7 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   # estimate the difference between age measured at DBH and at stump
   # and apply it to DBH age so that all trees are approximately aged from stump (or total age where present)
   SADiff <- as.integer(mean(headerData_SA[!is.na(dbh_age) & !is.na(stump_age)]$stump_age -
-    headerData_SA[!is.na(dbh_age) & !is.na(stump_age)]$dbh_age))
+                              headerData_SA[!is.na(dbh_age) & !is.na(stump_age)]$dbh_age))
   headerData_SA <- headerData_SA[!is.na(dbh_age) & is.na(stump_age), stump_age := dbh_age + SADiff]
   headerData_SA[!is.na(total_age) & is.na(stump_age), stump_age := total_age]
 
@@ -88,7 +93,7 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
 
   # keep measurement_numbers > 1, but drop company plot numbers that don't match
   plotMeasure <- headerData_SA[plotMeasure[company_plot_number %in% headerData_SA$company_plot_number, ],
-    on = c("company_plot_number", "measurement_number")
+                               on = c("company_plot_number", "measurement_number")
   ]
 
   baseYear <- plotMeasure[measurement_number == 1]
@@ -119,8 +124,8 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   badConditions <- c(1, 2, 13, 14) # standing dead, dead down, cut down, missing
   # these must be removed no matter what
   treeMeasure <- treeMeasure[!condition_code1 %in% badConditions &
-    !condition_code2 %in% badConditions &
-    !condition_code3 %in% badConditions, ]
+                               !condition_code2 %in% badConditions &
+                               !condition_code3 %in% badConditions, ]
 
   # these are removed conditionally
   if (!is.null(codesToExclude)) {
@@ -171,10 +176,27 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   )]
   treeData <- treeMeasure[, .(MeasureID, OrigPlotID1, tree_number, species, dbh, height)]
 
-  setnames(treeData, c("species", "dbh", "height", "tree_number"), c("Species", "DBH", "Height", "TreeNumber"))
-  # species code changed since 2015 - now the second letter is uncapitalized.
-  treeData[, Species := toupper(Species)]
+  # ------------------------------------------------------------------------------------------
+  # Uppercase to standardize
+  treeData[, species := toupper(species)]
+  sppEquiv[, AB_forestry := toupper(AB_forestry)]
+
+  # Keep only valid, unique AB_forestry rows
+  sppEquiv <- sppEquiv[AB_forestry != "", .SD[1], by = AB_forestry]
+  sppEquiv <- sppEquiv[, .SD, .SDcols = c("AB_forestry", sppEquivCol, "PSP")]
+
+  # Join to treeData
+  treeData <- sppEquiv[AB_forestry != "", .SD, .SDcols = c("AB_forestry", sppEquivCol, "PSP")][
+    treeData, on = c("AB_forestry" = "species"), allow.cartesian = TRUE
+  ]
+
+  setnames(treeData, old = c(sppEquivCol, "PSP"), new = c("Species", "newSpeciesName"))
+
+  # Check
+  treeData[, .(AB_forestry, Species, newSpeciesName)]
+
   treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "ABPSP") # Need to add to pemisc
+  # -------------------------------------------------------------------------------------------------------
 
   setnames(
     headerData, c("measurement_year", "longitude", "latitude", "elevation"),
@@ -222,8 +244,8 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   treeData[MeasureID %in% trulyBad$MeasureID, OrigPlotID1 := paste0(OrigPlotID1, "f")]
 
   # final clean up
-  treeData[Height <= 0, Height := NA]
-  treeData <- treeData[!is.na(DBH) & DBH > 0]
+  treeData[height <= 0, height := NA]
+  treeData <- treeData[!is.na(dbh) & dbh > 0]
 
   headerData[, source := "AB"]
   treeData[, source := "AB"]
