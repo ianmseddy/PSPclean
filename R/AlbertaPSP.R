@@ -175,26 +175,35 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
     PlotSize, baseYear, baseSA
   )]
   treeData <- treeMeasure[, .(MeasureID, OrigPlotID1, tree_number, species, dbh, height)]
-
   # ------------------------------------------------------------------------------------------
+  # Standadizing (Parvin added this part)
+  setnames(treeData,
+           old = c("tree_number", "species", "dbh", "height"),
+           new = c( "TreeNumber", "Species", "DBH", "Height")
+  )
   # Uppercase to standardize
-  treeData[, species := toupper(species)]
+  treeData[, Species := toupper(Species)]
   sppEquiv[, AB_forestry := toupper(AB_forestry)]
 
-  # Keep only valid, unique AB_forestry rows
-  sppEquiv <- sppEquiv[AB_forestry != "", .SD[1], by = AB_forestry]
-  sppEquiv <- sppEquiv[, .SD, .SDcols = c("AB_forestry", sppEquivCol, "PSP")]
+  # Keep unique rows only
+  sppEquiv <- unique(sppEquiv)
 
-  # Join to treeData
-  treeData <- sppEquiv[AB_forestry != "", .SD, .SDcols = c("AB_forestry", sppEquivCol, "PSP")][
-    treeData, on = c("AB_forestry" = "species"), allow.cartesian = TRUE
-  ]
+  # Select only necessary columns and join
+  sppEquiv <- sppEquiv[AB_forestry!= "", .SD[1], by = AB_forestry, .SDcols = c("AB_forestry", sppEquivCol, "PSP")]
 
+  treeData <- sppEquiv[treeData, on = .(AB_forestry = Species)]
+
+  # Rename joined columns
   setnames(treeData, old = c(sppEquivCol, "PSP"), new = c("Species", "newSpeciesName"))
 
   # Check
   treeData[, .(AB_forestry, Species, newSpeciesName)]
 
+  treeData[, AB_forestry.1 := NULL]
+
+  treeData <- treeData[!(is.na(AB_forestry) | AB_forestry == "" | AB_forestry == "unknown")]
+
+  # Standardize
   treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "ABPSP") # Need to add to pemisc
   # -------------------------------------------------------------------------------------------------------
 
@@ -244,8 +253,8 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   treeData[MeasureID %in% trulyBad$MeasureID, OrigPlotID1 := paste0(OrigPlotID1, "f")]
 
   # final clean up
-  treeData[height <= 0, height := NA]
-  treeData <- treeData[!is.na(dbh) & dbh > 0]
+  treeData[Height <= 0, Height := NA]
+  treeData <- treeData[!is.na(DBH) & DBH > 0]
 
   headerData[, source := "AB"]
   treeData[, source := "AB"]

@@ -267,9 +267,15 @@ dataPurification_ONPSP <- function(ONPSPlist,
   setnames(tree, "TreeKey", "TreeNumber")
   # correct growthPlot numbers using factor of growthPlot_treeNumber. Confirm rerenumber, oldNumber, treeNumber
 
-  # standardize species names - for biomass estimation
-  sppEquiv <- sppEquiv[, .(Latin_full, PSP)]
-  setnames(sppEquiv, new = c("fullGenusSpec", "newSpeciesName"))
+  # Standardize sppEquiv
+  sppEquiv[, ON_forestry := toupper(ON_forestry)]
+  #standardize species names - for biomass estimation
+  sppEquiv <- sppEquiv[, .SD, .SDcols = c("Latin_full", "PSP", "ON_forestry", sppEquivCol)]
+
+  sppEquiv <- sppEquiv[!(is.na(ON_forestry) | ON_forestry == "" | ON_forestry == "unknown")]
+
+
+  setnames(sppEquiv, old = c("Latin_full", "PSP"), new = c("fullGenusSpec", "newSpeciesName"))
   sppEquiv <- unique(sppEquiv)
 
   # fix a few codings to match PSP - there is no biomass equation for species-specific willow anyway
@@ -280,11 +286,23 @@ dataPurification_ONPSP <- function(ONPSPlist,
   # this seems most likely, among populus spp with biomass equations
   tree[fullGenusSpec %in% c("Populus x", "Populus sp"), fullGenusSpec := "Populus balsamifera"]
   tree[fullGenusSpec == "Acer saccharum ssp. nigrum", fullGenusSpec := "Acer saccharum"]
+
   tree <- sppEquiv[tree, on = ("fullGenusSpec")]
-  tree[SpecCommon == "Unknown Hardwood", newSpeciesName := "unknown hardwood"]
+
+  setnames(tree, old = "LandR", new = "Species")
+
+  tree[newSpeciesName == "Unknown Hardwood", newSpeciesName := "unknown hardwood"]
+
   tree[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := tolower(SpecCommon)]
+
   tree[, c("OriginName", "fullGenusSpec", "OrigTreeNum") := NULL]
 
+  # Fill missing Species with original newSpeciesName
+  tree[is.na(Species), Species := newSpeciesName]
+
+  tree <- tree[!(is.na(ON_forestry) | ON_forestry == "" | ON_forestry == "unknown")]
+  # Fill missing ON_forestry with "unknown"
+  # tree[is.na(ON_forestry) | ON_forestry == "", ON_forestry := "unknown"]
 
   #### final clean up of Plot ####
   rm(standInfoTreatment, standInfoHeader, Package)
@@ -337,7 +355,7 @@ dataPurification_ONPSP <- function(ONPSPlist,
   # use TreeNumber - MeasureID will come from paste of PlotName_FieldSeasonYear
 
   tree[, c("CrownClassCode", "TreeHeaderKey") := NULL]
-  setnames(tree, c("HtTot", "FieldSeasonYear", "PlotName", "SpecCommon"), c("Height", "MeasureYear", "OrigPlotID1", "Species"))
+  setnames(tree, c("HtTot", "FieldSeasonYear", "PlotName"), c("Height", "MeasureYear", "OrigPlotID1"))
   tree <- tree[plotData[, .(MeasureYear, OrigPlotID1, MeasureID)], on = c("OrigPlotID1", "MeasureYear")]
   # some tree measurements wil be dropped as the plots were filtered out
 
@@ -348,7 +366,7 @@ dataPurification_ONPSP <- function(ONPSPlist,
   tree[, OrigPlotID1 := as.factor(paste0("ONPSP_", OrigPlotID1))]
   plotData[, Datum := as.factor(Datum)]
 
-  setkey(tree, MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, DBH, Height, newSpeciesName)
+  setkey(tree, ON_forestry, Species, MeasureID, OrigPlotID1, MeasureYear, TreeNumber, DBH, Height, newSpeciesName)
   setcolorder(tree)
 
   setkey(plotData, OrigPlotID1, MeasureID, MeasureYear)

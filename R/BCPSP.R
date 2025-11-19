@@ -132,27 +132,30 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
   treeData <- measureidtable[setkey(treeData, OrigPlotID1, OrigPlotID2, MeasureYear), nomatch = 0]
 
   # -------------------------------------------------------------------------------------------------
-  # Uppercase to standardize
+  # Uppercase to standardize (Parvin added this part)
   treeData[, Species := toupper(Species)]
   sppEquiv[, BC_Forestry := toupper(BC_Forestry)]
 
-  # # Keep only valid, unique BC_Forestry rows
-  sppEquiv <- sppEquiv[BC_Forestry != "", .SD[1], by = BC_Forestry]
-  sppEquiv <- sppEquiv[, .SD, .SDcols = c("BC_Forestry", sppEquivCol, "PSP")]
+  # Keep unique rows only
+  sppEquiv <- unique(sppEquiv)
 
-  # Join to treeData
-  treeData <- sppEquiv[BC_Forestry != "", .SD, .SDcols = c("BC_Forestry", sppEquivCol, "PSP")][
-    treeData, on = c("BC_Forestry" = "Species"), allow.cartesian = TRUE
-  ]
-  #treeData <- sppEquiv[treeData, on = c("AB_forestry" = "Species")]
+  # Select only necessary columns and join
+  sppEquiv <- sppEquiv[BC_Forestry != "", .SD[1], by = BC_Forestry, .SDcols = c("BC_Forestry", sppEquivCol, "PSP")]
+  treeData <- sppEquiv[treeData, on = .(BC_Forestry = Species)]
 
+  # Rename joined columns
   setnames(treeData, old = c(sppEquivCol, "PSP"), new = c("Species", "newSpeciesName"))
 
-
-  # Check
+  # Optional check
   treeData[, .(BC_Forestry, Species, newSpeciesName)]
 
-  treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "BCPSP") # Need to add to pemisc
+  treeData[, BC_Forestry.1 := NULL]
+
+  treeData <- treeData[!(is.na(BC_Forestry) | BC_Forestry == "" | BC_Forestry == "unknown")]
+
+  # Standardize
+  treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "BCPSP")
+
   # -------------------------------------------------------------------------------------------------------
 
   treeData$OrigPlotID1 <- paste0("BCPSP", treeData$OrigPlotID1)

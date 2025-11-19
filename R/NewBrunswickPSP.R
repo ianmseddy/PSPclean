@@ -132,28 +132,30 @@ dataPurification_NBPSP <- function(NB_PSP_Data,
                 "Latitude", "PlotSize", "baseYear", "baseSA")
   PSP_PLOTS <- PSP_PLOTS[, .SD, .SDcol = plotCols]
 
-  # -------------------------------------------------------------------------------------------------
-  #Parvin added this part
-  # Make sure join columns are uppercase / standardized
+   # Make sure join columns are uppercase / standardized
   sppEquiv[, NB_forestry := toupper(NB_forestry)]
+  sppEquiv <- unique(sppEquiv)
+
+  # Select only necessary columns and join
+  sppEquiv <- sppEquiv[NB_forestry != "", .SD[1], by = NB_forestry, .SDcols = c("NB_forestry",  sppEquivCol, "PSP")]
+
   setnames(sppEquiv,
            old = c(sppEquivCol, "PSP"),
            new = c("Species", "newSpeciesName"))
 
-  sppEquiv[, newSpeciesName := tolower(newSpeciesName)]
-  PSP_TREE_YIMO[, newSpeciesName := tolower(newSpeciesName)]
-
-  # Remove empty rows and keep unique NB_forestry
-  sppEquiv <- sppEquiv[NB_forestry != "", .SD[1], by = NB_forestry]
-  sppEquiv <- sppEquiv[, .SD, .SDcols = c("NB_forestry", "Species", "newSpeciesName")]
-
-  # Join PSP_TREE_YIMO with sppEquiv by newSpeciesName
-  PSP_TREE_YIMO <- sppEquiv[PSP_TREE_YIMO, on = c("newSpeciesName"), allow.cartesian = TRUE]
+  PSP_TREE_YIMO <- sppEquiv[PSP_TREE_YIMO, on = "newSpeciesName"]
 
   PSP_TREE_YIMO[, .(NB_forestry, Species, newSpeciesName)]
+
+  PSP_TREE_YIMO[, NB_forestry.1 := NULL]
   PSP_TREE_YIMO[, i.Species := NULL]
 
-  # -------------------------------------------------------------------------------------------------------
+  PSP_TREE_YIMO <- PSP_TREE_YIMO[!(is.na(NB_forestry) | NB_forestry == "" | NB_forestry == "unknown")]
+
+  PSP_TREE_YIMO <- PSP_TREE_YIMO[, .(
+    NB_forestry, MeasureID, OrigPlotID1, MeasureYear,TreeNumber,Species,DBH,newSpeciesName
+  )]
+
 
   #assign NB
   PSP_TREE_YIMO[, OrigPlotID1 := paste0("NBPSP_", OrigPlotID1)]

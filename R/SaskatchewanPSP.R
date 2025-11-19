@@ -32,7 +32,7 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
                                    treeDataRaw, codesToExclude = NULL, excludeAllObs = TRUE
                                    , sppEquiv = LandR::sppEquivalencies_CA,
                                    sppEquivCol = "LandR") {
-  browser()
+
   # get rid of artifical trees - plots where the distribution of trees/DBH/species were modelled
   treeDataRaw[, isArtificial := OFFICE_ERROR == "Artificial Tree", ]
   hasArtificial <- treeDataRaw[isArtificial == TRUE, .N, .(PLOT_ID)]
@@ -136,39 +136,39 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   )]
 
   # ------------------------- capitalize because of inconsistencies through time  ----------------------------
-  # Uppercase to standardize
+  # Uppercase to standardize (Parvin added this part)
   treeData[, Species := toupper(Species)]
   sppEquiv[, SK_Forestry := toupper(SK_Forestry)]
 
-  # Keep only valid, unique SK_Forestry rows
-  sppEquiv <- sppEquiv[SK_Forestry != "", .SD[1], by = SK_Forestry]
-  sppEquiv <- sppEquiv[, .SD, .SDcols = c("SK_Forestry", sppEquivCol, "PSP")]
+  # Keep unique rows only
+  sppEquiv <- unique(sppEquiv)
 
-  # Join to treeData
-  #treeData <- sppEquiv[treeData, on = c("SK_Forestry" = "Species")]
-  treeData <- sppEquiv[SK_Forestry != "", .SD, .SDcols = c("SK_Forestry", sppEquivCol, "PSP")][
-    treeData, on = c("SK_Forestry" = "Species"), allow.cartesian = TRUE
-  ]
+  # Select only necessary columns and join
+  sppEquiv <- sppEquiv[SK_Forestry != "", .SD[1], by = SK_Forestry , .SDcols = c("SK_Forestry", sppEquivCol, "PSP")]
+  treeData <- sppEquiv[treeData, on = .(SK_Forestry  = Species)]
 
   setnames(treeData, old = c(sppEquivCol, "PSP"), new = c("Species", "newSpeciesName"))
 
-  # Map SK_Forestry to Species and newSpeciesName via lookup
-  lookup <- data.table(
-    SK_Forestry = c("BF", "BP", "BS", "GA", "JP", "MM", "TA", "TL", "WB", "WE", "WS"),
-    Species = c("Abie_bal", "Popu_bap", "Pice_pun", "Fra_ash", "Pin_jun", "Acer_man",
-                "Popu_tre", "Lar_tam", "Betu_pap", "Ulmus_alb", "Pice_koy"),
-    newSpeciesName = c("balsam fir", "balsam poplar", "black spruce", "green ash",
-                       "jack pine", "manitoba maple", "trembling aspen", "tamarack larch",
-                       "white birch", "white elm", "white spruce")
-  )
-
-  # Fill Species and newSpeciesName from lookup
-  treeData <- lookup[treeData, on = "SK_Forestry"]
-
-  treeData[, c("i.Species", "i.newSpeciesName") := NULL]
+  treeData[
+    ,
+    `:=`(
+      Species = fifelse(SK_Forestry == "TA" & (is.na(Species) | Species == ""), "Popu_tre", Species),
+      newSpeciesName = fifelse(
+        SK_Forestry == "TA" & (is.na(newSpeciesName) | newSpeciesName == ""), "trembling aspen",
+        fifelse(SK_Forestry == "BS" & (is.na(newSpeciesName) | newSpeciesName == ""), "black spruce",
+                fifelse(SK_Forestry == "WS" & (is.na(newSpeciesName) | newSpeciesName == ""), "white spruce",
+                        fifelse(SK_Forestry == "WE" & (is.na(newSpeciesName) | newSpeciesName == ""), "white elm",
+                                newSpeciesName)))
+      )
+    )
+  ]
 
   # Check
   treeData[, .(SK_Forestry, Species, newSpeciesName)]
+
+  treeData[, SK_Forestry.1 := NULL]
+
+  treeData <- treeData[!(is.na(SK_Forestry) | SK_Forestry == "" | SK_Forestry == "unknown")]
 
   treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "SKPSP") # Need to add to pemisc
   # -------------------------------------------------------------------------------------------------------
