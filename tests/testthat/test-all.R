@@ -219,7 +219,7 @@ test_that("PSP NB works", {
   sppEquiv <- LandR::sppEquivalencies_CA
   nbClean <- dataPurification_NBPSP(NB_PSP_Data = NB,
                                     sppEquiv = sppEquiv)
-  browser()
+
   expect_true(all(names(nbClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(names(nbClean$treeData) %in% standardizedTreeNames))
 
@@ -318,3 +318,4 @@ test_that("dummy PSP data works", {
   expect_true(all(names(dummy$treeData) %in% standardizedTreeNames))
 
 })
+
