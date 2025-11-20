@@ -166,9 +166,10 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   # Check
   treeData[, .(SK_Forestry, Species, newSpeciesName)]
 
-  treeData[, SK_Forestry.1 := NULL]
+  # Fill missing SK_Forestry with "unknown"
+  treeData[is.na(SK_Forestry) | SK_Forestry == "", SK_Forestry := "unknown"]
 
-  treeData <- treeData[!(is.na(SK_Forestry) | SK_Forestry == "" | SK_Forestry == "unknown")]
+  treeData[, c("SK_Forestry", "SK_Forestry.1") := NULL]
 
   treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "SKPSP") # Need to add to pemisc
   # -------------------------------------------------------------------------------------------------------
@@ -207,6 +208,9 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   # final clean up
   treeData[Height <= 0, Height := NA]
   treeData <- treeData[!is.na(DBH) & DBH > 0]
+
+  setkey(treeData, MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH, Height)
+  setcolorder(treeData)
 
   headData[, source := "SK"]
   treeData[, source := "SK"]

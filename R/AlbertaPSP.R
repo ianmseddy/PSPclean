@@ -199,10 +199,10 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   # Check
   treeData[, .(AB_forestry, Species, newSpeciesName)]
 
-  treeData[, AB_forestry.1 := NULL]
+  # Fill missing AB_forestry with "unknown"
+  treeData[is.na(AB_forestry) | AB_forestry == "", AB_forestry := "unknown"]
 
-  treeData <- treeData[!(is.na(AB_forestry) | AB_forestry == "" | AB_forestry == "unknown")]
-
+  treeData[, c("AB_forestry", "AB_forestry.1") := NULL]
   # Standardize
   treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "ABPSP") # Need to add to pemisc
   # -------------------------------------------------------------------------------------------------------
@@ -251,6 +251,9 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   headerData[MeasureID %in% trulyBad$MeasureID, baseSA := baseSA + baseYear - tempyear, .(OrigPlotID1)]
   headerData[, tempyear := NULL]
   treeData[MeasureID %in% trulyBad$MeasureID, OrigPlotID1 := paste0(OrigPlotID1, "f")]
+
+  setkey(treeData, MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH, Height)
+  setcolorder(treeData)
 
   # final clean up
   treeData[Height <= 0, Height := NA]

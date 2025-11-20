@@ -272,9 +272,6 @@ dataPurification_ONPSP <- function(ONPSPlist,
   #standardize species names - for biomass estimation
   sppEquiv <- sppEquiv[, .SD, .SDcols = c("Latin_full", "PSP", "ON_forestry", sppEquivCol)]
 
-  sppEquiv <- sppEquiv[!(is.na(ON_forestry) | ON_forestry == "" | ON_forestry == "unknown")]
-
-
   setnames(sppEquiv, old = c("Latin_full", "PSP"), new = c("fullGenusSpec", "newSpeciesName"))
   sppEquiv <- unique(sppEquiv)
 
@@ -300,9 +297,8 @@ dataPurification_ONPSP <- function(ONPSPlist,
   # Fill missing Species with original newSpeciesName
   tree[is.na(Species), Species := newSpeciesName]
 
-  tree <- tree[!(is.na(ON_forestry) | ON_forestry == "" | ON_forestry == "unknown")]
   # Fill missing ON_forestry with "unknown"
-  # tree[is.na(ON_forestry) | ON_forestry == "", ON_forestry := "unknown"]
+  tree[is.na(ON_forestry) | ON_forestry == "", ON_forestry := "unknown"]
 
   #### final clean up of Plot ####
   rm(standInfoTreatment, standInfoHeader, Package)
@@ -366,8 +362,7 @@ dataPurification_ONPSP <- function(ONPSPlist,
   tree[, OrigPlotID1 := as.factor(paste0("ONPSP_", OrigPlotID1))]
   plotData[, Datum := as.factor(Datum)]
 
-  setkey(tree, ON_forestry, Species, MeasureID, OrigPlotID1, MeasureYear, TreeNumber, DBH, Height, newSpeciesName)
-  setcolorder(tree)
+  tree <- tree[, .(MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH, Height)]
 
   setkey(plotData, OrigPlotID1, MeasureID, MeasureYear)
   setcolorder(plotData)

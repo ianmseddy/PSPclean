@@ -149,9 +149,10 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
   # Optional check
   treeData[, .(BC_Forestry, Species, newSpeciesName)]
 
-  treeData[, BC_Forestry.1 := NULL]
+  # Fill missing BC_Forestry with "unknown"
+  treeData[is.na(BC_Forestry) | BC_Forestry == "", BC_Forestry := "unknown"]
 
-  treeData <- treeData[!(is.na(BC_Forestry) | BC_Forestry == "" | BC_Forestry == "unknown")]
+  treeData[, c("BC_Forestry", "BC_Forestry.1") := NULL]
 
   # Standardize
   treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "BCPSP")
@@ -170,6 +171,9 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
   }
 
   treeData[, TreeNumber := as.numeric(as.factor(TreeNumber))]
+
+  setkey(treeData, MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH, Height)
+  setcolorder(treeData)
 
   headerData[, source := "BC"]
   treeData[, source := "BC"]

@@ -147,13 +147,13 @@ dataPurification_NBPSP <- function(NB_PSP_Data,
 
   PSP_TREE_YIMO[, .(NB_forestry, Species, newSpeciesName)]
 
-  PSP_TREE_YIMO[, NB_forestry.1 := NULL]
-  PSP_TREE_YIMO[, i.Species := NULL]
+  PSP_TREE_YIMO[, c("i.Species","NB_forestry.1") := NULL]
 
-  PSP_TREE_YIMO <- PSP_TREE_YIMO[!(is.na(NB_forestry) | NB_forestry == "" | NB_forestry == "unknown")]
+  # Fill missing NB_forestry with "unknown"
+  PSP_TREE_YIMO [is.na(NB_forestry) | NB_forestry== "", NB_forestry := "unknown"]
 
   PSP_TREE_YIMO <- PSP_TREE_YIMO[, .(
-    NB_forestry, MeasureID, OrigPlotID1, MeasureYear,TreeNumber,Species,DBH,newSpeciesName
+     MeasureID, OrigPlotID1, MeasureYear, Species, newSpeciesName, TreeNumber,DBH
   )]
 
 

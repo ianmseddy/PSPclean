@@ -100,22 +100,10 @@ geoCleanPSP <- function(Locations) {
   if (is.null(Locations$Elevation)) {
     Locations$Elevation <- NA
   }
-  #-----------------------------------------------------------------------------------------
-  # Convert to plain data.table and drop sf geometry if present (Parvin added this part)
-  if ("sf" %in% class(Locations)) {
-    Locations <- data.table::as.data.table(Locations)
-    if ("geometry" %in% colnames(Locations)) Locations[, geometry := NULL]
-  }
 
-  # Subset columns safely
-  Locations <- Locations[, .SD, .SDcols = c("OrigPlotID1", "baseSA", "Elevation")]
-
-  # Remove duplicate plot IDs
-  Locations <- Locations[!duplicated(Locations$OrigPlotID1), ]
-  #-----------------------------------------------------------------------------------------
-  # Locations <- Locations[c("OrigPlotID1", "baseSA", "Elevation")]
+  Locations <- Locations[c("OrigPlotID1", "baseSA", "Elevation")]
   #
-  # Locations <- Locations[!duplicated(Locations$OrigPlotID1), ] # drop repeat measures from GIS
+  Locations <- Locations[!duplicated(Locations$OrigPlotID1), ] # drop repeat measures from GIS
   # # Locations <- unique.data.frame(Locations[, "OrigPlotID1"])
   return(Locations)
 }
