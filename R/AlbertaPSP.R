@@ -199,12 +199,10 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   # Check
   treeData[, .(AB_forestry, Species, newSpeciesName)]
 
-  # Fill missing AB_forestry with "unknown"
-  treeData[is.na(AB_forestry) | AB_forestry == "", AB_forestry := "unknown"]
-
   treeData[, c("AB_forestry", "AB_forestry.1") := NULL]
   # Standardize
   treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "ABPSP") # Need to add to pemisc
+
   # -------------------------------------------------------------------------------------------------------
 
   setnames(
@@ -255,7 +253,7 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   setkey(treeData, MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH, Height)
   setcolorder(treeData)
 
-  # final clean up
+   # final clean up
   treeData[Height <= 0, Height := NA]
   treeData <- treeData[!is.na(DBH) & DBH > 0]
 
@@ -263,6 +261,19 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   treeData[, source := "AB"]
 
   headerData <- headerData[OrigPlotID1 %in% treeData$OrigPlotID1]
+
+  # Handle missing species in one consolidated block
+  treeData[is.na(Species) | Species == "", Species := newSpeciesName]
+  treeData[is.na(Species) | Species == "", Species := "unknown"]
+  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := Species]
+  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := "unknown"]
+
+  # Count of unknown vs real in Species
+  treeData[, .(
+    unknown_Species = sum(Species == "unknown"),
+    unknown_newSpeciesName = sum(newSpeciesName == "unknown"),
+    total_rows = .N
+  ), by = source]
 
   return(list(
     plotHeaderData = headerData,

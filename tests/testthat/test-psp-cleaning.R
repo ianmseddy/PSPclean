@@ -16,17 +16,21 @@ standardizedTreeNames <- c(
   "DBH", "Height", "newSpeciesName"
 )
 
-test_that("PSP data is not empty and has no fully NA rows for all provinces", {
+# Define mandatory columns
+mandatoryTreeCols <- c( "Species", "newSpeciesName")
+mandatoryPlotCols <- c("MeasureID", "OrigPlotID1", "MeasureYear")
+
+test_that("PSP data is not empty and mandatory columns are complete for all provinces", {
   testthat::skip_if_not_installed("withr")
   dPath <- withr::local_tempdir(pattern = "PSP_")
 
-  # Helper function to check for empty, fully NA rows, and standardized columns
-  check_data <- function(dt, expected_cols) {
+  # # Helper function to check for empty, fully NA rows, and standardized columns
+  check_data <- function(dt, mandatoryCols) {
     expect_true(nrow(dt) > 0, info = "Data.table should not be empty")
-    expect_false(any(apply(dt, 1, function(row) all(is.na(row)))),
-                 info = "There are rows with all NA values")
-    expect_true(all(expected_cols %in% colnames(dt)),
-                info = "Missing expected standardized columns")
+    expect_false(any(apply(dt, 1, function(row) all(is.na(row)))), info = "There are rows with all NA values")
+    for (col in mandatoryCols) {
+      expect_false(any(is.na(dt[[col]]) | dt[[col]] == ""), info = paste0("Column ", col, " contains NA or empty values"))
+    }
   }
 
   # Alberta
@@ -37,8 +41,8 @@ test_that("PSP data is not empty and has no fully NA rows for all provinces", {
     tree = ab$pspABtree,
     plot = ab$pspABplot
   )
-  check_data(abClean$treeData)
-  check_data(abClean$plotHeaderData)
+  check_data(abClean$treeData, mandatoryTreeCols)
+  check_data(abClean$plotHeaderData, mandatoryPlotCols)
 
   # BC
   bc <- prepInputsBCPSP(dPath = dPath)
@@ -47,15 +51,15 @@ test_that("PSP data is not empty and has no fully NA rows for all provinces", {
     plotHeaderDataRaw = bc$plotHeaderDataRaw,
     damageAgentCodes = bc$pspBCdamageAgentCodes
   )
-  check_data(bcClean$treeData)
-  check_data(bcClean$plotHeaderData)
+  check_data(bcClean$treeData, mandatoryTreeCols)
+  check_data(bcClean$plotHeaderData, mandatoryPlotCols)
 
   # Ontario
   on <- prepInputsOntarioPSP(dPath = dPath)
   sppEquiv <- LandR::sppEquivalencies_CA
   onClean <- dataPurification_ONPSP(ONPSPlist = on, sppEquiv = sppEquiv)
-  check_data(onClean$treeData)
-  check_data(onClean$plotHeaderData)
+  check_data(onClean$treeData, mandatoryTreeCols)
+  check_data(onClean$plotHeaderData, mandatoryPlotCols)
 
   # Saskatchewan
   sk <- prepInputsSaskatchwanPSP(dPath = dPath)
@@ -65,24 +69,24 @@ test_that("PSP data is not empty and has no fully NA rows for all provinces", {
     measureHeaderRaw = sk$measureHeaderRaw,
     treeDataRaw = sk$treeDataRaw
   )
-  check_data(skClean$treeData)
-  check_data(skClean$plotHeaderData)
+  check_data(skClean$treeData, mandatoryTreeCols)
+  check_data(skClean$plotHeaderData, mandatoryPlotCols)
 
   # New Brunswick
   nb <- prepInputsNBPSP(dPath = dPath)
   nbClean <- dataPurification_NBPSP(nb)
-  check_data(nbClean$treeData)
-  check_data(nbClean$plotHeaderData)
+  check_data(nbClean$treeData, mandatoryTreeCols)
+  check_data(nbClean$plotHeaderData, mandatoryPlotCols)
 
   # Quebec
   qc <- prepInputsQCPSP(dPath = dPath)
   qcClean <- dataPurification_QCPSP(qc)
-  check_data(qcClean$treeData)
-  check_data(qcClean$plotHeaderData)
+  check_data(qcClean$treeData, mandatoryTreeCols)
+  check_data(qcClean$plotHeaderData, mandatoryPlotCols)
 
   # NFI
   nfi <- prepInputsNFIPSP(dPath = dPath)
   nfiClean <- dataPurification_NFIPSP(NFIdata = nfi)
-  check_data(nfiClean$treeData)
-  check_data(nfiClean$plotHeaderData)
+  check_data(nfiClean$treeData, mandatoryTreeCols)
+  check_data(nfiClean$plotHeaderData, mandatoryPlotCols)
 })

@@ -294,13 +294,10 @@ dataPurification_ONPSP <- function(ONPSPlist,
 
   tree[, c("OriginName", "fullGenusSpec", "OrigTreeNum") := NULL]
 
-  # Fill missing Species with original newSpeciesName
-  tree[is.na(Species), Species := newSpeciesName]
+  # # Fill missing Species with original newSpeciesName
+  # tree[is.na(Species), Species := newSpeciesName]
 
-  # Fill missing ON_forestry with "unknown"
-  tree[is.na(ON_forestry) | ON_forestry == "", ON_forestry := "unknown"]
-
-  #### final clean up of Plot ####
+   #### final clean up of Plot ####
   rm(standInfoTreatment, standInfoHeader, Package)
 
 
@@ -369,6 +366,19 @@ dataPurification_ONPSP <- function(ONPSPlist,
 
   plotData[, source := "ON"]
   tree[, source := "ON"]
+
+  # Handle missing species in one consolidated block
+  tree[is.na(Species) | Species == "", Species := newSpeciesName]
+  tree[is.na(Species) | Species == "", Species := "unknown"]
+  tree[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := Species]
+  tree[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := "unknown"]
+
+  # Count of unknown vs real in Species
+  tree[, .(
+    unknown_Species = sum(Species == "unknown"),
+    unknown_newSpeciesName = sum(newSpeciesName == "unknown"),
+    total_rows = .N
+  ), by = source]
 
   return(list(
     plotHeaderData = plotData,

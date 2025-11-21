@@ -195,10 +195,6 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
            old = c("ID_PE", "ID_PE_MES", "ALTITUDE", "baseStandAge", "LATITUDE", "LONGITUDE"),
            new = c("OrigPlotID1", "MeasureID", "Elevation", "baseSA", "Latitude", "Longitude"))
 
-
-  # Fill missing QCPSP with "unknown"
-  trees[is.na(QCPSP) | QCPSP== "", QCPSP := "unknown"]
-
   trees[, c("MeasureID", "OrigPlotID1") := .(paste0("QCPSP_", MeasureID),
                                              paste0("QCPSP_", OrigPlotID1))]
   PLACETTE_FINAL[, c("MeasureID", "OrigPlotID1") := .(paste0("QCPSP_", MeasureID),
@@ -219,6 +215,19 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   PLACETTE_FINAL[, source := "QC"]
   trees[, source := "QC"]
 
+
+  # Handle missing species in one consolidated block
+  trees[is.na(Species) | Species == "", Species := newSpeciesName]
+  trees[is.na(Species) | Species == "", Species := "unknown"]
+  trees[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := Species]
+  trees[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := "unknown"]
+
+  # Count of unknown vs real in Species
+  trees[, .(
+    unknown_Species = sum(Species == "unknown"),
+    unknown_newSpeciesName = sum(newSpeciesName == "unknown"),
+    total_rows = .N
+  ), by = source]
 
   return(list(plotHeaderData = PLACETTE_FINAL,
               treeData = trees))

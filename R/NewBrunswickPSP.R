@@ -27,24 +27,17 @@ dataPurification_NBPSP <- function(NB_PSP_Data,
   PSP_TREE_YIMO <- NB_PSP_Data[["PSP_TREE_YIMO"]]
   PSP_LOC_LAT_LONG <- NB_PSP_Data[["PSP_LOC_LAT_LONG"]]
 
-  #start by taking the YIMO
-  #these are the young immature mature and overmature plots
-  PSP_PLOTS <- PSP_PLOTS[PlotType == "M",]
-  PSP_PLOTS <- PSP_PLOTS[SilvID == 0]
+  # Filter plots
+  PSP_PLOTS <- PSP_PLOTS[PlotType == "M" & SilvID == 0]
 
-  #get rid of bad measurements - trees were numbered differently in 4th measure of 5
-  PSP_PLOTS_YR <- PSP_PLOTS_YR[!RemeasID %in% "10405_4",]
+  # Remove bad measurements
+  PSP_PLOTS_YR <- PSP_PLOTS_YR[!RemeasID %in% "10405_4"]
   PSP_TREE_YIMO <- PSP_TREE_YIMO[!RemeasID %in% "10405_4"]
-
-  #no dead trees
   PSP_TREE_YIMO <- PSP_TREE_YIMO[!cause %in% 1:9]
-  # has age
 
-  #Miscellaenous fixes - filter before calculating base stand age
-  #these tree numbers are inconsistent in the 5th meaurement -
+  # Misc fixes
   PSP_TREE_YIMO[RemeasID == "5040_5" & treenum  > 100, treenum := treenum + 200]
   PSP_TREE_YIMO[RemeasID == "5040_5" & treenum  < 100, treenum := treenum + 400]
-  #these all have inconsistent numbering with preceeding plots
   MiscBad <- c("10308_5", "1035_5", "1066_4", "3091_4", "5037_4", "5038_4", "5042_4",
                "5044_4", "5046_4", "5047_4", "5048_4", "5050_4", "5051_4", "5053_4",
                "5055_4", "5056_4", "7089_5")
@@ -53,9 +46,9 @@ dataPurification_NBPSP <- function(NB_PSP_Data,
   #generate eventual plot header
   PSP_PLOTS_YR <- PSP_PLOTS_YR[Plot %in% PSP_PLOTS$Plot, .(Plot, RemeasID, MeasYr, measNum)]
 
-  #standardize
-  PSP_TREE_YIMO[, DBH := dbh/10] #dbh is measured in mm - convert to cm
-  PSP_PLOTS[, PlotSize := PlotSize/10000] # convert square metres to hectares
+  # Standardize DBH and PlotSize
+  PSP_TREE_YIMO[, DBH := dbh / 10]
+  PSP_PLOTS[, PlotSize := PlotSize / 10000]
 
   PSP_TREE_YIMO <- PSP_TREE_YIMO[, .(RemeasID, treenum, species, DBH, Plot, MeasNum)]
   # internal standardization of DBH (min DBH was 5.1 cm except for plots established in 1987,
@@ -63,8 +56,7 @@ dataPurification_NBPSP <- function(NB_PSP_Data,
   #to simplify, remove all trees under 5.1 cm DBH
   PSP_TREE_YIMO <- PSP_TREE_YIMO[DBH > 5.0]
 
-  # Edited DBH outliers believed to be typos (Parvin added this part)
-  # Add MeasYr column for use in correction
+  # DBH corrections
   PSP_TREE_YIMO <- PSP_TREE_YIMO[PSP_PLOTS_YR[, .(RemeasID, MeasYr)], on = "RemeasID"]
   PSP_TREE_YIMO <- PSP_TREE_YIMO %>%
     mutate(DBH = case_when(
@@ -73,10 +65,10 @@ dataPurification_NBPSP <- function(NB_PSP_Data,
       Plot == 2057  & treenum == 197 & DBH == 120.8 & MeasYr == 2011 ~ 20.8,
       Plot == 2063  & treenum == 25  & DBH == 116.9 & MeasYr == 2011 ~ 16.9,
       Plot == 38040 & treenum == 492 & DBH == 221.4 & MeasYr == 2010 ~ 21.4,
-      TRUE ~ DBH  # Keep DBH unchanged if no condition is met
+      TRUE ~ DBH
     ))
 
-  #join with measurement year
+  # Join plot measurements
   PSP_PLOTS <- PSP_PLOTS[, .(Plot, EstabAge, EstabDate, PlotSize)]
   PSP_PLOTS <- PSP_PLOTS[PSP_PLOTS_YR, on = "Plot"]
 
@@ -91,9 +83,10 @@ dataPurification_NBPSP <- function(NB_PSP_Data,
   #species may be unknown in NB data - but there should be no NA due to bad joins
   sppNB <- NB_PSP_Data[["LookUp_Species"]][, .(species, LatinName, CommonName)]
   PSP_TREE_YIMO[is.na(species), species := 999] #coded as unknown in table
-  sppEquivPrep <- sppEquiv[, .(Latin_full, PSP)]
+
+  sppEquiv <- unique(sppEquiv[, .SD, .SDcols = c(sppEquivCol, "NB_forestry", "Latin_full", "PSP")])
   PSP_TREE_YIMO <- sppNB[PSP_TREE_YIMO, on = c("species")]
-  PSP_TREE_YIMO <- sppEquivPrep[PSP_TREE_YIMO, on = c("Latin_full" = "LatinName")]
+  PSP_TREE_YIMO <- sppEquiv[PSP_TREE_YIMO, on = c("Latin_full" = "LatinName")]
   #note that most species lack biomass equations
   PSP_TREE_YIMO[is.na(PSP)|PSP == "", PSP := CommonName]
   PSP_TREE_YIMO[, c("species", "CommonName") := NULL]
@@ -122,38 +115,20 @@ dataPurification_NBPSP <- function(NB_PSP_Data,
            new = c("OrigPlotID1", "Latitude", "Longitude", "MeasureID", "MeasureYear"))
 
   setnames(PSP_TREE_YIMO,
-           old = c("Latin_full", "PSP", "RemeasID", "treenum", "Plot", "MeasYr"),
+           old = c("LandR", "PSP", "RemeasID", "treenum", "Plot", "MeasYr"),
            new = c("Species", "newSpeciesName", "MeasureID", "TreeNumber", "OrigPlotID1", "MeasureYear"))
+
 
   setcolorder(PSP_TREE_YIMO, c("MeasureID", "OrigPlotID1", "MeasureYear",
                                "TreeNumber", "Species", "DBH", "newSpeciesName"))
 
   plotCols <- c("MeasureID", "OrigPlotID1", "MeasureYear", "Longitude",
                 "Latitude", "PlotSize", "baseYear", "baseSA")
+
   PSP_PLOTS <- PSP_PLOTS[, .SD, .SDcol = plotCols]
 
-   # Make sure join columns are uppercase / standardized
-  sppEquiv[, NB_forestry := toupper(NB_forestry)]
-  sppEquiv <- unique(sppEquiv)
-
-  # Select only necessary columns and join
-  sppEquiv <- sppEquiv[NB_forestry != "", .SD[1], by = NB_forestry, .SDcols = c("NB_forestry",  sppEquivCol, "PSP")]
-
-  setnames(sppEquiv,
-           old = c(sppEquivCol, "PSP"),
-           new = c("Species", "newSpeciesName"))
-
-  PSP_TREE_YIMO <- sppEquiv[PSP_TREE_YIMO, on = "newSpeciesName"]
-
-  PSP_TREE_YIMO[, .(NB_forestry, Species, newSpeciesName)]
-
-  PSP_TREE_YIMO[, c("i.Species","NB_forestry.1") := NULL]
-
-  # Fill missing NB_forestry with "unknown"
-  PSP_TREE_YIMO [is.na(NB_forestry) | NB_forestry== "", NB_forestry := "unknown"]
-
   PSP_TREE_YIMO <- PSP_TREE_YIMO[, .(
-     MeasureID, OrigPlotID1, MeasureYear, Species, newSpeciesName, TreeNumber,DBH
+     MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH
   )]
 
 
@@ -165,6 +140,20 @@ dataPurification_NBPSP <- function(NB_PSP_Data,
 
   PSP_PLOTS[, source := "NB"]
   PSP_TREE_YIMO[, source := "NB"]
+
+
+  # Handle missing species in one consolidated block
+  PSP_TREE_YIMO[is.na(Species) | Species == "", Species := newSpeciesName]
+  PSP_TREE_YIMO[is.na(Species) | Species == "", Species := "unknown"]
+  PSP_TREE_YIMO[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := Species]
+  PSP_TREE_YIMO[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := "unknown"]
+
+  # Count of unknown species
+  PSP_TREE_YIMO[, .(
+    unknown_Species = sum(Species == "unknown"),
+    unknown_newSpeciesName = sum(newSpeciesName == "unknown"),
+    total_rows = .N
+  ), by = source]
 
   return(list(
     "plotHeaderData" = PSP_PLOTS,

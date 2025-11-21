@@ -165,10 +165,6 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
 
   # Check
   treeData[, .(SK_Forestry, Species, newSpeciesName)]
-
-  # Fill missing SK_Forestry with "unknown"
-  treeData[is.na(SK_Forestry) | SK_Forestry == "", SK_Forestry := "unknown"]
-
   treeData[, c("SK_Forestry", "SK_Forestry.1") := NULL]
 
   treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "SKPSP") # Need to add to pemisc
@@ -214,6 +210,20 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
 
   headData[, source := "SK"]
   treeData[, source := "SK"]
+
+
+  # Handle missing species in one consolidated block
+  treeData[is.na(Species) | Species == "", Species := newSpeciesName]
+  treeData[is.na(Species) | Species == "", Species := "unknown"]
+  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := Species]
+  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := "unknown"]
+
+  # Count of unknown vs real in Species
+  treeData[, .(
+    unknown_Species = sum(Species == "unknown"),
+    unknown_newSpeciesName = sum(newSpeciesName == "unknown"),
+    total_rows = .N
+  ), by = source]
 
   return(list(
     "plotHeaderData" = headData,

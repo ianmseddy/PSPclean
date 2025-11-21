@@ -149,14 +149,10 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
   # Optional check
   treeData[, .(BC_Forestry, Species, newSpeciesName)]
 
-  # Fill missing BC_Forestry with "unknown"
-  treeData[is.na(BC_Forestry) | BC_Forestry == "", BC_Forestry := "unknown"]
-
   treeData[, c("BC_Forestry", "BC_Forestry.1") := NULL]
 
   # Standardize
   treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "BCPSP")
-
   # -------------------------------------------------------------------------------------------------------
 
   treeData$OrigPlotID1 <- paste0("BCPSP", treeData$OrigPlotID1)
@@ -172,11 +168,27 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
 
   treeData[, TreeNumber := as.numeric(as.factor(TreeNumber))]
 
-  setkey(treeData, MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH, Height)
-  setcolorder(treeData)
+  treeData <- treeData[, .(
+    MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH
+  )]
 
   headerData[, source := "BC"]
   treeData[, source := "BC"]
+
+
+  # Handle missing species in one consolidated block
+  treeData[is.na(Species) | Species == "", Species := newSpeciesName]
+  treeData[is.na(Species) | Species == "", Species := "unknown"]
+  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := Species]
+  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := "unknown"]
+
+   # Count of unknown vs real in Species
+  treeData[, .(
+    unknown_Species = sum(Species == "unknown"),
+    unknown_newSpeciesName = sum(newSpeciesName == "unknown"),
+    total_rows = .N
+  ), by = source]
+
 
   return(list(
     "plotHeaderData" = headerData,

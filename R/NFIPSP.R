@@ -32,11 +32,11 @@ dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllOb
   treeDamage <- NFIdata[["pspTreeDamage"]]
 
   lgptreeRaw <- lgptreeRaw[orig_plot_area == "Y", ]
+
   # start from tree data to obtain plot infor
-  lgptreeRaw[, year := as.Date(meas_date, format = "%Y-%B-%d")]
-  lgpHeaderRaw[, year := as.Date(meas_date, format = "%Y-%B-%d")]
-  lgptreeRaw[, year := as.numeric(format(year, "%Y"))]
-  lgpHeaderRaw[, year := as.numeric(format(year, "%Y"))]
+  lgptreeRaw[, year := as.numeric(format(as.Date(meas_date, "%Y-%B-%d"), "%Y"))]
+  lgpHeaderRaw[, year := as.numeric(format(as.Date(meas_date, "%Y-%B-%d"), "%Y"))]
+
 
   lgpHeader <- lgpHeaderRaw[nfi_plot %in% unique(lgptreeRaw$nfi_plot), ][, .(nfi_plot, year, meas_plot_size, site_age)]
   approxLocation <- approxLocation[, .(nfi_plot, utm_n, utm_e, utm_zone, elevation)]
@@ -111,10 +111,6 @@ dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllOb
   treeData <- sppEquiv[treeData, on = .(NFI = SpeciesCode)]
 
   setnames(treeData, old = c(sppEquivCol, "PSP"), new = c("Species", "newSpeciesName"))
-
-  # Fill missing NFI with "unknown"
-  treeData[is.na(NFI) | NFI == "", NFI := "unknown"]
-
   # ------------------------------------------------------------------------------------------
   treeData[, c("NFI", "Genus") := NULL] # This "Genus" column is not in any of the other PSP datasets
 
@@ -128,6 +124,19 @@ dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllOb
 
   lgpHeader[, source := "NFI"]
   treeData[, source := "NFI"]
+
+  # Handle missing species in one consolidated block
+  treeData[is.na(Species) | Species == "", Species := newSpeciesName]
+  treeData[is.na(Species) | Species == "", Species := "unknown"]
+  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := Species]
+  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := "unknown"]
+
+  # Count of unknown vs real in Species
+  treeData[, .(
+    unknown_Species = sum(Species == "unknown"),
+    unknown_newSpeciesName = sum(newSpeciesName == "unknown"),
+    total_rows = .N
+  ), by = source]
 
   return(list(
     "plotHeaderData" = lgpHeader,
