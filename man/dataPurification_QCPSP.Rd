@@ -8,7 +8,8 @@ dataPurification_QCPSP(
   QuebecPSP,
   codesToExclude = NULL,
   excludeAllObs = TRUE,
-  sppEquiv = LandR::sppEquivalencies_CA
+  sppEquiv = LandR::sppEquivalencies_CA,
+  sppEquivCol = "LandR"
 )
 }
 \arguments{

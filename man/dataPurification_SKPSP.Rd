@@ -12,7 +12,7 @@ dataPurification_SKPSP(
   codesToExclude = NULL,
   excludeAllObs = TRUE,
   sppEquiv = LandR::sppEquivalencies_CA,
-  sppEquivCol = "LandR"
+  sppEquivCol = "Latin_full"
 )
 }
 \arguments{

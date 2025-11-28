@@ -4,13 +4,18 @@
 \alias{dataPurification_ONPSP}
 \title{standardize and treat the Ontario PSP data}
 \usage{
-dataPurification_ONPSP(ONPSPlist, sppEquiv = LandR::sppEquivalencies_CA)
+dataPurification_ONPSP(
+  ONPSPlist,
+  sppEquiv = LandR::sppEquivalencies_CA,
+  sppEquivCol = "LandR"
+)
 }
 \arguments{
 \item{ONPSPlist}{list of relevant plots}
 
-\item{sppEquiv}{table of species names - see \code{LandR::sppEquiv}-
-must have column 'latin' and 'PSP'}
+\item{sppEquiv}{sdfsd}
+
+\item{sppEquivCol}{sdfd}
 }
 \value{
 a list of plot and tree data.tables

@@ -13,7 +13,7 @@ dataPurification_ABPSP(
   excludeAllObs = TRUE,
   areaDiffThresh = 0.95,
   sppEquiv = LandR::sppEquivalencies_CA,
-  sppEquivCol = "LandR"
+  sppEquivCol = "Latin_full"
 )
 }
 \arguments{

@@ -4,12 +4,18 @@
 \alias{dataPurification_NBPSP}
 \title{standardize and treat the New Brunswick PSP data}
 \usage{
-dataPurification_NBPSP(NB_PSP_Data, sppEquiv = LandR::sppEquivalencies_CA)
+dataPurification_NBPSP(
+  NB_PSP_Data,
+  sppEquiv = LandR::sppEquivalencies_CA,
+  sppEquivCol = "LandR"
+)
 }
 \arguments{
 \item{NB_PSP_Data}{list of data tables resulting from \code{prepInputsNBPSP}}
 
-\item{sppEquiv}{species equivalencies table with column \code{Latin-full}}
+\item{sppEquiv}{sdfsd}
+
+\item{sppEquivCol}{sdfd}
 }
 \value{
 a list of standardized plot and tree data.tables

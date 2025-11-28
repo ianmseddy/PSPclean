@@ -9,7 +9,7 @@ getPSP(
   destinationPath,
   forGMCS = FALSE,
   sppEquiv = LandR::sppEquivalencies_CA,
-  sppEquivCol = "LandR"
+  sppEquivCol = "Latin_full"
 )
 }
 \arguments{

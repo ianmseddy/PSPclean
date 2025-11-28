@@ -10,7 +10,8 @@ dataPurification_BCPSP(
   damageAgentCodes,
   codesToExclude = "IBM",
   excludeAllObs = TRUE,
-  sppEquiv = LandR::sppEquivalencies_CA
+  sppEquiv = LandR::sppEquivalencies_CA,
+  sppEquivCol = "Latin_full"
 )
 }
 \arguments{
@@ -24,6 +25,10 @@ dataPurification_BCPSP(
 
 \item{excludeAllObs}{if removing observations of individual trees due to damage codes,
 remove all prior and future observations if \code{TRUE}.}
+
+\item{sppEquiv}{sdfsd}
+
+\item{sppEquivCol}{sdfd}
 }
 \value{
 a list of plot and tree data.tables
