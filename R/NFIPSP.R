@@ -24,7 +24,7 @@ utils::globalVariables(c(
 #' @importFrom data.table copy setkey set
 dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllObs = TRUE
                                     , sppEquiv = LandR::sppEquivalencies_CA,
-                                    sppEquivCol = "LandR") {
+                                      sppEquivCol = "Latin_full") {
 
   lgptreeRaw <- copy(NFIdata[["pspTreeMeasure"]])
   lgpHeaderRaw <- copy(NFIdata[["pspHeader"]])
@@ -94,15 +94,12 @@ dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllOb
                              Easting, Northing, Elevation, PlotSize, baseYear, baseSA
   )]
 
-  # ------------------------------------------------------------------------------------------
-  # Standardize species names using PSPclean (Parvin added this part)
-
-  treeData[, SpeciesCode := toupper(paste0(Genus, "_", Species))]
+  treeData[, SpeciesCode := paste0(Genus, "_", Species)]
 
   treeData[, Species := NULL]
 
   # Only keep the PSP column as the standardized species name
-  sppEquiv <- sppEquiv[, .SD[], .SDcols = c(sppEquivCol,"NFI","PSP")]
+  sppEquiv <- sppEquiv[, .SD, .SDcols = c(sppEquivCol,"NFI")]
 
   # Keep unique rows only
   sppEquiv <- unique(sppEquiv)
@@ -110,9 +107,13 @@ dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllOb
   # Join correctly
   treeData <- sppEquiv[treeData, on = .(NFI = SpeciesCode)]
 
-  setnames(treeData, old = c(sppEquivCol, "PSP"), new = c("Species", "newSpeciesName"))
-  # ------------------------------------------------------------------------------------------
-  treeData[, c("NFI", "Genus") := NULL] # This "Genus" column is not in any of the other PSP datasets
+  setnames(treeData, old = c(sppEquivCol, "NFI"), new = c("Species", "PSP"))
+
+  # Check
+  treeData[, .(PSP, Species)]
+  treeData[is.na(Species), Species := "unknown"]
+
+  treeData[, "Genus" := NULL] # This "Genus" column is not in any of the other PSP datasets
 
   treeData$OrigPlotID1 <- paste0("NFIPSP", treeData$OrigPlotID1)
   lgpHeader$OrigPlotID1 <- paste0("NFIPSP", lgpHeader$OrigPlotID1)
@@ -120,23 +121,10 @@ dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllOb
   treeData[Height <= 0, Height := NA]
   treeData <- treeData[!is.na(DBH) & DBH > 0]
 
-  treeData <- treeData[, .(MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH, Height)]
+  treeData <- treeData[, .(MeasureID, OrigPlotID1, MeasureYear, TreeNumber, PSP, Species, DBH, Height)]
 
   lgpHeader[, source := "NFI"]
   treeData[, source := "NFI"]
-
-  # Handle missing species in one consolidated block
-  treeData[is.na(Species) | Species == "", Species := newSpeciesName]
-  treeData[is.na(Species) | Species == "", Species := "unknown"]
-  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := Species]
-  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := "unknown"]
-
-  # Count of unknown vs real in Species
-  treeData[, .(
-    unknown_Species = sum(Species == "unknown"),
-    unknown_newSpeciesName = sum(newSpeciesName == "unknown"),
-    total_rows = .N
-  ), by = source]
 
   return(list(
     "plotHeaderData" = lgpHeader,

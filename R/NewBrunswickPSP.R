@@ -20,7 +20,7 @@ globalVariables(c(
 #' @importFrom data.table set setcolorder
 dataPurification_NBPSP <- function(NB_PSP_Data,
                                    sppEquiv = LandR::sppEquivalencies_CA,
-                                   sppEquivCol = "LandR") {
+                                   sppEquivCol = "Latin_full") {
 
   PSP_PLOTS <- NB_PSP_Data[["PSP_PLOTS"]]
   PSP_PLOTS_YR <- NB_PSP_Data[["PSP_PLOTS_YR"]]
@@ -84,15 +84,15 @@ dataPurification_NBPSP <- function(NB_PSP_Data,
   sppNB <- NB_PSP_Data[["LookUp_Species"]][, .(species, LatinName, CommonName)]
   PSP_TREE_YIMO[is.na(species), species := 999] #coded as unknown in table
 
-  sppEquiv <- unique(sppEquiv[, .SD, .SDcols = c(sppEquivCol, "NB_forestry", "Latin_full", "PSP")])
+  sppEquiv <- unique(sppEquiv[, .SD, .SDcols = c(sppEquivCol, "NB_forestry")])
   PSP_TREE_YIMO <- sppNB[PSP_TREE_YIMO, on = c("species")]
   PSP_TREE_YIMO <- sppEquiv[PSP_TREE_YIMO, on = c("Latin_full" = "LatinName")]
-  #note that most species lack biomass equations
-  PSP_TREE_YIMO[is.na(PSP)|PSP == "", PSP := CommonName]
+  # #note that most species lack biomass equations
+  # PSP_TREE_YIMO[is.na(PSP)|PSP == "", PSP := CommonName]
   PSP_TREE_YIMO[, c("species", "CommonName") := NULL]
 
   #this ensures elm trees have biomass equations (they are very likely white elms)...
-  PSP_TREE_YIMO[Latin_full == "Ulmus spp.", PSP := "white elm"]
+  # PSP_TREE_YIMO[Latin_full == "Ulmus spp.", PSP := "white elm"]
 
   PSP_LOC_LAT_LONG <- PSP_LOC_LAT_LONG[, .(PLOT, lat, long_)]
   PSP_PLOTS[, Plot := as.integer(Plot)]
@@ -115,23 +115,21 @@ dataPurification_NBPSP <- function(NB_PSP_Data,
            new = c("OrigPlotID1", "Latitude", "Longitude", "MeasureID", "MeasureYear"))
 
   setnames(PSP_TREE_YIMO,
-           old = c("LandR", "PSP", "RemeasID", "treenum", "Plot", "MeasYr"),
-           new = c("Species", "newSpeciesName", "MeasureID", "TreeNumber", "OrigPlotID1", "MeasureYear"))
+           old = c("Latin_full", "NB_forestry", "RemeasID", "treenum", "Plot", "MeasYr"),
+           new = c("Species", "PSP", "MeasureID", "TreeNumber", "OrigPlotID1", "MeasureYear"))
 
+  # Check
+  PSP_TREE_YIMO[, .(PSP, Species)]
+  PSP_TREE_YIMO[is.na(Species), Species := "unknown"]
 
-  setcolorder(PSP_TREE_YIMO, c("MeasureID", "OrigPlotID1", "MeasureYear",
-                               "TreeNumber", "Species", "DBH", "newSpeciesName"))
 
   plotCols <- c("MeasureID", "OrigPlotID1", "MeasureYear", "Longitude",
                 "Latitude", "PlotSize", "baseYear", "baseSA")
-
   PSP_PLOTS <- PSP_PLOTS[, .SD, .SDcol = plotCols]
 
   PSP_TREE_YIMO <- PSP_TREE_YIMO[, .(
-     MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH
+     MeasureID, OrigPlotID1, MeasureYear, TreeNumber, PSP, Species, DBH
   )]
-
-
   #assign NB
   PSP_TREE_YIMO[, OrigPlotID1 := paste0("NBPSP_", OrigPlotID1)]
   PSP_PLOTS[, OrigPlotID1 := paste0("NBPSP_", OrigPlotID1)]
@@ -140,20 +138,6 @@ dataPurification_NBPSP <- function(NB_PSP_Data,
 
   PSP_PLOTS[, source := "NB"]
   PSP_TREE_YIMO[, source := "NB"]
-
-
-  # Handle missing species in one consolidated block
-  PSP_TREE_YIMO[is.na(Species) | Species == "", Species := newSpeciesName]
-  PSP_TREE_YIMO[is.na(Species) | Species == "", Species := "unknown"]
-  PSP_TREE_YIMO[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := Species]
-  PSP_TREE_YIMO[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := "unknown"]
-
-  # Count of unknown species
-  PSP_TREE_YIMO[, .(
-    unknown_Species = sum(Species == "unknown"),
-    unknown_newSpeciesName = sum(newSpeciesName == "unknown"),
-    total_rows = .N
-  ), by = source]
 
   return(list(
     "plotHeaderData" = PSP_PLOTS,

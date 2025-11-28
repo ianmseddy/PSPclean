@@ -29,9 +29,7 @@ dataPurification_SKTSP_Mistik <- function(compiledPlotData, compiledTreeData) {
   treeData <- compiledTreeData[, .(ID_FOR, TREENO, SPECIES, DBH, HEIGHT, CONDCOD1, CONDCOD2, CONDCOD3)]
   treeData <- treeData[ID_FOR %in% unique(headData$ID_FOR), ]
   # remove dead trees
-  treeData <- treeData[CONDCOD1 != "DE", ]
-  treeData <- treeData[CONDCOD2 != "DE", ]
-  treeData <- treeData[CONDCOD3 != "DE", ]
+  treeData <- treeData[!(CONDCOD1 %in% "DE" | CONDCOD2 %in% "DE" | CONDCOD3 %in% "DE")]
   set(treeData, NULL, c("CONDCOD1", "CONDCOD2", "CONDCOD3"), NULL)
   treeData <- setkey(
     headData[, .(MeasureID, ID_FOR, MeasureYear)],

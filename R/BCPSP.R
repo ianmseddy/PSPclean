@@ -27,7 +27,7 @@ globalVariables(c(
 dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCodes,
                                    codesToExclude = "IBM", excludeAllObs = TRUE,
                                    sppEquiv = LandR::sppEquivalencies_CA,
-                                   sppEquivCol = "LandR") {
+                                   sppEquivCol = "Latin_full") {
   treeDataRaw <- copy(treeDataRaw)
   plotHeaderDataRaw <- copy(plotHeaderDataRaw)
 
@@ -131,29 +131,21 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
   measureidtable <- setkey(measureidtable, OrigPlotID1, OrigPlotID2, MeasureYear)
   treeData <- measureidtable[setkey(treeData, OrigPlotID1, OrigPlotID2, MeasureYear), nomatch = 0]
 
-  # -------------------------------------------------------------------------------------------------
-  # Uppercase to standardize (Parvin added this part)
-  treeData[, Species := toupper(Species)]
-  sppEquiv[, BC_Forestry := toupper(BC_Forestry)]
-
+  # Standardize
+  # Select only necessary columns and join
+  sppEquiv <- sppEquiv[BC_Forestry != "", .SD, .SDcols = c("BC_Forestry", sppEquivCol)]
   # Keep unique rows only
   sppEquiv <- unique(sppEquiv)
 
-  # Select only necessary columns and join
-  sppEquiv <- sppEquiv[BC_Forestry != "", .SD[1], by = BC_Forestry, .SDcols = c("BC_Forestry", sppEquivCol, "PSP")]
   treeData <- sppEquiv[treeData, on = .(BC_Forestry = Species)]
 
   # Rename joined columns
-  setnames(treeData, old = c(sppEquivCol, "PSP"), new = c("Species", "newSpeciesName"))
+  setnames(treeData, old = c(BC_Forestry, sppEquivCol), new = c("PSP", "Species"))
 
-  # Optional check
-  treeData[, .(BC_Forestry, Species, newSpeciesName)]
+  # Check
+  treeData[, .(PSP, Species)]
+  treeData[is.na(Species), Species := "unknown"]
 
-  treeData[, c("BC_Forestry", "BC_Forestry.1") := NULL]
-
-  # Standardize
-  treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "BCPSP")
-  # -------------------------------------------------------------------------------------------------------
 
   treeData$OrigPlotID1 <- paste0("BCPSP", treeData$OrigPlotID1)
   headerData$OrigPlotID1 <- paste0("BCPSP", headerData$OrigPlotID1)
@@ -169,26 +161,12 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
   treeData[, TreeNumber := as.numeric(as.factor(TreeNumber))]
 
   treeData <- treeData[, .(
-    MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH
+    MeasureID, OrigPlotID1, MeasureYear, TreeNumber, PSP, Species, DBH, Height
   )]
+
 
   headerData[, source := "BC"]
   treeData[, source := "BC"]
-
-
-  # Handle missing species in one consolidated block
-  treeData[is.na(Species) | Species == "", Species := newSpeciesName]
-  treeData[is.na(Species) | Species == "", Species := "unknown"]
-  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := Species]
-  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := "unknown"]
-
-   # Count of unknown vs real in Species
-  treeData[, .(
-    unknown_Species = sum(Species == "unknown"),
-    unknown_newSpeciesName = sum(newSpeciesName == "unknown"),
-    total_rows = .N
-  ), by = source]
-
 
   return(list(
     "plotHeaderData" = headerData,

@@ -3,7 +3,7 @@ globalVariables(c(
   "CONDITION_CODE3", "CROWN_CLASS", "dbh", "DBH", "Easting", "height",
   "Height", "HEIGHT", "IsBad", "MeasureID", "MeausreYear", "MORTALITY",
   "NofTrees", "Northing", "OFFICE_ERROR", "OrigPlotID1", "OrigPlotID2",
-  "PLOT_ID", "PLOT_SIZE", "PlotSize", "SK_Forestry", "species", "Species", "SPECIES",
+  "PLOT_ID", "PLOT_SIZE", "PlotSize", "SK_forestry", "species", "Species", "SPECIES",
   "TOTAL_AGE", "TREE_NO", "TREE_STATUS", "treeAge", "TreeNumber",
   "YEAR", "Z13nad83_e", "Z13nad83_n", "Zone"
 ))
@@ -31,7 +31,7 @@ globalVariables(c(
 dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
                                    treeDataRaw, codesToExclude = NULL, excludeAllObs = TRUE
                                    , sppEquiv = LandR::sppEquivalencies_CA,
-                                   sppEquivCol = "LandR") {
+                                   sppEquivCol = "Latin_full") {
 
   # get rid of artifical trees - plots where the distribution of trees/DBH/species were modelled
   treeDataRaw[, isArtificial := OFFICE_ERROR == "Artificial Tree", ]
@@ -135,40 +135,20 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
                            Latitude = NA, Zone, Easting, Northing, PlotSize, baseYear, baseSA
   )]
 
-  # ------------------------- capitalize because of inconsistencies through time  ----------------------------
-  # Uppercase to standardize (Parvin added this part)
-  treeData[, Species := toupper(Species)]
-  sppEquiv[, SK_Forestry := toupper(SK_Forestry)]
-
+  # Standardize
+  # Select only necessary columns and join
+  sppEquiv <- sppEquiv[SK_forestry != "", .SD, .SDcols = c("SK_forestry", sppEquivCol)]
   # Keep unique rows only
   sppEquiv <- unique(sppEquiv)
 
-  # Select only necessary columns and join
-  sppEquiv <- sppEquiv[SK_Forestry != "", .SD[1], by = SK_Forestry , .SDcols = c("SK_Forestry", sppEquivCol, "PSP")]
-  treeData <- sppEquiv[treeData, on = .(SK_Forestry  = Species)]
+  treeData <- sppEquiv[treeData, on = .(SK_forestry  = Species)]
 
-  setnames(treeData, old = c(sppEquivCol, "PSP"), new = c("Species", "newSpeciesName"))
+  setnames(treeData, old = c(SK_forestry, sppEquivCol), new = c("PSP", "Species"))
 
-  treeData[
-    ,
-    `:=`(
-      Species = fifelse(SK_Forestry == "TA" & (is.na(Species) | Species == ""), "Popu_tre", Species),
-      newSpeciesName = fifelse(
-        SK_Forestry == "TA" & (is.na(newSpeciesName) | newSpeciesName == ""), "trembling aspen",
-        fifelse(SK_Forestry == "BS" & (is.na(newSpeciesName) | newSpeciesName == ""), "black spruce",
-                fifelse(SK_Forestry == "WS" & (is.na(newSpeciesName) | newSpeciesName == ""), "white spruce",
-                        fifelse(SK_Forestry == "WE" & (is.na(newSpeciesName) | newSpeciesName == ""), "white elm",
-                                newSpeciesName)))
-      )
-    )
-  ]
 
   # Check
-  treeData[, .(SK_Forestry, Species, newSpeciesName)]
-  treeData[, c("SK_Forestry", "SK_Forestry.1") := NULL]
-
-  treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "SKPSP") # Need to add to pemisc
-  # -------------------------------------------------------------------------------------------------------
+  treeData[, .(PSP, Species)]
+  treeData[is.na(Species), Species := "unknown"]
 
   treeData[MeasureYear == 2044, MeasureYear := 2014] # correct obvious error
   headData[MeasureYear == 2044, MeasureYear := 2014]
@@ -205,25 +185,12 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   treeData[Height <= 0, Height := NA]
   treeData <- treeData[!is.na(DBH) & DBH > 0]
 
-  setkey(treeData, MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH, Height)
-  setcolorder(treeData)
+  treeData <- treeData[, .(
+    MeasureID, OrigPlotID1, MeasureYear, TreeNumber, PSP, Species, DBH, Height
+  )]
 
   headData[, source := "SK"]
   treeData[, source := "SK"]
-
-
-  # Handle missing species in one consolidated block
-  treeData[is.na(Species) | Species == "", Species := newSpeciesName]
-  treeData[is.na(Species) | Species == "", Species := "unknown"]
-  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := Species]
-  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := "unknown"]
-
-  # Count of unknown vs real in Species
-  treeData[, .(
-    unknown_Species = sum(Species == "unknown"),
-    unknown_newSpeciesName = sum(newSpeciesName == "unknown"),
-    total_rows = .N
-  ), by = source]
 
   return(list(
     "plotHeaderData" = headData,

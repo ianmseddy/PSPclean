@@ -23,7 +23,7 @@ globalVariables(c(
 #' @importFrom bit64 as.integer64
 dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllObs = TRUE,
                                    sppEquiv = LandR::sppEquivalencies_CA,
-                                   sppEquivCol = "LandR") {
+                                   sppEquivCol = "Latin_full") {
  #DENDRO_ARBRES_ETUDES is a subset of DENDRO_ARBRES with additional information (e.g. age, height)
   PLACETTE <- QuebecPSP[["PLACETTE"]]
   PLACETTE_MES <- QuebecPSP[["PLACETTE_MES"]]
@@ -177,23 +177,25 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
 
   #standardize species
   #unique because some species have multiple rows (e.g. due to common name)
-  sppEquiv <- unique(sppEquiv[, .SD, .SDcols = c(sppEquivCol, "QCPSP", "PSP")])
-  setnames(sppEquiv, old = c("QCPSP", "PSP"), new = c("ESSENCE", "newSpeciesName"))
+  sppEquiv <- unique(sppEquiv[, .SD, .SDcols = c(sppEquivCol, "QCPSP")])
   # Keep unique rows only
   sppEquiv <- unique(sppEquiv)
-  trees <- sppEquiv[trees, on = c("ESSENCE")]
+  trees <- sppEquiv[trees, on = c(QCPSP = "ESSENCE")]
 
   #ensure all measurements have associated plots
   trees <- trees[PLACETTE_FINAL[, .(ID_PE_MES, MeasureYear)], on = "ID_PE_MES"]
-  trees <- trees[, .(ID_PE, ID_PE_MES, NO_ARBRE, MeasureYear, LandR,
-                     ESSENCE, DHP, HAUT_ARBRE, newSpeciesName)]
   setnames(trees,
-           old = c("LandR","ESSENCE", "DHP", "HAUT_ARBRE", "NO_ARBRE", "ID_PE", "ID_PE_MES"),
-           new = c("Species","QCPSP", "DBH", "Height", "TreeNumber", "OrigPlotID1", "MeasureID"))
+           old = c(sppEquivCol,"QCPSP", "DHP", "HAUT_ARBRE", "NO_ARBRE", "ID_PE", "ID_PE_MES"),
+           new = c("Species","PSP", "DBH", "Height", "TreeNumber", "OrigPlotID1", "MeasureID"))
 
   setnames(PLACETTE_FINAL,
            old = c("ID_PE", "ID_PE_MES", "ALTITUDE", "baseStandAge", "LATITUDE", "LONGITUDE"),
            new = c("OrigPlotID1", "MeasureID", "Elevation", "baseSA", "Latitude", "Longitude"))
+
+  # Check
+  trees[, .(PSP, Species)]
+  trees[is.na(Species), Species := "unknown"]
+
 
   trees[, c("MeasureID", "OrigPlotID1") := .(paste0("QCPSP_", MeasureID),
                                              paste0("QCPSP_", OrigPlotID1))]
@@ -204,30 +206,15 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   #some plots do not have trees remaining
   PLACETTE_FINAL <- PLACETTE_FINAL[MeasureID %in% trees$MeasureID]
 
-  setkey(trees, MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH, Height)
-  setcolorder(trees)
+  trees <- trees[, .(
+    MeasureID, OrigPlotID1, MeasureYear, TreeNumber, PSP, Species, DBH, Height
+  )]
 
-  setkey(PLACETTE_FINAL, OrigPlotID1, MeasureID, MeasureYear)
-  setcolorder(PLACETTE_FINAL)
-
-  trees[, QCPSP := NULL]
+  PLACETTE_FINAL <- PLACETTE_FINAL[, .(
+    MeasureID, OrigPlotID1, MeasureYear)]
 
   PLACETTE_FINAL[, source := "QC"]
   trees[, source := "QC"]
-
-
-  # Handle missing species in one consolidated block
-  trees[is.na(Species) | Species == "", Species := newSpeciesName]
-  trees[is.na(Species) | Species == "", Species := "unknown"]
-  trees[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := Species]
-  trees[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := "unknown"]
-
-  # Count of unknown vs real in Species
-  trees[, .(
-    unknown_Species = sum(Species == "unknown"),
-    unknown_newSpeciesName = sum(newSpeciesName == "unknown"),
-    total_rows = .N
-  ), by = source]
 
   return(list(plotHeaderData = PLACETTE_FINAL,
               treeData = trees))

@@ -34,7 +34,7 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
                                    codesToExclude = 3, excludeAllObs = TRUE,
                                    areaDiffThresh = 0.95,
                                    sppEquiv = LandR::sppEquivalencies_CA,
-                                   sppEquivCol = "LandR") {
+                                   sppEquivCol = "Latin_full") {
   plot <- copy(plot)
   plotMeasure <- copy(plotMeasure)
   treeMeasure <- copy(treeMeasure)
@@ -175,35 +175,24 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
     PlotSize, baseYear, baseSA
   )]
   treeData <- treeMeasure[, .(MeasureID, OrigPlotID1, tree_number, species, dbh, height)]
-  # ------------------------------------------------------------------------------------------
-  # Standadizing (Parvin added this part)
+
   setnames(treeData,
            old = c("tree_number", "species", "dbh", "height"),
            new = c( "TreeNumber", "Species", "DBH", "Height")
   )
-  # Uppercase to standardize
-  treeData[, Species := toupper(Species)]
-  sppEquiv[, AB_forestry := toupper(AB_forestry)]
-
-  # Keep unique rows only
+ # Standardize
+  sppEquiv <- sppEquiv[AB_forestry!= "", .SD, .SDcols = c("AB_forestry", sppEquivCol)]
   sppEquiv <- unique(sppEquiv)
-
-  # Select only necessary columns and join
-  sppEquiv <- sppEquiv[AB_forestry!= "", .SD[1], by = AB_forestry, .SDcols = c("AB_forestry", sppEquivCol, "PSP")]
 
   treeData <- sppEquiv[treeData, on = .(AB_forestry = Species)]
 
   # Rename joined columns
-  setnames(treeData, old = c(sppEquivCol, "PSP"), new = c("Species", "newSpeciesName"))
+  setnames(treeData, old = c(AB_forestry, sppEquivCol), new = c("PSP", "Species"))
 
   # Check
-  treeData[, .(AB_forestry, Species, newSpeciesName)]
+  treeData[, .(PSP, Species)]
+  treeData[is.na(Species), Species := "unknown"]
 
-  treeData[, c("AB_forestry", "AB_forestry.1") := NULL]
-  # Standardize
-  treeData <- standardizeSpeciesNames(treeData, forestInventorySource = "ABPSP") # Need to add to pemisc
-
-  # -------------------------------------------------------------------------------------------------------
 
   setnames(
     headerData, c("measurement_year", "longitude", "latitude", "elevation"),
@@ -250,10 +239,11 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   headerData[, tempyear := NULL]
   treeData[MeasureID %in% trulyBad$MeasureID, OrigPlotID1 := paste0(OrigPlotID1, "f")]
 
-  setkey(treeData, MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH, Height)
-  setcolorder(treeData)
+  treeData <- treeData[, .(
+    MeasureID, OrigPlotID1, MeasureYear, TreeNumber, PSP, Species, DBH, Height
+  )]
 
-   # final clean up
+  # final clean up
   treeData[Height <= 0, Height := NA]
   treeData <- treeData[!is.na(DBH) & DBH > 0]
 
@@ -261,19 +251,6 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   treeData[, source := "AB"]
 
   headerData <- headerData[OrigPlotID1 %in% treeData$OrigPlotID1]
-
-  # Handle missing species in one consolidated block
-  treeData[is.na(Species) | Species == "", Species := newSpeciesName]
-  treeData[is.na(Species) | Species == "", Species := "unknown"]
-  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := Species]
-  treeData[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := "unknown"]
-
-  # Count of unknown vs real in Species
-  treeData[, .(
-    unknown_Species = sum(Species == "unknown"),
-    unknown_newSpeciesName = sum(newSpeciesName == "unknown"),
-    total_rows = .N
-  ), by = source]
 
   return(list(
     plotHeaderData = headerData,

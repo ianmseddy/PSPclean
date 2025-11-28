@@ -14,7 +14,7 @@
 #' @importFrom reproducible prepInputs
 getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
                    sppEquiv = LandR::sppEquivalencies_CA,
-                   sppEquivCol = "LandR") {
+                   sppEquivCol = "Latin_full") {
   if ("dummy" %in% PSPdataTypes) {
     message("generating randomized PSP data")
 
@@ -179,7 +179,7 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
   #safety catch in case for some reason a user has supplied their own outdated sppEquiv
   #library(data.table)
   setDT(PSPmeasure)
-  PSPmeasure[is.na(newSpeciesName), newSpeciesName := ""] #the convention
+  PSPmeasure[is.na(Species), Species := ""] #the convention
 
   return(list(PSPplot = PSPplot,
               PSPmeasure = PSPmeasure,

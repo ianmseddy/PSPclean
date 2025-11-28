@@ -2,8 +2,8 @@
 # To rewrite this part regarding the functions
 globalVariables(c(
   "status", "zscore", "meanDBH", "sdDBH", "is_outlier_z", "diff_dbh", "total_growth",
-  "total_neg_growth", "neg_growth_pct", "desc", "count", "Species.y",
-  "Species.x", "newSpeciesName.y", "newSpeciesName.x"
+  "total_neg_growth", "neg_growth_pct", "desc", "count", "PSP.y",
+  "PSP.x", "Species.y", "Species.x"
 ))
 
 #' @title Detect and flag DBH outliers using z-scores by plot
@@ -59,18 +59,18 @@ detect_dbh_outliers <- function(Trees, dbh_col = "DBH", plot_col = "OrigPlotID1"
 }
 
 
-#' @title Identify Tree Numbers Linked to Multiple Species Names in a Plot
+#' @title Identify Tree Numbers Linked to Multiple PSP Names in a Plot
 #'
 #' @description
-#' Ensures consistent tree numbering when a tree (TreeNumber) in a plot (OrigPlotID1) is associated with multiple species over time.
+#' Ensures consistent tree numbering when a tree (TreeNumber) in a plot (OrigPlotID1) is associated with multiple PSP over time.
 #'
 #'
-#' @param Trees A `data.table` of tree observations containing Species identifiers and measurement years.
+#' @param Trees A `data.table` of tree observations containing PSP identifiers and measurement years.
 #'
 #' @return A list containing:
 #' \describe{
-#'   \item{incorrect_data}{Flagged inconsistent species data.}
-#'   \item{correct_species}{Most likely species for each tree.}
+#'   \item{incorrect_data}{Flagged inconsistent PSP data.}
+#'   \item{correct_PSP}{Most likely PSP for each tree.}
 #'   \item{regeneration}{Subset with apparent regeneration.}
 #'   \item{last_measurement}{Subset with last recorded measurements.}
 #'   \item{Trees_corrected}{Cleaned tree dataset.}
@@ -92,33 +92,33 @@ treenum_to_multiplePSP <- function(Trees) {
   Trees <- copy(Trees)
   Trees <- as.data.table(Trees)
 
-  # Identify a tree number assigned to multiple Species in the same plot
+  # Identify a tree number assigned to multiple PSP in the same plot
   incorrect_trees <- Trees %>%
     group_by(OrigPlotID1, TreeNumber) %>%
-    filter(n_distinct(newSpeciesName) > 1) %>%
+    filter(n_distinct(Species) > 1) %>%
     ungroup()
 
-   # Identify correct species by most frequent combination within each Plot
-   correct_species <- incorrect_trees %>%
-    group_by(OrigPlotID1, TreeNumber, newSpeciesName, Species) %>%
+   # Identify correct PSP by most frequent combination within each Plot
+   correct_PSP <- incorrect_trees %>%
+    group_by(OrigPlotID1, TreeNumber, Species, PSP) %>%
     summarise(count = n(), .groups = "drop") %>%
     arrange(desc(count)) %>%
     group_by(OrigPlotID1, TreeNumber) %>%
     slice_max(count, with_ties = FALSE) %>%
     ungroup() %>%
-    distinct(OrigPlotID1, TreeNumber, newSpeciesName, Species)
+    distinct(OrigPlotID1, TreeNumber, Species, PSP)
 
-   # Correct Species and newSpeciesName in the original dataset
+   # Correct PSP and Species in the original dataset
    trees_corrected <- Trees %>%
-     left_join(correct_species, by = c("OrigPlotID1", "TreeNumber")) %>%
+     left_join(correct_PSP, by = c("OrigPlotID1", "TreeNumber")) %>%
      mutate(
-       Species= coalesce(Species.y, Species.x),
-       newSpeciesName = coalesce(newSpeciesName.y, newSpeciesName.x)) %>%
-     select(-Species.x, -Species.y, -newSpeciesName.x, -newSpeciesName.y)  # Remove extra columns
+       PSP= coalesce(PSP.y, PSP.x),
+       Species = coalesce(Species.y, Species.x)) %>%
+     select(-PSP.x, -PSP.y, -Species.x, -Species.y)  # Remove extra columns
 
    return(list(
      incorrect_trees = incorrect_trees,
-               correct_species = correct_species,
+               correct_PSP = correct_PSP,
                Trees_corrected = trees_corrected,
                OrigPlotID1s = unique(Trees$OrigPlotID1)
      ))
@@ -127,10 +127,10 @@ treenum_to_multiplePSP <- function(Trees) {
 #' @title Process Implausible DBH Changes Across Measurement Years
 #'
 #' @description
-#' Detects and manages inconsistencies in tree DBH (Diameter at Breast Height) measurements across years within species.
+#' Detects and manages inconsistencies in tree DBH (Diameter at Breast Height) measurements across years within PSP.
 #' Flags implausible negative growth, cleans the dataset accordingly, and excludes OrigPlotID1s with high anomaly rates.
 #'
-#' @param Trees A `data.table` of tree measurements over time within Species.
+#' @param Trees A `data.table` of tree measurements over time within PSP.
 #'
 #' @return A list containing:
 #' \describe{
@@ -169,13 +169,13 @@ process_dbh_issues <- function(Trees) {
   # Subset DBH inconsistencies
   dbh_issues <- Trees %>%
     filter(diff_dbh < 0) %>%                                                       # Filters out all records with negative growth for inspection.
-    select(newSpeciesName, OrigPlotID1, MeasureID, TreeNumber, DBH, MeasureYear, diff_dbh) %>%    # Selects only relevant columns and arranges them for easy review.
+    select(Species, OrigPlotID1, MeasureID, TreeNumber, DBH, MeasureYear, diff_dbh) %>%    # Selects only relevant columns and arranges them for easy review.
     arrange(OrigPlotID1, TreeNumber, MeasureYear)
 
   dbh_check <- dbh_issues %>%
     left_join(
-      Trees %>% select(newSpeciesName, OrigPlotID1, MeasureID, TreeNumber, MeasureYear, Species),
-                by = c("newSpeciesName", "OrigPlotID1", "MeasureID", "TreeNumber", "MeasureYear")
+      Trees %>% select(Species, OrigPlotID1, MeasureID, TreeNumber, MeasureYear, PSP),
+                by = c("Species", "OrigPlotID1", "MeasureID", "TreeNumber", "MeasureYear")
       )
 
  # Summarize negative growth

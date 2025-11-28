@@ -29,7 +29,7 @@ globalVariables(c(
 #'
 dataPurification_ONPSP <- function(ONPSPlist,
                                    sppEquiv = LandR::sppEquivalencies_CA,
-                                   sppEquivCol = "LandR") {
+                                   sppEquivCol = "Latin_full") {
   ## TODO: review excludeAllObs - I dont' think we exclude anything at the moment
 
   ##### Location ####
@@ -102,7 +102,7 @@ dataPurification_ONPSP <- function(ONPSPlist,
 
   ##### height#####
   treeMsr <- treeMsr[, .SD, .SDcol = colnames(treeMsr)[!colnames(treeMsr) %in%
-    c("LocAzi", "Radius", "LocDist", "Width", "Length")]]
+                                                         c("LocAzi", "Radius", "LocDist", "Width", "Length")]]
   treeHeight <- ONPSPlist[["tblHt"]]
   treeMsr <- treeHeight[, .(TreeMsrKey, HtTot)][treeMsr, on = c("TreeMsrKey")]
   rm(treeHeight)
@@ -171,8 +171,8 @@ dataPurification_ONPSP <- function(ONPSPlist,
   # cast the multiple age measurements - there may be a way to drop the NA columns
 
   treeAges <- dcast(treeAges, AgeTreeKey + GrowthPlotNum + FieldSeasonYear +
-    TreeNum + CrownClassCode + DBH ~ ageMethod,
-  value.var = c("FieldAge", "OfficeAge"), fun.aggregate = mean, drop = c(TRUE)
+                      TreeNum + CrownClassCode + DBH ~ ageMethod,
+                    value.var = c("FieldAge", "OfficeAge"), fun.aggregate = mean, drop = c(TRUE)
   )
   # correct obvious mistakes
   treeAges[AgeTreeKey == 80459, OfficeAge_Base := 73] # they are clearly missing the 7 - age is 3 otherwise
@@ -268,11 +268,10 @@ dataPurification_ONPSP <- function(ONPSPlist,
   # correct growthPlot numbers using factor of growthPlot_treeNumber. Confirm rerenumber, oldNumber, treeNumber
 
   # Standardize sppEquiv
-  sppEquiv[, ON_forestry := toupper(ON_forestry)]
   #standardize species names - for biomass estimation
-  sppEquiv <- sppEquiv[, .SD, .SDcols = c("Latin_full", "PSP", "ON_forestry", sppEquivCol)]
+  sppEquiv <- sppEquiv[, .SD, .SDcols = c("ON_forestry", sppEquivCol)]
 
-  setnames(sppEquiv, old = c("Latin_full", "PSP"), new = c("fullGenusSpec", "newSpeciesName"))
+  setnames(sppEquiv, old = c(sppEquivCol), new = c("fullGenusSpec"))
   sppEquiv <- unique(sppEquiv)
 
   # fix a few codings to match PSP - there is no biomass equation for species-specific willow anyway
@@ -286,18 +285,17 @@ dataPurification_ONPSP <- function(ONPSPlist,
 
   tree <- sppEquiv[tree, on = ("fullGenusSpec")]
 
-  setnames(tree, old = "LandR", new = "Species")
+  setnames(tree, old = c("fullGenusSpec", "ON_forestry") , new = c("Species", "PSP"))
 
-  tree[newSpeciesName == "Unknown Hardwood", newSpeciesName := "unknown hardwood"]
-
-  tree[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := tolower(SpecCommon)]
+  tree[Species == "Unknown Hardwood", Species := "unknown hardwood"]
+  tree[is.na(Species), Species := "unknown"]
 
   tree[, c("OriginName", "fullGenusSpec", "OrigTreeNum") := NULL]
 
   # # Fill missing Species with original newSpeciesName
   # tree[is.na(Species), Species := newSpeciesName]
 
-   #### final clean up of Plot ####
+  #### final clean up of Plot ####
   rm(standInfoTreatment, standInfoHeader, Package)
 
 
@@ -359,7 +357,7 @@ dataPurification_ONPSP <- function(ONPSPlist,
   tree[, OrigPlotID1 := as.factor(paste0("ONPSP_", OrigPlotID1))]
   plotData[, Datum := as.factor(Datum)]
 
-  tree <- tree[, .(MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, newSpeciesName, DBH, Height)]
+  tree <- tree[, .(MeasureID, OrigPlotID1, MeasureYear, TreeNumber, PSP, Species, DBH, Height)]
 
   setkey(plotData, OrigPlotID1, MeasureID, MeasureYear)
   setcolorder(plotData)
@@ -367,18 +365,6 @@ dataPurification_ONPSP <- function(ONPSPlist,
   plotData[, source := "ON"]
   tree[, source := "ON"]
 
-  # Handle missing species in one consolidated block
-  tree[is.na(Species) | Species == "", Species := newSpeciesName]
-  tree[is.na(Species) | Species == "", Species := "unknown"]
-  tree[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := Species]
-  tree[is.na(newSpeciesName) | newSpeciesName == "", newSpeciesName := "unknown"]
-
-  # Count of unknown vs real in Species
-  tree[, .(
-    unknown_Species = sum(Species == "unknown"),
-    unknown_newSpeciesName = sum(newSpeciesName == "unknown"),
-    total_rows = .N
-  ), by = source]
 
   return(list(
     plotHeaderData = plotData,
