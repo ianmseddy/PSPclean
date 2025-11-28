@@ -7,7 +7,7 @@
 process_dbh_issues(Trees)
 }
 \arguments{
-\item{Trees}{A \code{data.table} of tree measurements over time within Species.}
+\item{Trees}{A \code{data.table} of tree measurements over time within PSP.}
 }
 \value{
 A list containing:
@@ -19,6 +19,6 @@ A list containing:
 }
 }
 \description{
-Detects and manages inconsistencies in tree DBH (Diameter at Breast Height) measurements across years within species.
+Detects and manages inconsistencies in tree DBH (Diameter at Breast Height) measurements across years within PSP.
 Flags implausible negative growth, cleans the dataset accordingly, and excludes OrigPlotID1s with high anomaly rates.
 }

@@ -2,18 +2,18 @@
 % Please edit documentation in R/cleaningPlots.R
 \name{treenum_to_multiplePSP}
 \alias{treenum_to_multiplePSP}
-\title{Identify Tree Numbers Linked to Multiple Species Names in a Plot}
+\title{Identify Tree Numbers Linked to Multiple PSP Names in a Plot}
 \usage{
 treenum_to_multiplePSP(Trees)
 }
 \arguments{
-\item{Trees}{A \code{data.table} of tree observations containing Species identifiers and measurement years.}
+\item{Trees}{A \code{data.table} of tree observations containing PSP identifiers and measurement years.}
 }
 \value{
 A list containing:
 \describe{
-\item{incorrect_data}{Flagged inconsistent species data.}
-\item{correct_species}{Most likely species for each tree.}
+\item{incorrect_data}{Flagged inconsistent PSP data.}
+\item{correct_PSP}{Most likely PSP for each tree.}
 \item{regeneration}{Subset with apparent regeneration.}
 \item{last_measurement}{Subset with last recorded measurements.}
 \item{Trees_corrected}{Cleaned tree dataset.}
@@ -21,5 +21,5 @@ A list containing:
 }
 }
 \description{
-Ensures consistent tree numbering when a tree (TreeNumber) in a plot (OrigPlotID1) is associated with multiple species over time.
+Ensures consistent tree numbering when a tree (TreeNumber) in a plot (OrigPlotID1) is associated with multiple PSP over time.
 }
