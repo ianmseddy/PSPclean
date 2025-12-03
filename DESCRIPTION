@@ -22,7 +22,7 @@ Imports:
     data.table,
     dplyr,
     googledrive,
-    LandR (>= 1.1.5.9076),
+    LandR (>= 1.1.5.9086),
     magrittr, 
     reproducible (>= 2.0.3),
     sf,
