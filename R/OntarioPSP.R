@@ -13,19 +13,24 @@ globalVariables(c(
   "TreeRenumber", "TreeStatusCode", "unifiedAge", "VisitTypeName", "Width"
 ))
 
-#' standardize and treat the Ontario PSP data
+
+#' #' Standardize and Treat the Ontario PSP Data
 #'
-#' @param ONPSPlist list of relevant plots
-#' @param sppEquiv table of species names - see `LandR::sppEquiv`-
-#' must have column 'latin' and 'PSP'
+#' This function cleans and standardizes Ontario PSP data, including tree and plot data.
+#' Species names can be standardized using a species equivalency table.
 #'
-#' @param sppEquiv sdfsd
-#' @param sppEquivCol sdfd
+#' @param ONPSPlist A list of relevant PSP plots and associated data.tables.
+#' @param sppEquiv A table providing species name equivalencies between the original PSP species names
+#'                 and the final standardized naming format. Default is `LandR::sppEquivalencies_CA`.
+#'                 Must include columns `'Latin'` and `'PSP'`.
+#' @param sppEquivCol Character string. The column in `sppEquiv` that contains the standardized species names.
+#'                    Default is `"Latin_full"`.
 #'
-#' @return a list of plot and tree data.tables
+#' @return A list containing standardized `plotData` and `treeData` as `data.table`s.
 #'
 #' @export
 #' @importFrom data.table copy data.table set setcolorder setkey dcast
+
 #'
 dataPurification_ONPSP <- function(ONPSPlist,
                                    sppEquiv = LandR::sppEquivalencies_CA,

@@ -2,24 +2,28 @@
 % Please edit documentation in R/OntarioPSP.R
 \name{dataPurification_ONPSP}
 \alias{dataPurification_ONPSP}
-\title{standardize and treat the Ontario PSP data}
+\title{#' Standardize and Treat the Ontario PSP Data}
 \usage{
 dataPurification_ONPSP(
   ONPSPlist,
   sppEquiv = LandR::sppEquivalencies_CA,
-  sppEquivCol = "LandR"
+  sppEquivCol = "Latin_full"
 )
 }
 \arguments{
-\item{ONPSPlist}{list of relevant plots}
+\item{ONPSPlist}{A list of relevant PSP plots and associated data.tables.}
 
-\item{sppEquiv}{sdfsd}
+\item{sppEquiv}{A table providing species name equivalencies between the original PSP species names
+and the final standardized naming format. Default is \code{LandR::sppEquivalencies_CA}.
+Must include columns \code{'Latin'} and \code{'PSP'}.}
 
-\item{sppEquivCol}{sdfd}
+\item{sppEquivCol}{Character string. The column in \code{sppEquiv} that contains the standardized species names.
+Default is \code{"Latin_full"}.}
 }
 \value{
-a list of plot and tree data.tables
+A list containing standardized \code{plotData} and \code{treeData} as \code{data.table}s.
 }
 \description{
-standardize and treat the Ontario PSP data
+This function cleans and standardizes Ontario PSP data, including tree and plot data.
+Species names can be standardized using a species equivalency table.
 }

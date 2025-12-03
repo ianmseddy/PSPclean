@@ -7,23 +7,27 @@ globalVariables(c(
   "tree_cls", "tree_no", "utm_easting", "utm_northing", "utm_zone", "zone"
 ))
 
-#' standardize and treat the BC PSP data
+#' #' Standardize and Treat the BC PSP Data
 #'
-#' @param treeDataRaw the tree measurement csv
-#' @param plotHeaderDataRaw the plot header csv
-#' @param damageAgentCodes vector of damage agent codes
-#' @param codesToExclude damage agents to exclude from measurements
-#' @param excludeAllObs if removing observations of individual trees due to damage codes,
-#' remove all prior and future observations if `TRUE`.
+#' This function cleans and standardizes the British Columbia PSP data, including tree measurements
+#' and plot header information. Species names can be standardized using a species equivalency table.
 #'
-#' @param sppEquiv sdfsd
-#' @param sppEquivCol sdfd
+#' @param treeDataRaw A `data.frame` or `data.table` containing the raw tree measurement data.
+#' @param plotHeaderDataRaw A `data.frame` or `data.table` containing the raw plot header data.
+#' @param damageAgentCodes A character vector of damage agent codes present in the data.
+#' @param codesToExclude A character vector of damage agent codes to exclude from measurements.
+#' @param excludeAllObs Logical. If `TRUE`, all prior and future observations of a tree with a damage code
+#'                       in `codesToExclude` are removed. Default is `TRUE`.
+#' @param sppEquiv A table providing species name equivalencies between the original PSP species names
+#'                 and the final standardized naming format. Default is `LandR::sppEquivalencies_CA`.
+#' @param sppEquivCol Character string. The column in `sppEquiv` that contains the standardized species names.
+#'                    Default is `"Latin_full"`.
 #'
-#' @return a list of plot and tree data.tables
+#' @return A list containing standardized `plotData` and `treeData` as `data.table`s.
 #'
 #' @export
 #' @importFrom data.table setnames setkey copy
-#'
+
 dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCodes,
                                    codesToExclude = "IBM", excludeAllObs = TRUE,
                                    sppEquiv = LandR::sppEquivalencies_CA,

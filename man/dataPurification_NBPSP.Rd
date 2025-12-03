@@ -2,24 +2,27 @@
 % Please edit documentation in R/NewBrunswickPSP.R
 \name{dataPurification_NBPSP}
 \alias{dataPurification_NBPSP}
-\title{standardize and treat the New Brunswick PSP data}
+\title{Standardize and Treat the New Brunswick PSP Data}
 \usage{
 dataPurification_NBPSP(
   NB_PSP_Data,
   sppEquiv = LandR::sppEquivalencies_CA,
-  sppEquivCol = "LandR"
+  sppEquivCol = "Latin_full"
 )
 }
 \arguments{
-\item{NB_PSP_Data}{list of data tables resulting from \code{prepInputsNBPSP}}
+\item{NB_PSP_Data}{A list of \code{data.table}s resulting from \code{prepInputsNBPSP}, containing raw PSP data.}
 
-\item{sppEquiv}{sdfsd}
+\item{sppEquiv}{A table providing species name equivalencies between the original PSP species names
+and the final standardized naming format. Default is \code{LandR::sppEquivalencies_CA}.}
 
-\item{sppEquivCol}{sdfd}
+\item{sppEquivCol}{Character string. The column in \code{sppEquiv} that contains the standardized species names.
+Default is \code{"Latin_full"}.}
 }
 \value{
-a list of standardized plot and tree data.tables
+A list containing standardized \code{plotData} and \code{treeData} as \code{data.table}s.
 }
 \description{
-standardize and treat the New Brunswick PSP data
+This function cleans and standardizes New Brunswick PSP data, including tree and plot data.
+Species names can be standardized using a species equivalency table.
 }

@@ -6,18 +6,22 @@ globalVariables(c(
   "OrigPlotID1","MeasureYear","PlotSize","baseSA","LATITUDE","LONGITUDE"
 ))
 
-#' standardize and treat the New Brunswick PSP data
+#' Standardize and Treat the New Brunswick PSP Data
 #'
-#' @param NB_PSP_Data list of data tables resulting from `prepInputsNBPSP`
-#' @param sppEquiv species equivalencies table with column `Latin-full`
+#' This function cleans and standardizes New Brunswick PSP data, including tree and plot data.
+#' Species names can be standardized using a species equivalency table.
 #'
-#' @param sppEquiv sdfsd
-#' @param sppEquivCol sdfd
+#' @param NB_PSP_Data A list of `data.table`s resulting from `prepInputsNBPSP`, containing raw PSP data.
+#' @param sppEquiv A table providing species name equivalencies between the original PSP species names
+#'                 and the final standardized naming format. Default is `LandR::sppEquivalencies_CA`.
+#' @param sppEquivCol Character string. The column in `sppEquiv` that contains the standardized species names.
+#'                    Default is `"Latin_full"`.
 #'
-#' @return a list of standardized plot and tree data.tables
+#' @return A list containing standardized `plotData` and `treeData` as `data.table`s.
 #'
 #' @export
 #' @importFrom data.table set setcolorder
+
 dataPurification_NBPSP <- function(NB_PSP_Data,
                                    sppEquiv = LandR::sppEquivalencies_CA,
                                    sppEquivCol = "Latin_full") {

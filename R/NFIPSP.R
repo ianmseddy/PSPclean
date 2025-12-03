@@ -8,20 +8,25 @@ utils::globalVariables(c(
   "year", "Zone", "meas_date"
 ))
 
-#' standardize and treat the NFI PSP data
+#' #' Standardize and Treat the NFI PSP Data
 #'
-#' @param NFIdata list of NFI tree, plot, and location data
-#' @param codesToExclude damage agents to exclude from measurements
-#' @param excludeAllObs if removing observations of individual trees due to damage codes,
-#' remove all prior and future observations if `TRUE`.
+#' This function cleans and standardizes NFI PSP data, including tree, plot, and location data.
+#' Species names can be standardized using a species equivalency table.
 #'
-#' @param sppEquiv sdfsd
-#' @param sppEquivCol sdfd
+#' @param NFIdata A list containing NFI tree, plot, and location data.tables.
+#' @param codesToExclude Vector of damage agent codes. Measurements with these codes will be removed.
+#' @param excludeAllObs Logical. If `TRUE`, removing observations of individual trees due to damage codes
+#'                       will also remove all prior and future observations of that tree.
+#' @param sppEquiv A table providing species name equivalencies between the original PSP species names
+#'                 and the final standardized naming format. Default is `LandR::sppEquivalencies_CA`.
+#' @param sppEquivCol Character string. The column in `sppEquiv` that contains the standardized species names.
+#'                    Default is `"Latin_full"`.
 #'
-#' @return a list of plot and tree data.tables
+#' @return A list containing standardized `plotData` and `treeData` as `data.table`s.
 #'
 #' @export
 #' @importFrom data.table copy setkey set
+
 dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllObs = TRUE
                                     , sppEquiv = LandR::sppEquivalencies_CA,
                                       sppEquivCol = "Latin_full") {

@@ -10,17 +10,27 @@ globalVariables(c(
 ))
 
 
-#' standardize and treat the QUEBEC PSP data
-
-#' @param QuebecPSP list of PSP data.tables obtained via `prepInputsQCPSP`
-#' @param codesToExclude TODO: eventually add codes for pest disturbance if applicable
-#' @param excludeAllObs assuming codesToExclude is not NULL, exclude these obs or prior ones too
-#' @param sppEquiv table of species names - see `LandR::sppEquiv`
-#' @return a list of standardized plot and tree data.tables
+#' Standardize and Treat the Quebec PSP Data
+#'
+#' This function cleans and standardizes the Quebec PSP data, including tree and plot data.
+#' Species names can be standardized using a species equivalency table.
+#'
+#' @param QuebecPSP A list of `data.table`s containing raw PSP data obtained via `prepInputsQCPSP`.
+#' @param codesToExclude Character vector of damage or pest disturbance codes to exclude from measurements.
+#'                       Currently placeholder, update if applicable.
+#' @param excludeAllObs Logical. If `TRUE` and `codesToExclude` is not `NULL`, all prior and future
+#'                       observations of trees with these codes will be removed.
+#' @param sppEquiv A table providing species name equivalencies between the original PSP species names
+#'                 and the final standardized naming format. Default is `LandR::sppEquivalencies_CA`.
+#' @param sppEquivCol Character string. The column in `sppEquiv` that contains the standardized species names.
+#'                    Default is `"Latin_full"`.
+#'
+#' @return A list containing standardized `plotData` and `treeData` as `data.table`s.
 #'
 #' @export
 #' @importFrom data.table setnames
 #' @importFrom bit64 as.integer64
+
 dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllObs = TRUE,
                                    sppEquiv = LandR::sppEquivalencies_CA,
                                    sppEquivCol = "Latin_full") {

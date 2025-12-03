@@ -2,31 +2,34 @@
 % Please edit documentation in R/NFIPSP.R
 \name{dataPurification_NFIPSP}
 \alias{dataPurification_NFIPSP}
-\title{standardize and treat the NFI PSP data}
+\title{#' Standardize and Treat the NFI PSP Data}
 \usage{
 dataPurification_NFIPSP(
   NFIdata,
   codesToExclude = "IB",
   excludeAllObs = TRUE,
   sppEquiv = LandR::sppEquivalencies_CA,
-  sppEquivCol = "LandR"
+  sppEquivCol = "Latin_full"
 )
 }
 \arguments{
-\item{NFIdata}{list of NFI tree, plot, and location data}
+\item{NFIdata}{A list containing NFI tree, plot, and location data.tables.}
 
-\item{codesToExclude}{damage agents to exclude from measurements}
+\item{codesToExclude}{Vector of damage agent codes. Measurements with these codes will be removed.}
 
-\item{excludeAllObs}{if removing observations of individual trees due to damage codes,
-remove all prior and future observations if \code{TRUE}.}
+\item{excludeAllObs}{Logical. If \code{TRUE}, removing observations of individual trees due to damage codes
+will also remove all prior and future observations of that tree.}
 
-\item{sppEquiv}{sdfsd}
+\item{sppEquiv}{A table providing species name equivalencies between the original PSP species names
+and the final standardized naming format. Default is \code{LandR::sppEquivalencies_CA}.}
 
-\item{sppEquivCol}{sdfd}
+\item{sppEquivCol}{Character string. The column in \code{sppEquiv} that contains the standardized species names.
+Default is \code{"Latin_full"}.}
 }
 \value{
-a list of plot and tree data.tables
+A list containing standardized \code{plotData} and \code{treeData} as \code{data.table}s.
 }
 \description{
-standardize and treat the NFI PSP data
+This function cleans and standardizes NFI PSP data, including tree, plot, and location data.
+Species names can be standardized using a species equivalency table.
 }

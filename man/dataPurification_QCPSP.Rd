@@ -2,28 +2,35 @@
 % Please edit documentation in R/QuebecPSP.R
 \name{dataPurification_QCPSP}
 \alias{dataPurification_QCPSP}
-\title{standardize and treat the QUEBEC PSP data}
+\title{Standardize and Treat the Quebec PSP Data}
 \usage{
 dataPurification_QCPSP(
   QuebecPSP,
   codesToExclude = NULL,
   excludeAllObs = TRUE,
   sppEquiv = LandR::sppEquivalencies_CA,
-  sppEquivCol = "LandR"
+  sppEquivCol = "Latin_full"
 )
 }
 \arguments{
-\item{QuebecPSP}{list of PSP data.tables obtained via \code{prepInputsQCPSP}}
+\item{QuebecPSP}{A list of \code{data.table}s containing raw PSP data obtained via \code{prepInputsQCPSP}.}
 
-\item{codesToExclude}{TODO: eventually add codes for pest disturbance if applicable}
+\item{codesToExclude}{Character vector of damage or pest disturbance codes to exclude from measurements.
+Currently placeholder, update if applicable.}
 
-\item{excludeAllObs}{assuming codesToExclude is not NULL, exclude these obs or prior ones too}
+\item{excludeAllObs}{Logical. If \code{TRUE} and \code{codesToExclude} is not \code{NULL}, all prior and future
+observations of trees with these codes will be removed.}
 
-\item{sppEquiv}{table of species names - see \code{LandR::sppEquiv}}
+\item{sppEquiv}{A table providing species name equivalencies between the original PSP species names
+and the final standardized naming format. Default is \code{LandR::sppEquivalencies_CA}.}
+
+\item{sppEquivCol}{Character string. The column in \code{sppEquiv} that contains the standardized species names.
+Default is \code{"Latin_full"}.}
 }
 \value{
-a list of standardized plot and tree data.tables
+A list containing standardized \code{plotData} and \code{treeData} as \code{data.table}s.
 }
 \description{
-standardize and treat the QUEBEC PSP data
+This function cleans and standardizes the Quebec PSP data, including tree and plot data.
+Species names can be standardized using a species equivalency table.
 }

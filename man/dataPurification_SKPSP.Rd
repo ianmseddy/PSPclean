@@ -2,7 +2,7 @@
 % Please edit documentation in R/SaskatchewanPSP.R
 \name{dataPurification_SKPSP}
 \alias{dataPurification_SKPSP}
-\title{standardize and treat the Saskatchewan PSP data}
+\title{Standardize and Treat the Saskatchewan PSP Data}
 \usage{
 dataPurification_SKPSP(
   SADataRaw,
@@ -16,29 +16,32 @@ dataPurification_SKPSP(
 )
 }
 \arguments{
-\item{SADataRaw}{the tree measurement csv}
+\item{SADataRaw}{A \code{data.frame} or \code{data.table} containing raw tree measurement data.}
 
-\item{plotHeaderRaw}{the plot header data}
+\item{plotHeaderRaw}{A \code{data.frame} or \code{data.table} containing raw plot header data.}
 
-\item{measureHeaderRaw}{the measurement header raw}
+\item{measureHeaderRaw}{A \code{data.frame} or \code{data.table} containing raw measurement header data.}
 
-\item{treeDataRaw}{tree data}
+\item{treeDataRaw}{A \code{data.frame} or \code{data.table} containing tree data.}
 
-\item{codesToExclude}{damage agent codes used to filter tree data.
-Natural or Undetermined = 1, Disease = 2, Insect = 3, Human 4,
-Wind = 5, Snow =  6, Other Trees = 7, Hail or Ice Storm = 8.
-Measurements with these codes will be removed}
+\item{codesToExclude}{Character vector of damage agent codes used to filter tree data.
+Codes: Natural or Undetermined = 1, Disease = 2, Insect = 3, Human = 4,
+Wind = 5, Snow = 6, Other Trees = 7, Hail or Ice Storm = 8.
+Measurements with these codes will be removed.}
 
-\item{excludeAllObs}{if removing observations of individual trees due to damage codes,
-remove all prior and future observations if \code{TRUE}.}
+\item{excludeAllObs}{Logical. If \code{TRUE}, all prior and future observations of trees with
+codes in \code{codesToExclude} are removed.}
 
-\item{sppEquiv}{sdfsd}
+\item{sppEquiv}{A table providing species name equivalencies between the original PSP species names
+and the final standardized naming format. Default is \code{LandR::sppEquivalencies_CA}.}
 
-\item{sppEquivCol}{sdfd}
+\item{sppEquivCol}{Character string. The column in \code{sppEquiv} that contains the standardized species names.
+Default is \code{"Latin_full"}.}
 }
 \value{
-a list of plot and tree data.tables
+A list containing standardized \code{plotData} and \code{treeData} as \code{data.table}s.
 }
 \description{
-standardize and treat the Saskatchewan PSP data
+This function cleans and standardizes the Saskatchewan PSP data, including tree measurements,
+plot headers, and measurement headers. Species names can be standardized using a species equivalency table.
 }

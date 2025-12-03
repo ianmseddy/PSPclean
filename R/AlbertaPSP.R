@@ -9,26 +9,31 @@ globalVariables(c(
   "tree_origin", "tree_plot_area", "trees_measurement_comment"
 ))
 
-#' standardize and treat the Alberta PSP data
+#' Standardize and Treat the Alberta PSP Data
 #'
-#' @param treeMeasure the tree measurement csv
-#' @param plotMeasure the plot_measurement csv
-#' @param tree the tree csv
-#' @param plot the plot csv
-#' @param codesToExclude damage agent codes used to filter tree data - see GOA PSP Manual.
-#' Measurements with these codes will be removed
-#' @param excludeAllObs if removing observations of individual trees due to damage codes,
-#' @param areaDiffThresh the threshold of plot size discrepancy to allow below which
-#' plots will be given a new ID column. Expressed as `min(PlotSize)/max(PlotSize)`
-#' remove all prior and future observations if `TRUE`.
+#' This function cleans and standardizes the Alberta PSP data, including tree measurements
+#' and plot information. Species names can be standardized using a species equivalency table.
 #'
-#' @param sppEquiv sdfsd
-#' @param sppEquivCol sdfd
+#' @param treeMeasure A `data.frame` or `data.table` containing tree measurement data.
+#' @param plotMeasure A `data.frame` or `data.table` containing plot measurement data.
+#' @param tree A `data.frame` or `data.table` containing tree information.
+#' @param plot A `data.frame` or `data.table` containing plot information.
+#' @param codesToExclude Character vector of damage agent codes used to filter tree data
+#'                       (see GOA PSP Manual). Measurements with these codes will be removed.
+#' @param excludeAllObs Logical. If `TRUE`, all prior and future observations of trees with
+#'                       codes in `codesToExclude` are removed.
+#' @param areaDiffThresh Numeric. Threshold for plot size discrepancy below which plots
+#'                       are assigned a new ID. Expressed as `min(PlotSize)/max(PlotSize)`.
+#' @param sppEquiv A table providing species name equivalencies between the original PSP species names
+#'                 and the final standardized naming format. Default is `LandR::sppEquivalencies_CA`.
+#' @param sppEquivCol Character string. The column in `sppEquiv` that contains the standardized species names.
+#'                    Default is `"Latin_full"`.
 #'
-#' @return a list of plot and tree data.tables
+#' @return A list containing standardized `plotData` and `treeData` as `data.table`s.
 #'
 #' @export
 #' @importFrom data.table copy data.table set setcolorder setkey
+
 #'
 dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
                                    codesToExclude = 3, excludeAllObs = TRUE,

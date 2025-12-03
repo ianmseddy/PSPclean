@@ -2,7 +2,7 @@
 % Please edit documentation in R/BCPSP.R
 \name{dataPurification_BCPSP}
 \alias{dataPurification_BCPSP}
-\title{standardize and treat the BC PSP data}
+\title{#' Standardize and Treat the BC PSP Data}
 \usage{
 dataPurification_BCPSP(
   treeDataRaw,
@@ -15,24 +15,27 @@ dataPurification_BCPSP(
 )
 }
 \arguments{
-\item{treeDataRaw}{the tree measurement csv}
+\item{treeDataRaw}{A \code{data.frame} or \code{data.table} containing the raw tree measurement data.}
 
-\item{plotHeaderDataRaw}{the plot header csv}
+\item{plotHeaderDataRaw}{A \code{data.frame} or \code{data.table} containing the raw plot header data.}
 
-\item{damageAgentCodes}{vector of damage agent codes}
+\item{damageAgentCodes}{A character vector of damage agent codes present in the data.}
 
-\item{codesToExclude}{damage agents to exclude from measurements}
+\item{codesToExclude}{A character vector of damage agent codes to exclude from measurements.}
 
-\item{excludeAllObs}{if removing observations of individual trees due to damage codes,
-remove all prior and future observations if \code{TRUE}.}
+\item{excludeAllObs}{Logical. If \code{TRUE}, all prior and future observations of a tree with a damage code
+in \code{codesToExclude} are removed. Default is \code{TRUE}.}
 
-\item{sppEquiv}{sdfsd}
+\item{sppEquiv}{A table providing species name equivalencies between the original PSP species names
+and the final standardized naming format. Default is \code{LandR::sppEquivalencies_CA}.}
 
-\item{sppEquivCol}{sdfd}
+\item{sppEquivCol}{Character string. The column in \code{sppEquiv} that contains the standardized species names.
+Default is \code{"Latin_full"}.}
 }
 \value{
-a list of plot and tree data.tables
+A list containing standardized \code{plotData} and \code{treeData} as \code{data.table}s.
 }
 \description{
-standardize and treat the BC PSP data
+This function cleans and standardizes the British Columbia PSP data, including tree measurements
+and plot header information. Species names can be standardized using a species equivalency table.
 }

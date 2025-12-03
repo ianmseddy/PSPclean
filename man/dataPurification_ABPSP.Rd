@@ -2,7 +2,7 @@
 % Please edit documentation in R/AlbertaPSP.R
 \name{dataPurification_ABPSP}
 \alias{dataPurification_ABPSP}
-\title{standardize and treat the Alberta PSP data}
+\title{Standardize and Treat the Alberta PSP Data}
 \usage{
 dataPurification_ABPSP(
   treeMeasure,
@@ -17,30 +17,33 @@ dataPurification_ABPSP(
 )
 }
 \arguments{
-\item{treeMeasure}{the tree measurement csv}
+\item{treeMeasure}{A \code{data.frame} or \code{data.table} containing tree measurement data.}
 
-\item{plotMeasure}{the plot_measurement csv}
+\item{plotMeasure}{A \code{data.frame} or \code{data.table} containing plot measurement data.}
 
-\item{tree}{the tree csv}
+\item{tree}{A \code{data.frame} or \code{data.table} containing tree information.}
 
-\item{plot}{the plot csv}
+\item{plot}{A \code{data.frame} or \code{data.table} containing plot information.}
 
-\item{codesToExclude}{damage agent codes used to filter tree data - see GOA PSP Manual.
-Measurements with these codes will be removed}
+\item{codesToExclude}{Character vector of damage agent codes used to filter tree data
+(see GOA PSP Manual). Measurements with these codes will be removed.}
 
-\item{excludeAllObs}{if removing observations of individual trees due to damage codes,}
+\item{excludeAllObs}{Logical. If \code{TRUE}, all prior and future observations of trees with
+codes in \code{codesToExclude} are removed.}
 
-\item{areaDiffThresh}{the threshold of plot size discrepancy to allow below which
-plots will be given a new ID column. Expressed as \code{min(PlotSize)/max(PlotSize)}
-remove all prior and future observations if \code{TRUE}.}
+\item{areaDiffThresh}{Numeric. Threshold for plot size discrepancy below which plots
+are assigned a new ID. Expressed as \code{min(PlotSize)/max(PlotSize)}.}
 
-\item{sppEquiv}{sdfsd}
+\item{sppEquiv}{A table providing species name equivalencies between the original PSP species names
+and the final standardized naming format. Default is \code{LandR::sppEquivalencies_CA}.}
 
-\item{sppEquivCol}{sdfd}
+\item{sppEquivCol}{Character string. The column in \code{sppEquiv} that contains the standardized species names.
+Default is \code{"Latin_full"}.}
 }
 \value{
-a list of plot and tree data.tables
+A list containing standardized \code{plotData} and \code{treeData} as \code{data.table}s.
 }
 \description{
-standardize and treat the Alberta PSP data
+This function cleans and standardizes the Alberta PSP data, including tree measurements
+and plot information. Species names can be standardized using a species equivalency table.
 }

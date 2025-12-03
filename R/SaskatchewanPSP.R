@@ -8,26 +8,31 @@ globalVariables(c(
   "YEAR", "Z13nad83_e", "Z13nad83_n", "Zone"
 ))
 
-#' standardize and treat the Saskatchewan PSP data
+#' Standardize and Treat the Saskatchewan PSP Data
 #'
-#' @param SADataRaw the tree measurement csv
-#' @param plotHeaderRaw the plot header data
-#' @param measureHeaderRaw the measurement header raw
-#' @param treeDataRaw tree data
-#' @param codesToExclude damage agent codes used to filter tree data.
-#' Natural or Undetermined = 1, Disease = 2, Insect = 3, Human 4,
-#'  Wind = 5, Snow =  6, Other Trees = 7, Hail or Ice Storm = 8.
-#' Measurements with these codes will be removed
-#' @param excludeAllObs if removing observations of individual trees due to damage codes,
-#' remove all prior and future observations if `TRUE`.
+#' This function cleans and standardizes the Saskatchewan PSP data, including tree measurements,
+#' plot headers, and measurement headers. Species names can be standardized using a species equivalency table.
 #'
-#' @param sppEquiv sdfsd
-#' @param sppEquivCol sdfd
+#' @param SADataRaw A `data.frame` or `data.table` containing raw tree measurement data.
+#' @param plotHeaderRaw A `data.frame` or `data.table` containing raw plot header data.
+#' @param measureHeaderRaw A `data.frame` or `data.table` containing raw measurement header data.
+#' @param treeDataRaw A `data.frame` or `data.table` containing tree data.
+#' @param codesToExclude Character vector of damage agent codes used to filter tree data.
+#'                       Codes: Natural or Undetermined = 1, Disease = 2, Insect = 3, Human = 4,
+#'                       Wind = 5, Snow = 6, Other Trees = 7, Hail or Ice Storm = 8.
+#'                       Measurements with these codes will be removed.
+#' @param excludeAllObs Logical. If `TRUE`, all prior and future observations of trees with
+#'                       codes in `codesToExclude` are removed.
+#' @param sppEquiv A table providing species name equivalencies between the original PSP species names
+#'                 and the final standardized naming format. Default is `LandR::sppEquivalencies_CA`.
+#' @param sppEquivCol Character string. The column in `sppEquiv` that contains the standardized species names.
+#'                    Default is `"Latin_full"`.
 #'
-#' @return a list of plot and tree data.tables
+#' @return A list containing standardized `plotData` and `treeData` as `data.table`s.
 #'
 #' @export
 #' @importFrom data.table setnames setkey rbindlist
+
 dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
                                    treeDataRaw, codesToExclude = NULL, excludeAllObs = TRUE
                                    , sppEquiv = LandR::sppEquivalencies_CA,
