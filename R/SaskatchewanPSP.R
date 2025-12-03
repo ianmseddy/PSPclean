@@ -143,12 +143,15 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
 
   treeData <- sppEquiv[treeData, on = .(SK_forestry  = Species)]
 
-  setnames(treeData, old = c(SK_forestry, sppEquivCol), new = c("PSP", "Species"))
+  setnames(treeData, old = c("SK_forestry", sppEquivCol), new = c("PSP", "Species"))
 
 
   # Check
   treeData[, .(PSP, Species)]
-  treeData[is.na(Species), Species := "unknown"]
+  treeData[PSP == "TA", Species := "Trembling Aspen"]
+
+  treeData[is.na(Species)| Species == "", Species := "unknown"]
+  treeData[is.na(PSP) | PSP == "", PSP := "unknown"]
 
   treeData[MeasureYear == 2044, MeasureYear := 2014] # correct obvious error
   headData[MeasureYear == 2044, MeasureYear := 2014]

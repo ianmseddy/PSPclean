@@ -288,12 +288,12 @@ dataPurification_ONPSP <- function(ONPSPlist,
   setnames(tree, old = c("fullGenusSpec", "ON_forestry") , new = c("Species", "PSP"))
 
   tree[Species == "Unknown Hardwood", Species := "unknown hardwood"]
-  tree[is.na(Species), Species := "unknown"]
 
-  tree[, c("OriginName", "fullGenusSpec", "OrigTreeNum") := NULL]
+  tree[, .(PSP, Species)]
+  tree[is.na(Species)| Species == "", Species := "unknown"]
+  tree[is.na(PSP) | PSP == "", PSP := "unknown"]
 
-  # # Fill missing Species with original newSpeciesName
-  # tree[is.na(Species), Species := newSpeciesName]
+  tree[, c("OriginName", "OrigTreeNum") := NULL]
 
   #### final clean up of Plot ####
   rm(standInfoTreatment, standInfoHeader, Package)

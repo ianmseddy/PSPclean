@@ -187,11 +187,12 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   treeData <- sppEquiv[treeData, on = .(AB_forestry = Species)]
 
   # Rename joined columns
-  setnames(treeData, old = c(AB_forestry, sppEquivCol), new = c("PSP", "Species"))
+  setnames(treeData, old = c("AB_forestry", sppEquivCol), new = c("PSP", "Species"))
 
   # Check
   treeData[, .(PSP, Species)]
-  treeData[is.na(Species), Species := "unknown"]
+  treeData[is.na(Species)| Species == "", Species := "unknown"]
+  treeData[is.na(PSP) | PSP == "", PSP := "unknown"]
 
 
   setnames(

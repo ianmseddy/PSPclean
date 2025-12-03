@@ -13,26 +13,31 @@ standardizedPlotNames <- c(
 )
 standardizedTreeNames <- c(
   "MeasureID", "OrigPlotID1", "MeasureYear", "TreeNumber", "Species", "source",
-  "DBH", "Height", "newSpeciesName"
+  "DBH", "Height", "PSP"
 )
 
 # Define mandatory columns
-mandatoryTreeCols <- c( "Species", "newSpeciesName")
+mandatoryTreeCols <- c( "Species", "PSP" )
 mandatoryPlotCols <- c("MeasureID", "OrigPlotID1", "MeasureYear")
 
 test_that("PSP data is not empty and mandatory columns are complete for all provinces", {
   testthat::skip_if_not_installed("withr")
   dPath <- withr::local_tempdir(pattern = "PSP_")
 
-  # # Helper function to check for empty, fully NA rows, and standardized columns
-  check_data <- function(dt, mandatoryCols) {
+  check_data <- function(dt, mandatoryCols = c("Species", "PSP")) {
+    # Check data.table is not empty
     expect_true(nrow(dt) > 0, info = "Data.table should not be empty")
-    expect_false(any(apply(dt, 1, function(row) all(is.na(row)))), info = "There are rows with all NA values")
+
+    # Check there are no rows with all NA
+    expect_false(any(apply(dt, 1, function(row) all(is.na(row)))),
+                 info = "There are rows with all NA values")
+
+    # Check only mandatory columns for NA or empty
     for (col in mandatoryCols) {
-      expect_false(any(is.na(dt[[col]]) | dt[[col]] == ""), info = paste0("Column ", col, " contains NA or empty values"))
+      expect_false(any(is.na(dt[[col]]) | dt[[col]] == ""),
+                   info = paste0("Column ", col, " contains NA or empty values"))
     }
   }
-
   # Alberta
   ab <- prepInputsAlbertaPSP(dPath = dPath)
   abClean <- dataPurification_ABPSP(

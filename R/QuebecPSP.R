@@ -194,7 +194,9 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
 
   # Check
   trees[, .(PSP, Species)]
-  trees[is.na(Species), Species := "unknown"]
+
+  trees[is.na(Species)| Species == "", Species := "unknown"]
+  trees[is.na(PSP) | PSP == "", PSP := "unknown"]
 
 
   trees[, c("MeasureID", "OrigPlotID1") := .(paste0("QCPSP_", MeasureID),
@@ -206,12 +208,16 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   #some plots do not have trees remaining
   PLACETTE_FINAL <- PLACETTE_FINAL[MeasureID %in% trees$MeasureID]
 
+  setkey(trees, MeasureID, OrigPlotID1, MeasureYear,
+         TreeNumber, PSP, Species, DBH, Height)
+  setcolorder(trees)
+
+  setkey(PLACETTE_FINAL, OrigPlotID1, MeasureID, MeasureYear)
+  setcolorder(PLACETTE_FINAL)
+
   trees <- trees[, .(
     MeasureID, OrigPlotID1, MeasureYear, TreeNumber, PSP, Species, DBH, Height
   )]
-
-  PLACETTE_FINAL <- PLACETTE_FINAL[, .(
-    MeasureID, OrigPlotID1, MeasureYear)]
 
   PLACETTE_FINAL[, source := "QC"]
   trees[, source := "QC"]

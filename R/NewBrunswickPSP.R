@@ -120,8 +120,9 @@ dataPurification_NBPSP <- function(NB_PSP_Data,
 
   # Check
   PSP_TREE_YIMO[, .(PSP, Species)]
-  PSP_TREE_YIMO[is.na(Species), Species := "unknown"]
 
+  PSP_TREE_YIMO[is.na(Species)| Species == "", Species := "unknown"]
+  PSP_TREE_YIMO[is.na(PSP) | PSP == "", PSP := "unknown"]
 
   plotCols <- c("MeasureID", "OrigPlotID1", "MeasureYear", "Longitude",
                 "Latitude", "PlotSize", "baseYear", "baseSA")

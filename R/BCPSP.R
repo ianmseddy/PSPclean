@@ -133,19 +133,20 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
 
   # Standardize
   # Select only necessary columns and join
-  sppEquiv <- sppEquiv[BC_Forestry != "", .SD, .SDcols = c("BC_Forestry", sppEquivCol)]
+  sppEquiv <- sppEquiv[BC_forestry != "", .SD, .SDcols = c("BC_forestry", sppEquivCol)]
   # Keep unique rows only
   sppEquiv <- unique(sppEquiv)
+  sppEquiv[, BC_forestry := toupper(BC_forestry)]
 
-  treeData <- sppEquiv[treeData, on = .(BC_Forestry = Species)]
+  treeData <- sppEquiv[treeData, on = .(BC_forestry = Species)]
 
   # Rename joined columns
-  setnames(treeData, old = c(BC_Forestry, sppEquivCol), new = c("PSP", "Species"))
+  setnames(treeData, old = c("BC_forestry", sppEquivCol), new = c("PSP", "Species"))
 
   # Check
   treeData[, .(PSP, Species)]
-  treeData[is.na(Species), Species := "unknown"]
-
+  treeData[is.na(Species)| Species == "", Species := "unknown"]
+  treeData[is.na(PSP) | PSP == "", PSP := "unknown"]
 
   treeData$OrigPlotID1 <- paste0("BCPSP", treeData$OrigPlotID1)
   headerData$OrigPlotID1 <- paste0("BCPSP", headerData$OrigPlotID1)

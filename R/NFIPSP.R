@@ -97,6 +97,7 @@ dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllOb
   treeData[, SpeciesCode := paste0(Genus, "_", Species)]
 
   treeData[, Species := NULL]
+  sppEquiv <- sppEquiv[!(sppEquiv$NFI == "" & sppEquiv$Latin_full == ""), ]
 
   # Only keep the PSP column as the standardized species name
   sppEquiv <- sppEquiv[, .SD, .SDcols = c(sppEquivCol,"NFI")]
@@ -111,7 +112,9 @@ dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllOb
 
   # Check
   treeData[, .(PSP, Species)]
-  treeData[is.na(Species), Species := "unknown"]
+
+  treeData[is.na(Species)| Species == "", Species := "unknown"]
+  treeData[is.na(PSP) | PSP == "", PSP := "unknown"]
 
   treeData[, "Genus" := NULL] # This "Genus" column is not in any of the other PSP datasets
 

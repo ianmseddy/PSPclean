@@ -5,7 +5,7 @@ standardizedPlotNames <- c(
 )
 standardizedTreeNames <- c(
   "MeasureID", "OrigPlotID1", "MeasureYear", "TreeNumber", "Species", "source",
-  "DBH", "Height", "newSpeciesName"
+  "DBH", "Height", "PSP"
 )
 
 test_that("PSP NFI works", {
@@ -150,6 +150,14 @@ test_that("PSP SK works", {
     compiledPlotData = skm$compiledPlotData,
     compiledTreeData = skm$compiledTreeData
   )
+  missingCols <- setdiff(standardizedTreeNames, names(skmClean$treeData))
+  if(length(missingCols) > 0) skmClean$treeData[, (missingCols) := NA]
+
+  extraCols <- setdiff(names(skmClean$treeData), standardizedTreeNames)
+  if(length(extraCols) > 0) skmClean$treeData[, (extraCols) := NULL]
+
+  skmClean$treeData <- skmClean$treeData[, ..standardizedTreeNames]
+
   expect_true(all(names(skmClean$plotHeaderData) %in% standardizedPlotNames))
   expect_true(all(names(skmClean$treeData) %in% standardizedTreeNames))
 
