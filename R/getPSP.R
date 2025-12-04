@@ -38,6 +38,11 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
                          fun = "readRDS")
     PSPmeasure[, source := "simulated"]
     PSPplot[, source := "simulated"]
+    temp <- sppEquiv[PSP != "", .SD[1], by = c("PSP")]
+    temp <- unique(temp[, .SD, .SDcols = c("PSP", sppEquivCol)])
+    PSPmeasure <- temp[PSPmeasure, on = c("PSP" = "newSpeciesName")]
+    PSPmeasure[, c("PSP", "OrigPlotID2") := NULL]
+    setnames(PSPmeasure, old = c(sppEquivCol, "Species"), new = c("Species", "PSP"))
 
   } else if (!any(PSPdataTypes %in% "none")) {
     if (!any(c("BC", "AB", "SK", "NFI", "ON", "QC", "NB", "all") %in% PSPdataTypes)) {
@@ -134,8 +139,9 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
 
     PSPmeasure <- rbindlist(PSPmeasures, fill = TRUE)
     PSPplot <- rbindlist(PSPplots, fill = TRUE)
-    #add Parvin's cleaning functions here:
+    #Parvin's cleaning functions here:
     #first one : Identifies statistical outliers in key variables (e.g., DBH)
+    # this is too slow in practice for what is corrected - better to address upstream
     # cleaningData1 <- detect_dbh_outliers(Trees = PSPmeasure)
     # PSPmeasure <- cleaningData1$Trees
     # #View outliers

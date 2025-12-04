@@ -276,6 +276,7 @@ classify_tree_status <- function(Trees) {
   Last_Measurement <- Trees %>% filter(status == "Last Measurement")    # Trees last seen before final OrigPlotID1 year.
   Alive <- Trees %>% filter(status %in% c("Consistent", "Survival"))   # Trees with consistent or full-survival presence.
 
+  Trees[, c("first_OrigPlotID1_year", "last_OrigPlotID1_year") := NULL]
    #  Returns a list of datasets:Full tree data with status and Subsets by classification.
   return(list(
     Trees = Trees,
