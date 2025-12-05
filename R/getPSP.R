@@ -92,11 +92,11 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
       PSPmeasures[["SK"]] <- PSPsk$treeData
       PSPplots[["SK"]] <- PSPsk$plotHeaderData
 
-      TSPsk <- prepInputsSaskatchwanTSP(dPath = destinationPath)
-      TSPsk <- dataPurification_SKTSP_Mistik(compiledPlotData = TSPsk$compiledPlotData,
-                                             compiledTreeData = TSPsk$compiledTreeData)
-      PSPmeasures[["SKtsp"]] <- TSPsk$treeData
-      PSPplots[["SKtsp"]] <- TSPsk$plotHeaderData
+      # TSPsk <- prepInputsSaskatchwanTSP(dPath = destinationPath)
+      # TSPsk <- dataPurification_SKTSP_Mistik(compiledPlotData = TSPsk$compiledPlotData,
+      #                                        compiledTreeData = TSPsk$compiledTreeData)
+      # PSPmeasures[["SKtsp"]] <- TSPsk$treeData
+      # PSPplots[["SKtsp"]] <- TSPsk$plotHeaderData
     }
 
     if (any(c("ON", "all") %in% PSPdataTypes)) {
