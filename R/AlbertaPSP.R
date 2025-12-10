@@ -3,7 +3,7 @@ globalVariables(c(
   "condition_code1", "condition_code2", "condition_code3", "crown_class",
   "dbh", "dbh_age", "elevation", "height", "latitude", "longitude",
   "maxN", "MeasureID", "measurement_number", "measurement_year",
-  "MeasureYear", "minMeasure", "N", "OrigPlotID1", "PlotSize", "AB_forestry",
+  "MeasureYear", "minMeasure", "N", "OrigPlotID1", "PlotSize",
   "sizes", "species", "Species", "stand_age", "stand_origin", "stump_age",
   "tempyear", "total_age", "totalBad", "tree_location_id", "tree_number",
   "tree_origin", "tree_plot_area", "trees_measurement_comment"
