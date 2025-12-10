@@ -21,7 +21,11 @@ Use \code{"all"} to get all available sources, and \code{"dummy"} for freely ava
 \item{forGMCS}{if \code{TRUE}, will pre-filter plots with insect mortality to avoid
 attributing insect mortality with climate}
 
-\item{sppEquiv}{species equivalencies table.}
+\item{sppEquiv}{A table providing species name equivalencies between the original PSP species names
+and the final standardized naming format. Default is \code{LandR::sppEquivalencies_CA}.}
+
+\item{sppEquivCol}{Character string. The column in \code{sppEquiv} that contains the standardized species names.
+Default is \code{"Latin_full"}.}
 }
 \value{
 a list of standardized plot and tree data.tables

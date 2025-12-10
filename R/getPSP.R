@@ -5,7 +5,11 @@
 #' @param destinationPath destination folder for downloaded objects
 #' @param forGMCS if `TRUE`, will pre-filter plots with insect mortality to avoid
 #' attributing insect mortality with climate
-#' @param sppEquiv species equivalencies table.
+#' @param sppEquiv A table providing species name equivalencies between the original PSP species names
+#'                 and the final standardized naming format. Default is `LandR::sppEquivalencies_CA`.
+#' @param sppEquivCol Character string. The column in `sppEquiv` that contains the standardized species names.
+#'                    Default is `"Latin_full"`.
+#'
 #' @return a list of standardized plot and tree data.tables
 #'
 #' @export
