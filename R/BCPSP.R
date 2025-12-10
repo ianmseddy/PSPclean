@@ -3,7 +3,7 @@ globalVariables(c(
   "dam_2", "dam_3", "dam_4", "dam_5", "Damage Agent Code", "Easting",
   "elev", "Elevation", "meas_yr", "MeasureID", "MeasureYear", "Northing",
   "OrigPlotID1", "OrigPlotID2", "PlotSize", "SAMP_ID", "stnd_org",
-  "sub_plot_tree", "tot_stand_age", "treatment", "treatmenttimes",
+  "sub_plot_tree", "tot_stand_age", "treatment", "treatmenttimes", "BC_forestry",
   "tree_cls", "tree_no", "utm_easting", "utm_northing", "utm_zone", "zone"
 ))
 
