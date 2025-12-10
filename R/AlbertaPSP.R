@@ -1,5 +1,5 @@
 globalVariables(c(
-  ":=", ".N", "cause", "cause1", "cause2", "cause3", "company_plot_number",
+  ":=", ".N", "AB_forestry", "cause", "cause1", "cause2", "cause3", "company_plot_number",
   "condition_code1", "condition_code2", "condition_code3", "crown_class",
   "dbh", "dbh_age", "elevation", "height", "latitude", "longitude",
   "maxN", "MeasureID", "measurement_number", "measurement_year",
@@ -26,7 +26,7 @@ globalVariables(c(
 #'                       are assigned a new ID. Expressed as `min(PlotSize)/max(PlotSize)`.
 #' @param sppEquiv A table providing species name equivalencies between the original PSP species names
 #'                 and the final standardized naming format. Default is `LandR::sppEquivalencies_CA`.
-#' @param sppEquivCol Character string. The column in `sppEquiv` that contains the standardized species names.
+#' @param sppEquivCol Character string. The column in `sppEquiv` that contains the standardized species' names.
 #'                    Default is `"Latin_full"`.
 #'
 #' @return A list containing standardized `plotData` and `treeData` as `data.table`s.

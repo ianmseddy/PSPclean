@@ -22,6 +22,11 @@ Use \code{"all"} to get all available sources, and \code{"dummy"} for freely ava
 attributing insect mortality with climate}
 
 \item{sppEquiv}{species equivalencies table.}
+
+\item{sppEquivCol}{Character string. The column in \code{sppEquiv} that contains the standardized
+name of each species. The default is \code{"Latin_full"}. It is recommended not to change this as
+there must be a one-to-one or one-to-many (e.g. variants, hybrids) relationship for each
+column in sppEquiv that is used internally in the different standardization functions (e.g. AB_forestry)}
 }
 \value{
 a list of standardized plot and tree data.tables

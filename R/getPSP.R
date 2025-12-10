@@ -6,6 +6,10 @@
 #' @param forGMCS if `TRUE`, will pre-filter plots with insect mortality to avoid
 #' attributing insect mortality with climate
 #' @param sppEquiv species equivalencies table.
+#' @param sppEquivCol Character string. The column in `sppEquiv` that contains the standardized
+#'  name of each species. The default is `"Latin_full"`. It is recommended not to change this as
+#'  there must be a one-to-one or one-to-many (e.g. variants, hybrids) relationship for each
+#'  column in sppEquiv that is used internally in the different standardization functions (e.g. AB_forestry)
 #' @return a list of standardized plot and tree data.tables
 #'
 #' @export

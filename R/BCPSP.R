@@ -1,5 +1,5 @@
 globalVariables(c(
-  ":=", ".", ".N", "area_pm", "baseSA", "baseYear", "dam_1",
+  ":=", ".", ".N", "area_pm", "baseSA", "baseYear", "BC_forestry", "dam_1",
   "dam_2", "dam_3", "dam_4", "dam_5", "Damage Agent Code", "Easting",
   "elev", "Elevation", "meas_yr", "MeasureID", "MeasureYear", "Northing",
   "OrigPlotID1", "OrigPlotID2", "PlotSize", "SAMP_ID", "stnd_org",
@@ -20,7 +20,7 @@ globalVariables(c(
 #'                       in `codesToExclude` are removed. Default is `TRUE`.
 #' @param sppEquiv A table providing species name equivalencies between the original PSP species names
 #'                 and the final standardized naming format. Default is `LandR::sppEquivalencies_CA`.
-#' @param sppEquivCol Character string. The column in `sppEquiv` that contains the standardized species names.
+#' @param sppEquivCol Character string. The column in `sppEquiv` that contains the standardized species' names.
 #'                    Default is `"Latin_full"`.
 #'
 #' @return A list containing standardized `plotData` and `treeData` as `data.table`s.

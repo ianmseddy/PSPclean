@@ -29,7 +29,7 @@ in \code{codesToExclude} are removed. Default is \code{TRUE}.}
 \item{sppEquiv}{A table providing species name equivalencies between the original PSP species names
 and the final standardized naming format. Default is \code{LandR::sppEquivalencies_CA}.}
 
-\item{sppEquivCol}{Character string. The column in \code{sppEquiv} that contains the standardized species names.
+\item{sppEquivCol}{Character string. The column in \code{sppEquiv} that contains the standardized species' names.
 Default is \code{"Latin_full"}.}
 }
 \value{
