@@ -48,7 +48,6 @@ plot_regen_proportion <- function(plots,
 
   # Convert to data.table
   DT <- as.data.table(plots$PSPmeasure)
-  browser()
 
   # Compute proportion of regeneration per MeasureID, Plot, and Source
   regen_prop <- DT[, prop_regen := mean(get(status_col) == regen_value, na.rm = TRUE),
