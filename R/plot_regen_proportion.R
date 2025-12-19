@@ -48,59 +48,88 @@ plot_regen_proportion <- function(plots,
 
   # Convert to data.table
   DT <- as.data.table(plots$PSPmeasure)
-
+  browser()
   # Compute proportion of regeneration per MeasureID, Plot, and Source
-  regen_prop <- DT[, prop_regen := mean(get(status_col) == regen_value, na.rm = TRUE),
-                   by = .(MeasureID, OrigPlotID1, source)]
+  # DT[, prop_regen := round(mean(status == "Regeneration", na.rm = TRUE), 3),
+  #   by = .(MeasureID, OrigPlotID1, source)]
+
+  DT[, Ntrees := .N, .(MeasureID, OrigPlotID1)]
+  DT[, NtreesInStatus := .N, by = .(MeasureID, OrigPlotID1, status)]
+
+  propStatus <- DT[, propStatus := round(NtreesInStatus / Ntrees, 3), by = .(MeasureID, status)]
+  propStatus <- unique(propStatus)
+  PSPmeasure_regen <- propStatus[status == "Regeneration"]
 
   #------------------------------------------------------------
-  # Identify high regeneration MeasureIDs (>= 0.5 and < 1)
+  # Identify high regeneration MeasureIDs (propStatus >= 1)
   #------------------------------------------------------------
-  PSPmeasure_regen_unique <- regen_prop[prop_regen >= 0.5 & prop_regen < 1]
+  PSPmeasure_regen_partial_1 <-  PSPmeasure_regen[propStatus >= 1, ]
 
   #------------------------------------------------------------
-  # Keep only prop_regen between 0.75 and 0.9 or NA
+  # Identify regeneration MeasureIDs (>= 0.5 and <= 1)
   #------------------------------------------------------------
-  PSPmeasure_regen_high_unique <- PSPmeasure_regen_unique[is.na(prop_regen) |
-                                                            (prop_regen >= 0.75 & prop_regen <= 0.9)]
+  PSPmeasure_regen_partial <-  PSPmeasure_regen[propStatus >= 0.5 & propStatus < 1]
+
+  #------------------------------------------------------------
+  # Keep only prop_regen between 0.75 or NA
+  #------------------------------------------------------------
+  PSPmeasure_regen_high <- PSPmeasure_regen_partial[is.na(propStatus)|(propStatus >= 0.75 )]
 
   #------------------------------------------------------------
   # Compute mean, min, max DBH per Plot and Source
   #------------------------------------------------------------
-  dbh_summary <- PSPmeasure_regen_high_unique[, .(
+  dbh_summary <- PSPmeasure_regen_high[, .(
     mean_DBH = mean(DBH, na.rm = TRUE),
     min_DBH  = min(DBH, na.rm = TRUE),
     max_DBH  = max(DBH, na.rm = TRUE)
-  ), by = .(source, OrigPlotID1)]
+  ), by = .(source)]
 
-  # Merge min_DBH from dbh_summary into PSPmeasure_regen_high_unique
-  PSPmeasure_regen_high_unique <- merge(
-    PSPmeasure_regen_high_unique,
-    dbh_summary[, .(source, OrigPlotID1, min_DBH)],
-    by = c("source", "OrigPlotID1"),
+  # Merge min_DBH from dbh_summary into PSPmeasure_regen_high
+  PSPmeasure_regen_high <- merge(
+    PSPmeasure_regen_high,
+    dbh_summary[, .(source, min_DBH)],
+    by = "source",
     all.x = TRUE
   )
 
   #------------------------------------------------------------
-  # Histogram per Source
+  # Histogram of regeneration proportions per Source
   #------------------------------------------------------------
-  histogram_plot <- ggplot(regen_prop, aes(x = prop_regen)) +
+
+  histogram_plot <- ggplot(PSPmeasure_regen_partial , aes(x = propStatus)) +
     geom_histogram(binwidth = binwidth,
                    fill = "forestgreen",
                    color = "black") +
     facet_wrap(~ source, scales = "free_y") +
+    scale_x_continuous(limits = c(0,1)) +  # <- force x-axis between 0 and 1
+
     labs(
-      title = "Distribution of Regeneration Proportion per MeasureID",
+      title = "Distribution of Regeneration Proportion (>= 0.5) per MeasureID",
       x = "Proportion Regeneration",
       y = "Number of MeasureIDs"
     ) +
     theme_minimal(base_size = 13)
 
   #------------------------------------------------------------
-  # Extract the MeasureIDs with high/questionable regeneration
-  # Compute elapsedTime using your original sapply logic
+  # Compute elapsed time between measurements for high regeneration plots
   #------------------------------------------------------------
-  plotsWithQuestionableRegen <- unique(PSPmeasure_regen_high_unique$MeasureID)
+  high_regen_measureIDs <- unique(PSPmeasure_regen_high$MeasureID)
+
+  years <- sapply(
+    high_regen_measureIDs,
+    FUN = function(measureID, df = plots$PSPplot) {
+      thePlot <- df[MeasureID == measureID]$OrigPlotID1
+      thisYear <- df[MeasureID == measureID]$MeasureYear
+      possibleYears <- df[OrigPlotID1 == thePlot]$MeasureYear
+      sortedYears <- sort(possibleYears)
+      lastMeasurement <- sortedYears[which(sortedYears == thisYear) - 1]
+      elapsedTime <- thisYear - lastMeasurement
+      return(elapsedTime)
+    }
+  )
+
+
+  plotsWithQuestionableRegen <- unique(PSPmeasure_regen_high$MeasureID)
 
   years <- sapply(
     plotsWithQuestionableRegen,
@@ -118,31 +147,29 @@ plot_regen_proportion <- function(plots,
   # Add elapsedTime as a new column to PSPmeasure_regen_high_unique Match by MeasureID
   names(years) <- plotsWithQuestionableRegen # Name the vector
 
-  PSPmeasure_regen_high_unique[, elapsedTime := years[MeasureID]]
+  PSPmeasure_regen_high[, elapsedTime := years[as.character(MeasureID)]]
   #------------------------------------------------------------
-  # Compute n_value, diff, diff_per_year
+  # Compute expected growth (n_value), difference, diff_per_year, and flags
   #------------------------------------------------------------
   a <- 1  # assumed growth per year in cm
-  PSPmeasure_regen_high_unique[, n_value := elapsedTime * a + min_DBH]
-  PSPmeasure_regen_high_unique[, diff := n_value - DBH]
-  PSPmeasure_regen_high_unique[, diff_per_year := ifelse(elapsedTime > 0, diff / elapsedTime, NA_real_)]
-  PSPmeasure_regen_high_unique[, diff_negative_flag := diff < 0]
+  PSPmeasure_regen_high[, n_value := elapsedTime * a + min_DBH]
+  PSPmeasure_regen_high[, diff := n_value - DBH]
+  PSPmeasure_regen_high[, diff_per_year := ifelse(elapsedTime > 0, diff / elapsedTime, NA_real_)]
+  PSPmeasure_regen_high[, diff_negative_flag := diff < 0]
 
   cat("Rows with implausible negative DBH growth:\n")
-  print(PSPmeasure_regen_high_unique[diff_negative_flag == TRUE])
+  print(PSPmeasure_regen_high[diff_negative_flag == TRUE])
 
-  #------------------------------------------------------------
-  # Filter biologically implausible negative growth
-  #------------------------------------------------------------
+  # Flag biologically implausible negative growth
   growth_threshold <- -0.5  # cm/year
-  PSPmeasure_regen_high_unique[, implausible_growth :=
-                                 !is.na(diff_per_year) & diff_per_year < growth_threshold]
+  PSPmeasure_regen_high[, implausible_growth :=
+                          !is.na(diff_per_year) & diff_per_year < growth_threshold]
 
   cat("Rows with implausible negative DBH growth:\n")
-  print(PSPmeasure_regen_high_unique[implausible_growth == TRUE])
+  print(PSPmeasure_regen_high[implausible_growth == TRUE])
 
   # Remove flagged rows
-  PSPmeasure_regen_high_unique <- PSPmeasure_regen_high_unique[
+  PSPmeasure_regen_high <- PSPmeasure_regen_high[
     diff_negative_flag == FALSE & implausible_growth == FALSE
   ]
 
@@ -151,7 +178,8 @@ plot_regen_proportion <- function(plots,
   #------------------------------------------------------------
   return(list(
     regen_prop = regen_prop,
-    PSPmeasure_regen = PSPmeasure_regen_high_unique,
+    PSPmeasure_regen = PSPmeasure_regen_high,
+    PSPmeasure_regen_partial_1 = PSPmeasure_regen_partial_1,
     updated_plots = plots,
     histogram = histogram_plot,
     dbh_summary = dbh_summary,
