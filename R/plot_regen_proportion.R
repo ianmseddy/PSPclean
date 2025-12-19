@@ -1,18 +1,19 @@
 globalVariables(c(
-  "DBH", "prop_regen", "status", "MeasureID", "OrigPlotID1", "source", "elapsedTime",
-  "diff", "diff_per_year", "diff_negative_flag", "implausible_growth", "n_value"
+  "DBH", "propStatus", "status", "MeasureID", "OrigPlotID1", "source", "elapsedTime",
+  "diff", "diff_per_year", "diff_negative_flag", "implausible_growth", "n_value",
+  "Ntrees", "NtreesInStatus", "min_DBH"
 ))
 
-#' @title Plot Regeneration Proportion, Summarize Tree DBH, and Check Growth
+#' @title Analyze Regeneration Proportion and Tree DBH Growth
 #'
 #' @description
-#' Computes the proportion of regeneration per MeasureID, Plot, and Source; identifies high-regeneration MeasureIDs;
-#' summarizes tree diameter (DBH) statistics for high-regeneration plots; produces a histogram of regeneration proportions;
-#' calculates the elapsed time between successive measurements for plots with high/questionable regeneration;
-#' and flags trees with biologically implausible DBH growth based on elapsed time and expected growth rates.
+#' Computes the proportion of regeneration trees (`propStatus`) per MeasureID, Plot, and Source;
+#' identifies high-regeneration MeasureIDs; summarizes DBH statistics for high-regeneration plots;
+#' produces a histogram of regeneration proportions; calculates elapsed time between successive measurements;
+#' and flags trees with biologically implausible DBH growth.
 #'
 #' @param plots A list containing at least a data frame `PSPmeasure` with tree measurements and `PSPplot` with measurement years.
-#' @param status_col Name of the column in `PSPmeasure` indicating tree status (default: "status").
+#' @param status_col Name of the column indicating tree status (default: "status").
 #' @param measure_col Name of the column indicating MeasureID (default: "MeasureID").
 #' @param plotID Name of the column indicating the plot ID (default: "OrigPlotID1").
 #' @param source_col Name of the column indicating the data source or region (default: "source").
@@ -21,22 +22,18 @@ globalVariables(c(
 #'
 #' @return A list with:
 #' \describe{
-#'   \item{regen_prop}{Proportion of regeneration per MeasureID, Plot, and Source.}
-#'   \item{PSPmeasure_regen}{Filtered high-regeneration MeasureIDs with DBH summary statistics, elapsed time,
-#'     and flags for implausible DBH growth (`diff_negative_flag`, `implausible_growth`).}
-#'   \item{updated_plots}{Original `plots` list with `prop_regen` added.}
-#'   \item{histogram}{Histogram of regeneration proportions per Source.}
-#'   \item{dbh_summary}{Mean, min, and max DBH per Plot and Source for high-regeneration trees.}
-#'   \item{elapsedTime_vector}{Elapsed years since previous measurement for high/questionable regeneration plots.}
+#'   \item{high_regeneration_measurements}{Filtered high-regeneration MeasureIDs with DBH summary, elapsed time, and growth flags.}
+#'   \item{full_regeneration_measurements}{Measurements with 100% trees as regeneration.}
+#'   \item{partial_regeneration_measurements}{Measurements with 50–99% trees as regeneration.}
+#'   \item{plots_augmented}{Original `plots` list with `propStatus` added.}
+#'   \item{regeneration_histogram}{Histogram of regeneration proportions per source.}
+#'   \item{dbh_summary_by_source}{Mean, min, and max DBH per source for high-regeneration trees.}
+#'   \item{elapsed_time_between_measurements}{Elapsed years since previous measurement for high/questionable regeneration plots.}
 #' }
 #'
 #' @importFrom data.table data.table as.data.table .SD :=
-#' @importFrom ggplot2 ggplot aes geom_histogram facet_wrap labs theme_minimal
+#' @importFrom ggplot2 ggplot aes geom_histogram facet_wrap labs theme_minimal scale_x_continuous
 #' @export
-
-library(data.table)
-library(ggplot2)
-
 
 plot_regen_proportion <- function(plots,
                                   status_col = "status",
@@ -66,7 +63,7 @@ plot_regen_proportion <- function(plots,
   PSPmeasure_regen_partial <-  PSPmeasure_regen[propStatus >= 0.5 & propStatus < 1]
 
   #------------------------------------------------------------
-  # Keep only prop_regen between 0.75 or NA
+  # Keep only propStatus between 0.75 or NA
   #------------------------------------------------------------
   PSPmeasure_regen_high <- PSPmeasure_regen_partial[is.na(propStatus)|(propStatus >= 0.75 )]
 
@@ -156,13 +153,13 @@ plot_regen_proportion <- function(plots,
   # Return results
   #------------------------------------------------------------
   return(list(
-    regen_prop = regen_prop,
-    PSPmeasure_regen = PSPmeasure_regen_high,
-    PSPmeasure_regen_partial_1 = PSPmeasure_regen_partial_1,
-    updated_plots = plots,
-    histogram = histogram_plot,
-    dbh_summary = dbh_summary,
-    elapsedTime_vector = years
+    high_regeneration_measurements = PSPmeasure_regen_high,
+    full_regeneration_measurements = PSPmeasure_regen_partial_1,
+    partial_regeneration_measurements = PSPmeasure_regen_partial,
+    plots_augmented = plots,
+    regeneration_histogram = histogram_plot,
+    dbh_summary_by_source = dbh_summary,
+    elapsed_time_between_measurements = years
   ))
 }
 

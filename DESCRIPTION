@@ -27,10 +27,11 @@ Imports:
     reproducible (>= 2.0.3),
     sf,
     terra,
+    ggplot2
 Suggests:
     testthat,
     withr,
-     googledrive,
+    googledrive,
 Remotes:
     PredictiveEcology/LandR@development
 Roxygen: list(markdown = TRUE)
