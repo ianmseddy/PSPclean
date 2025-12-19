@@ -108,22 +108,6 @@ plot_regen_proportion <- function(plots,
   #------------------------------------------------------------
   # Compute elapsed time between measurements for high regeneration plots
   #------------------------------------------------------------
-  high_regen_measureIDs <- unique(PSPmeasure_regen_high$MeasureID)
-
-  years <- sapply(
-    high_regen_measureIDs,
-    FUN = function(measureID, df = plots$PSPplot) {
-      thePlot <- df[MeasureID == measureID]$OrigPlotID1
-      thisYear <- df[MeasureID == measureID]$MeasureYear
-      possibleYears <- df[OrigPlotID1 == thePlot]$MeasureYear
-      sortedYears <- sort(possibleYears)
-      lastMeasurement <- sortedYears[which(sortedYears == thisYear) - 1]
-      elapsedTime <- thisYear - lastMeasurement
-      return(elapsedTime)
-    }
-  )
-
-
   plotsWithQuestionableRegen <- unique(PSPmeasure_regen_high$MeasureID)
 
   years <- sapply(
