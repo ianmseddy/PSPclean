@@ -1,6 +1,6 @@
 globalVariables(c(
   "DBH", "propStatus", "status", "MeasureID", "OrigPlotID1", "source", "elapsedTime",
-  "diff", "diff_per_year", "diff_negative_flag", "implausible_growth", "n_value",
+  "diff", "diff_per_year", "diff_negative_flag", "implausible_growth", "expected_dbh ",
   "Ntrees", "NtreesInStatus", "min_DBH"
 ))
 
@@ -53,7 +53,7 @@ plot_regen_proportion <- function(plots,
   PSPmeasure_regen <- propStatus[status == "Regeneration"]
 
   #------------------------------------------------------------
-  # Identify high regeneration MeasureIDs (propStatus >= 1)
+  # Identify plots with a measurement where all trees are regeneration (propStatus >= 1)
   #------------------------------------------------------------
   PSPmeasure_regen_partial_1 <-  PSPmeasure_regen[propStatus >= 1, ]
 
@@ -70,6 +70,7 @@ plot_regen_proportion <- function(plots,
   #------------------------------------------------------------
   # Compute mean, min, max DBH per Plot and Source
   #------------------------------------------------------------
+  browser()
   dbh_summary <- PSPmeasure_regen_high[, .(
     mean_DBH = mean(DBH, na.rm = TRUE),
     min_DBH  = min(DBH, na.rm = TRUE),
@@ -125,11 +126,11 @@ plot_regen_proportion <- function(plots,
 
   PSPmeasure_regen_high[, elapsedTime := years[as.character(MeasureID)]]
   #------------------------------------------------------------
-  # Compute expected growth (n_value), difference, diff_per_year, and flags
+  # Compute expected growth (expected_dbh ), difference, diff_per_year, and flags
   #------------------------------------------------------------
   a <- 1  # assumed growth per year in cm
-  PSPmeasure_regen_high[, n_value := elapsedTime * a + min_DBH]
-  PSPmeasure_regen_high[, diff := n_value - DBH]
+  PSPmeasure_regen_high[, expected_dbh  := elapsedTime * a + min_DBH]
+  PSPmeasure_regen_high[, diff := DBH - expected_dbh]
   PSPmeasure_regen_high[, diff_per_year := ifelse(elapsedTime > 0, diff / elapsedTime, NA_real_)]
   PSPmeasure_regen_high[, diff_negative_flag := diff < 0]
 
