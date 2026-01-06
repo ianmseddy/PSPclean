@@ -70,7 +70,6 @@ plot_regen_proportion <- function(plots,
   #------------------------------------------------------------
   # Compute mean, min, max DBH per Plot and Source
   #------------------------------------------------------------
-  browser()
   dbh_summary <- PSPmeasure_regen_high[, .(
     mean_DBH = mean(DBH, na.rm = TRUE),
     min_DBH  = min(DBH, na.rm = TRUE),
