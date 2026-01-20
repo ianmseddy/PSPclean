@@ -153,7 +153,6 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
 
   # Check
   treeData[, .(PSP, Species)]
-  treeData[PSP == "TA", Species := "Trembling Aspen"]
 
   treeData[is.na(Species)| Species == "", Species := "unknown"]
   treeData[is.na(PSP) | PSP == "", PSP := "unknown"]
