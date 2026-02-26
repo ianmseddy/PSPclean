@@ -22,7 +22,6 @@ Imports:
     data.table,
     dplyr,
     LandR (>= 1.1.5.9087),
-    LandR (>= 1.1.5.9086),
     magrittr, 
     reproducible (>= 2.0.3),
     sf,

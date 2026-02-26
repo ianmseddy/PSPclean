@@ -11,7 +11,8 @@ plot_regen_proportion(
   plotID = "OrigPlotID1",
   source_col = "source",
   regen_value = "Regeneration",
-  binwidth = 0.05
+  growth_rate = 1,
+  growth_threshold = -0.5
 )
 }
 \arguments{
@@ -27,7 +28,9 @@ plot_regen_proportion(
 
 \item{regen_value}{Value in \code{status_col} indicating regeneration trees (default: "Regeneration").}
 
-\item{binwidth}{Bin width for the histogram of regeneration proportions (default: 0.05).}
+\item{growth_rate}{Expected DBH growth per year (cm/year, default = 1).}
+
+\item{growth_threshold}{Minimum plausible growth per year (cm/year, default = -0.5).}
 }
 \value{
 A list with:
@@ -36,14 +39,12 @@ A list with:
 \item{full_regeneration_measurements}{Measurements with 100\% trees as regeneration.}
 \item{partial_regeneration_measurements}{Measurements with 50–99\% trees as regeneration.}
 \item{plots_augmented}{Original \code{plots} list with \code{propStatus} added.}
-\item{regeneration_histogram}{Histogram of regeneration proportions per source.}
 \item{dbh_summary_by_source}{Mean, min, and max DBH per source for high-regeneration trees.}
-\item{elapsed_time_between_measurements}{Elapsed years since previous measurement for high/questionable regeneration plots.}
+\item{elapsed_time_between_measurements}{Elapsed years since previous measurement for all plots.}
 }
 }
 \description{
 Computes the proportion of regeneration trees (\code{propStatus}) per MeasureID, Plot, and Source;
 identifies high-regeneration MeasureIDs; summarizes DBH statistics for high-regeneration plots;
-produces a histogram of regeneration proportions; calculates elapsed time between successive measurements;
-and flags trees with biologically implausible DBH growth.
+calculates elapsed time between successive measurements; and flags trees with biologically implausible DBH growth.
 }
