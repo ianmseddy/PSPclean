@@ -68,7 +68,11 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
                 "7608604902", "7608804202", "7409701702", "7601203202")
   badMeasure <- c("750110930101") #untrustworthy tree numbers in first
 
-  #Filtered base on ORIGINE and PERTURB column
+  #plot 990990160102  measure id #9909901601    tree 105 DBH is 7.7 cm, under minDBH
+  #unclear if this is an error or incorrect admission as it is NA in subsequent measurement
+  trees <- trees[!c(ID_PE == "990990160102" & NO_ARBRE == 105)]
+
+  # #Filtered base on ORIGINE and PERTURB column
   #ORIGINE is stand-originating disturbance, PERTURB is partial disturbance
   #CP/CB/CD CDL/CE/CJ/DLD/EPC all involve management activities
   #CHP/CHT/CH are partial, snag, and full chablis (blowdown or windthrow),
@@ -162,10 +166,7 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
            baseStandAge := as.integer(mean(baseTreeAge)), .(ID_PE)]
   standAge[ID_PE %in% standRep[group == "CandD",]$ID_PE,
            baseStandAge := as.integer(mean(baseTreeAge)), .(ID_PE)]
-  # standAge[ID_PE %in% standRep[group == "CandD",]$ID_PE,
-  #          standAge_wmax := as.integer(max(baseTreeAge)), .(ID_PE)]
-  # standAge[ID_PE %in% standRep[group == "CandD",]$ID_PE,
-  #          standAge_wmax := as.integer(max(baseTreeAge)), .(ID_PE)]
+
 
   standAge <- standAge[!is.na(baseStandAge)] #drop the C trees in plots with > 1 D trees
   standAge <- unique(standAge[, .(baseStandAge, ID_PE)])

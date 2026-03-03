@@ -139,7 +139,7 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
       name = c(
         "Spruce budworm", "Defoliator", "Mountain pine beetle", "Root collar weevil",
         "Terminal weevil", "Armillaria root disease", "Shepherd's crook", "Dwarf mistletoe",
-        "Stem disease", "Wstern gall rust", "Animal damage", "Wind damage", "Snow/ice damage",
+        "Stem disease", "Western gall rust", "Animal damage", "Wind damage", "Snow/ice damage",
         "Hail damage", "Fire damage", "Mechanical damage", "Improper planting",
         "Poor ground conditions", "Competition", "Insect (other)", "Disease (other)",
         "Climate/weather/flood damage", "Anthropogenic damage"

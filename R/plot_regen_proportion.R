@@ -13,7 +13,6 @@ globalVariables(c(
 #'
 #' @param plots A list containing at least a data frame `PSPmeasure` with tree measurements and `PSPplot` with measurement years.
 #' @param status_col Name of the column indicating tree status (default: "status").
-#' @param measure_col Name of the column indicating MeasureID (default: "MeasureID").
 #' @param plotID Name of the column indicating the plot ID (default: "OrigPlotID1").
 #' @param source_col Name of the column indicating the data source or region (default: "source").
 #' @param regen_value Value in `status_col` indicating regeneration trees (default: "Regeneration").
@@ -33,8 +32,8 @@ globalVariables(c(
 #' @importFrom data.table data.table as.data.table .SD :=
 #' @export
 plot_regen_proportion <- function(plots,
+                                  maxAssumedGrowthDBHperYear = 1,
                                   status_col = "status",
-                                  measure_col = "MeasureID",
                                   plotID = "OrigPlotID1",
                                   source_col = "source",
                                   regen_value = "Regeneration",
@@ -43,60 +42,59 @@ plot_regen_proportion <- function(plots,
 
   # Convert to data.table
   DT <- as.data.table(plots$PSPmeasure)
+  DT <- copy(DT)
 
   # Compute number of trees per plot & per status
   DT[, Ntrees := .N, by = c(measure_col, plotID)]
   DT[, NtreesInStatus := .N, by = c(measure_col, plotID, status_col)]
 
-  # Compute proportion of trees in each status per MeasureID
-  DT[, propStatus := round(NtreesInStatus / Ntrees, 3)]
+  #------------------------------------------------------------
+  # Identify plots with a measurement where all trees are regeneration (propStatus >= 1)
+  # These are considered errors as the plots have no continuous measurements
+  #------------------------------------------------------------
+  definitelyRemove <- PSPmeasure_regen[propStatus == 1, ]
 
+<<<<<<<
   # Keep unique rows for analysis
   propStatus <- unique(DT)
+=======
+  #------------------------------------------------------------
+  dubious <- PSPmeasure_regen[propStatus >= 0.75,]
+>>>>>>>
 
+<<<<<<<
   # Filter regeneration trees
   PSPmeasure_regen <- propStatus[get(status_col) == regen_value]
+=======
+  DT <- DT[DBH > 0]
+  browser()
+>>>>>>>
 
-  # Full regeneration (propStatus >= 1)
-  PSPmeasure_regen_full <- PSPmeasure_regen[propStatus >= 1]
-
-  # Partial regeneration (50–99%)
-  PSPmeasure_regen_partial <- PSPmeasure_regen[propStatus >= 0.5 & propStatus < 1]
-
-  # High regeneration (>= 0.75)
-  PSPmeasure_regen_high <- PSPmeasure_regen_partial[propStatus >= 0.75]
-
-  # Compute DBH summary per source
-  dbh_summary <- PSPmeasure_regen_high[, .(
-    mean_DBH = mean(DBH, na.rm = TRUE),
-    min_DBH  = min(DBH, na.rm = TRUE),
-    max_DBH  = max(DBH, na.rm = TRUE)
-  ), by = source_col]
-
-  # Merge min_DBH back into high regeneration table
-  PSPmeasure_regen_high <- merge(
-    PSPmeasure_regen_high,
-    dbh_summary[, .(source, min_DBH)],
-    by = "source",
-    all.x = TRUE
-  )
-
-  # Compute elapsed time using data.table shift()
-  plotShift <- unique(plots$PSPplot[, .(OrigPlotID1, MeasureID, MeasureYear)])
+  #this may not work if DBH changed over time (QC, AB)
+  DT[, minDBH := min(DBH), .(source)]
+  #------------------------------------------------------------
+  # Compute elapsed time between measurements for high regeneration plots
+  #------------------------------------------------------------
+  plotShift <- unique(DT[, .(OrigPlotID1, MeasureID, MeasureYear)])
   setkey(plotShift, OrigPlotID1, MeasureYear)
-
-  # Previous measurement year per plot
-  plotShift[, previousMsrYear := shift(MeasureYear, n = 1), by = OrigPlotID1]
+  plotShift[, previousMsrYear := shift(MeasureYear, n = 1), .(OrigPlotID1)]
   plotShift[, elapsedTime := MeasureYear - previousMsrYear]
 
-  # Merge elapsedTime into PSPmeasure_regen_high
-  PSPmeasure_regen_high <- merge(
-    PSPmeasure_regen_high,
-    plotShift[, .(MeasureID, elapsedTime)],
-    by = "MeasureID",
-    all.x = TRUE
-  )
+  stopifnot(plotShift[!is.na(previousMsrYear),]$MeasureYear >
+              plotShift[!is.na(previousMsrYear),]$previousMsrYear)
+  plotShift[, c("firstMeasureYear", "lastMeasureYear") :=
+       .(min(MeasureYear), max(MeasureYear)), .(OrigPlotID1)]
+  DT <- plotShift[DT, on = c("OrigPlotID1", "MeasureID", "MeasureYear")]
 
+  a <- 1  # a generous assumed growth of 1 cm / year
+  DT[status == "Regeneration", expected_dbh  := elapsedTime * a + minDBH]
+  DT[, diff := DBH - expected_dbh]
+
+  #plots with high values of Diff suggest the tree was incorrectly tracked or renumbered
+  # check these first, as they contain more new trees
+  dubious <- DT[MeasureID %in% dubious$MeasureID,]
+
+<<<<<<<
   # Compute expected growth and flag implausible values
   PSPmeasure_regen_high[, expected_dbh := min_DBH + elapsedTime * growth_rate]
   PSPmeasure_regen_high[, diff := DBH - expected_dbh]
@@ -109,6 +107,10 @@ plot_regen_proportion <- function(plots,
     diff_negative_flag == FALSE & implausible_growth == FALSE
   ]
 
+=======
+    browser()
+  #------------------------------------------------------------
+>>>>>>>
   # Return results
   return(list(
     high_regeneration_measurements = PSPmeasure_regen_high,
