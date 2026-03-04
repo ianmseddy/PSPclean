@@ -68,9 +68,6 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
                 "7608604902", "7608804202", "7409701702", "7601203202")
   badMeasure <- c("750110930101") #untrustworthy tree numbers in first
 
-  #plot 990990160102  measure id #9909901601    tree 105 DBH is 7.7 cm, under minDBH
-  #unclear if this is an error or incorrect admission as it is NA in subsequent measurement
-  trees <- trees[!c(ID_PE == "990990160102" & NO_ARBRE == 105)]
 
   # #Filtered base on ORIGINE and PERTURB column
   #ORIGINE is stand-originating disturbance, PERTURB is partial disturbance
@@ -185,6 +182,10 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   trees <- height[trees, on = c("ID_PE_MES" = "ID_PE_MES", "NO_ARBRE" = "NO_ARBRE")]
   trees[, DHP := DHP/10] #from millimetre to centimetre
   trees[, HAUT_ARBRE := HAUT_ARBRE/10] #from decimetre to metre
+  trees <- trees[DHP > 0]
+  #plot 990990160102  measure id #9909901601    tree 105 DBH is 7.7 cm, under minDBH
+  #unclear if this is an error or incorrect admission as it is NA in subsequent measurement
+  trees <- trees[!c(ID_PE_MES == 990990160102 & NO_ARBRE == 105)]
 
   #standardize species
   #unique because some species have multiple rows (e.g. due to common name)
