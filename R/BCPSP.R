@@ -1,11 +1,4 @@
-globalVariables(c(
-  ":=", ".", ".N", "area_pm", "baseSA", "baseYear", "BC_forestry", "dam_1",
-  "dam_2", "dam_3", "dam_4", "dam_5", "Damage Agent Code", "Easting",
-  "elev", "Elevation", "meas_yr", "MeasureID", "MeasureYear", "Northing",
-  "OrigPlotID1", "OrigPlotID2", "PlotSize", "SAMP_ID", "stnd_org",
-  "sub_plot_tree", "tot_stand_age", "treatment", "treatmenttimes",
-  "tree_cls", "tree_no", "utm_easting", "utm_northing", "utm_zone", "zone"
-))
+
 
 #' #' Standardize and Treat the BC PSP Data
 #'

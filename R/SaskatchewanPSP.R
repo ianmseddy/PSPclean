@@ -1,12 +1,3 @@
-globalVariables(c(
-  ":=", ".", "baseSA", "baseYear", "CONDITION_CODE1", "CONDITION_CODE2",
-  "CONDITION_CODE3", "CROWN_CLASS", "dbh", "DBH", "Easting", "height",
-  "Height", "HEIGHT", "IsBad", "MeasureID", "MeausreYear", "MORTALITY",
-  "NofTrees", "Northing", "OFFICE_ERROR", "OrigPlotID1", "OrigPlotID2",
-  "PLOT_ID", "PLOT_SIZE", "PlotSize", "SK_forestry", "species", "Species", "SPECIES",
-  "TOTAL_AGE", "TREE_NO", "TREE_STATUS", "treeAge", "TreeNumber",
-  "YEAR", "Z13nad83_e", "Z13nad83_n", "Zone"
-))
 
 #' Standardize and Treat the Saskatchewan PSP Data
 #'

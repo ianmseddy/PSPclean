@@ -1,19 +1,3 @@
-globalVariables(c(
-  ".SD", "AgeHeaderKey", "ageMethod", "AgeSampleKey", "AgeSampleStatusCode",
-  "AgeSampleTypeCode", "AgeTreeKey", "baseAgeYear", "CoordTypeCode",
-  "CrownClassCode", "CrownClsr", "Datum", "FieldAge", "FieldAge_Base",
-  "FieldAge_DBH", "FieldAge_diff", "FieldSeasonYear", "firstAgeMsrYear",
-  "firstMsrYear", "fullGenusSpec", "GrowthPlotNum", "HtTot", "Latin_full",
-  "Length", "LocPlotKey", "MsrDate", "nCodominant", "nDominant",
-  "numAreas", "OfficeAge", "OfficeAge_Base", "OfficeAge_DBH", "OfficeAge_diff",
-  "PackageKey", "plotArea", "PlotKey", "PlotName", "PSP", "Radius",
-  "SpecCode", "SpecCommon", "SpecGenus", "SpecSpec", "standardizedAge",
-  "StartYear", "TreatTypeName", "TreatYear", "TreeGrowthPlotKey",
-  "TreeHeaderKey", "TreeKey", "TreeMsrKey", "TreeNum", "TreeOriginCode",
-  "TreeRenumber", "TreeStatusCode", "unifiedAge", "VisitTypeName", "Width"
-))
-
-
 #' #' Standardize and Treat the Ontario PSP Data
 #'
 #' This function cleans and standardizes Ontario PSP data, including tree and plot data.

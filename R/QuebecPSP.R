@@ -34,7 +34,7 @@ globalVariables(c(
 dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllObs = TRUE,
                                    sppEquiv = LandR::sppEquivalencies_CA,
                                    sppEquivCol = "Latin_full") {
- #DENDRO_ARBRES_ETUDES is a subset of DENDRO_ARBRES with additional information (e.g. age, height)
+  #DENDRO_ARBRES_ETUDES is a subset of DENDRO_ARBRES with additional information (e.g. age, height)
   PLACETTE <- QuebecPSP[["PLACETTE"]]
   PLACETTE_MES <- QuebecPSP[["PLACETTE_MES"]]
   STATION_PE <- QuebecPSP[["STATION_PE"]]
@@ -119,7 +119,7 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   # 11	Carotte incomplète pour analyse en laboratoire.(incomplete core for lab analysis)
   # 12	Carotte incomplète analysée en forêt. (incomplete core analyzed in field)
   # 13	Carotte incomplète analysée en laboratoire avec plus de cinq cernes absents
-        #(incomplete core, analyzed in lab, with more than five missing tree rings)
+  #(incomplete core, analyzed in lab, with more than five missing tree rings)
   # 14	Carotte non analysée (unanalyzed core)
   # 2	Carotte en attente d'une analyse.(core awaiting analysis)
   # 3	Carotte complète analysée en forêt.(complete core analyzed in field)

@@ -1,14 +1,5 @@
-utils::globalVariables(c(
-  ":=", ".", "baseSA", "baseYear", "damage_agent", "dbh", "DBH",
-  "Easting", "elevation", "Elevation", "Genus", "height", "Height",
-  "isArtificial", "lgtree_genus", "lgtree_species", "lgtree_status",
-  "meas_num", "meas_plot_size", "MeasureID", "MeasureYear", "nfi_plot",
-  "Northing", "orig_plot_area", "OrigPlotID1", "PlotSize", "site_age",
-  "Species", "tree_num", "TreeNumber", "utm_e", "utm_n", "utm_zone",
-  "year", "Zone", "meas_date"
-))
 
-#' #' Standardize and Treat the NFI PSP Data
+#' Standardize and Treat the NFI PSP Data
 #'
 #' This function cleans and standardizes NFI PSP data, including tree, plot, and location data.
 #' Species names can be standardized using a species equivalency table.

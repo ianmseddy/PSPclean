@@ -25,8 +25,7 @@ Imports:
     magrittr, 
     reproducible (>= 2.0.3),
     sf,
-    terra,
-    ggplot2
+    terra
 Suggests:
     testthat,
     withr,

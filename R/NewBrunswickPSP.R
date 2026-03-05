@@ -1,10 +1,3 @@
-globalVariables(c(
-  ":=", "PlotType","Treatment","Plot", "dbh", "EstabDate", "EstabAge",
-  "EstabYear", "Status","SilvID", "treenum", "YearTreated", "long_", "MeasYr",
-  "species","TreeNumber","SpeciesCode","Species","MeasNum", "measNum",
-  "RemeasID", "LatinName", "Latin_full", "PSP", "CommonName", "PLOT", "lat",
-  "OrigPlotID1","MeasureYear","PlotSize","baseSA","LATITUDE","LONGITUDE"
-))
 
 #' Standardize and Treat the New Brunswick PSP Data
 #'
