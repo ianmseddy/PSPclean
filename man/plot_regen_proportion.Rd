@@ -4,43 +4,21 @@
 \alias{plot_regen_proportion}
 \title{Analyze Regeneration Proportion and Tree DBH Growth}
 \usage{
-plot_regen_proportion(
-  plots,
-  status_col = "status",
-  measure_col = "MeasureID",
-  plotID = "OrigPlotID1",
-  source_col = "source",
-  regen_value = "Regeneration",
-  growth_rate = 1,
-  growth_threshold = -0.5
-)
+plot_regen_proportion(plots, max_assumed_growth_rate = 1)
 }
 \arguments{
 \item{plots}{A list containing at least a data frame \code{PSPmeasure} with tree measurements and \code{PSPplot} with measurement years.}
 
-\item{status_col}{Name of the column indicating tree status (default: "status").}
-
-\item{measure_col}{Name of the column indicating MeasureID (default: "MeasureID").}
-
-\item{plotID}{Name of the column indicating the plot ID (default: "OrigPlotID1").}
-
-\item{source_col}{Name of the column indicating the data source or region (default: "source").}
-
-\item{regen_value}{Value in \code{status_col} indicating regeneration trees (default: "Regeneration").}
-
-\item{growth_rate}{Expected DBH growth per year (cm/year, default = 1).}
-
-\item{growth_threshold}{Minimum plausible growth per year (cm/year, default = -0.5).}
+\item{max_assumed_growth_rate}{Maximum plausible DBH growth per year for
+regenerating trees (cm/year, default = 1).}
 }
 \value{
 A list with:
 \describe{
-\item{high_regeneration_measurements}{Filtered high-regeneration MeasureIDs with DBH summary, elapsed time, and growth flags.}
-\item{full_regeneration_measurements}{Measurements with 100\% trees as regeneration.}
-\item{partial_regeneration_measurements}{Measurements with 50–99\% trees as regeneration.}
-\item{plots_augmented}{Original \code{plots} list with \code{propStatus} added.}
-\item{dbh_summary_by_source}{Mean, min, and max DBH per source for high-regeneration trees.}
-\item{elapsed_time_between_measurements}{Elapsed years since previous measurement for all plots.}
+\item{problematicMeasurements}{MeasurementIDs with 100\% regen at some point in plot history
+If the problematic measurement is the last measurement, then prior measurements are not included.
+If the problematic measurement is NOT the first, then all measurements are included}
+\item{problematic trees}{trees with problematic DBH (ie growing faster than max_assumed_growth_rate)}
 }
 }
 \description{
