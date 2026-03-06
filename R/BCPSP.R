@@ -35,7 +35,8 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
            SAtimes = length(unique(tot_stand_age)),
            plotsizetimes = length(unique(area_pm)),
            standorigtimes = length(unique(stnd_org)),
-           treatmenttimes = length(unique(treatment))),
+           treatmenttimes = length(unique(treatment)),
+           dbhlimit_tag = dbhlimit_tag),
     by = SAMP_ID
   ]
 
@@ -47,12 +48,11 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
   headerData <- headerData[
     treatmenttimes == 1 & treatment == "UNTREATED",
     .(SAMP_ID, utm_zone, utm_easting,
-      utm_northing,
+      utm_northing, dbhlimit_tag,
       Elevation = elev, area_pm, tot_stand_age,
       meas_yr
     )
   ]
-
   headerData[, baseYear := min(meas_yr), by = SAMP_ID]
   headerData[, baseSA := as.integer(tot_stand_age - (meas_yr - baseYear))]
   # get the plots with locations
@@ -62,8 +62,8 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
   headerData <- headerData[!is.na(area_pm), ][, ":="(tot_stand_age = NULL, meas_yr = NULL)]
 
   setnames(headerData,
-           old = c("SAMP_ID", "utm_zone", "utm_easting", "utm_northing", "area_pm"),
-           new = c("OrigPlotID1", "Zone", "Easting", "Northing", "PlotSize")
+           old = c("SAMP_ID", "utm_zone", "utm_easting", "utm_northing", "area_pm", "dbhlimit_tag"),
+           new = c("OrigPlotID1", "Zone", "Easting", "Northing", "PlotSize", "minDBH")
   )
   headerData <- unique(headerData, by = c("OrigPlotID1"))
 
@@ -118,11 +118,12 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
   measureidtable <- measureidtable[, .(MeasureID, OrigPlotID1, OrigPlotID2, MeasureYear)]
   headerData <- setkey(measureidtable, OrigPlotID1)[setkey(headerData, OrigPlotID1), nomatch = 0]
 
-
   set(headerData, NULL, "OrigPlotID2", NULL)
+
+  browser()
   headerData <- headerData[, .(MeasureID, OrigPlotID1, MeasureYear,
                                Longitude = NA,
-                               Latitude = NA, Zone, Easting, Northing, Elevation,
+                               Latitude = NA, Zone, Easting, Northing, minDBH, Elevation,
                                PlotSize, baseYear, baseSA
   )]
   measureidtable <- setkey(measureidtable, OrigPlotID1, OrigPlotID2, MeasureYear)
