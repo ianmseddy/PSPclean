@@ -165,10 +165,9 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   plotLocation <- plot[, .(company_plot_number, elevation, latitude, longitude)]
   plotMeasure <- plotLocation[plotMeasure, on = c("company_plot_number")]
 
-  headerData <- plotMeasure[, .(
-    MeasureID, OrigPlotID1, measurement_year, longitude, latitude, elevation,
-    PlotSize, baseYear, baseSA
-  )]
+  headerData <- plotMeasure[, .(MeasureID, OrigPlotID1, measurement_year, longitude, latitude,
+                                elevation, PlotSize, baseYear, baseSA, tree_tagging_limit)]
+
   treeData <- treeMeasure[, .(MeasureID, OrigPlotID1, tree_number, species, dbh, height)]
 
   setnames(treeData,
@@ -190,10 +189,9 @@ dataPurification_ABPSP <- function(treeMeasure, plotMeasure, tree, plot,
   treeData[is.na(PSP) | PSP == "", PSP := "unknown"]
 
 
-  setnames(
-    headerData, c("measurement_year", "longitude", "latitude", "elevation"),
-    c("MeasureYear", "Longitude", "Latitude", "Elevation")
-  )
+  setnames(headerData,
+           c("measurement_year", "longitude", "latitude", "elevation", "tree_tagging_limit"),
+           c("MeasureYear", "Longitude", "Latitude", "Elevation", "minDBH"))
 
   # need MeasureYear in the tree data
   treeData <- headerData[, .(MeasureID, MeasureYear)][treeData, on = c("MeasureID")]
