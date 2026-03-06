@@ -1,7 +1,7 @@
 
 standardizedPlotNames <- c(
   "MeasureID", "OrigPlotID1", "MeasureYear", "Longitude", "Latitude", "Datum", "source",
-  "Zone", "Northing", "Easting", "Elevation", "PlotSize", "baseYear", "baseSA"
+  "Zone", "Northing", "Easting", "Elevation", "PlotSize", "baseYear", "baseSA", "minDBH"
 )
 standardizedTreeNames <- c(
   "MeasureID", "OrigPlotID1", "MeasureYear", "TreeNumber", "Species", "source",
