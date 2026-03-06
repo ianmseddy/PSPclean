@@ -339,14 +339,16 @@ dataPurification_ONPSP <- function(ONPSPlist,
   tree <- tree[plotData[, .(MeasureYear, OrigPlotID1, MeasureID)], on = c("OrigPlotID1", "MeasureYear")]
   # some tree measurements wil be dropped as the plots were filtered out
 
-  # TODO: review needNewPlotNames - these are renumbered tree
-
-  tree[, c("TreeGrowthPlotKey", "TreeMsrKey", "GrowthPlotNum") := NULL]
+    tree[, c("TreeGrowthPlotKey", "TreeMsrKey", "GrowthPlotNum") := NULL]
   plotData[, OrigPlotID1 := as.factor(paste0("ONPSP_", OrigPlotID1))]
   tree[, OrigPlotID1 := as.factor(paste0("ONPSP_", OrigPlotID1))]
   plotData[, Datum := as.factor(Datum)]
 
   tree <- tree[, .(MeasureID, OrigPlotID1, MeasureYear, TreeNumber, PSP, Species, DBH, Height)]
+
+  #unable to find any column containing this information
+  #however PGP transitioned to 2.5 from 9 after 1992 - this matches obsevations here
+  plotData[, minDBH := 2.5]
 
   setkey(plotData, OrigPlotID1, MeasureID, MeasureYear)
   setcolorder(plotData)
