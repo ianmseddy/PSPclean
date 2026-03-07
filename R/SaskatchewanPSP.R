@@ -127,8 +127,8 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   treeData <- treeData[, .(MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, DBH, Height)]
   headData <- setkey(measureidtable, OrigPlotID1)[setkey(headData, OrigPlotID1), nomatch = 0]
   headData <- headData[, .(MeasureID, OrigPlotID1, MeasureYear,
-                           Longitude = NA,
-                           Latitude = NA, Zone, Easting, Northing, PlotSize, baseYear, baseSA
+                           Longitude = NA, Latitude = NA, Zone, Easting, Northing,
+                          PlotSize, baseYear, baseSA
   )]
 
   # Standardize
@@ -182,6 +182,10 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   # final clean up
   treeData[Height <= 0, Height := NA]
   treeData <- treeData[!is.na(DBH) & DBH > 0]
+
+  headData[MeasureYear > 1976, minDBH := 7.1]
+  headData[is.na(minDBH), minDBH := 9.2]
+
 
   treeData <- treeData[, .(
     MeasureID, OrigPlotID1, MeasureYear, TreeNumber, PSP, Species, DBH, Height
