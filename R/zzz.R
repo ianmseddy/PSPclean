@@ -10,7 +10,7 @@ utils::globalVariables(
     "CONDITION_CODE3", "CoordTypeCode", "crown_class", "CROWN_CLASS",
     "CrownClassCode", "CrownClsr", "CRZ_EAST", "CRZ_ZONE", "CRZNORTH",
     "dam_1", "dam_2", "dam_3", "dam_4", "dam_5", "Damage Agent Code",
-    "damage_agent", "DATE_SOND", "Datum", "dbh", "DBH", "dbh_age",
+    "damage_agent", "DATE_SOND", "Datum", "dbh", "DBH", "dbh_age", "dbhlimit_tag",
     "DERN_SOND", "DHP", "Easting", "elev", "elevation", "Elevation",
     "ESSENCE", "EstabAge", "EstabDate", "EstabYear", "ETAGE_ARB",
     "ETAT", "FieldAge", "FieldAge_Base", "FieldAge_DBH", "FieldAge_diff",
@@ -41,7 +41,8 @@ utils::globalVariables(
     "tree_plot_area", "TREE_STATUS", "treeAge", "TreeGrowthPlotKey",
     "TreeHeaderKey", "TreeKey", "TreeMsrKey", "TREENO", "treenum",
     "TreeNum", "TreeNumber", "TreeOriginCode", "TreeRenumber", "trees_measurement_comment",
-    "TreeStatusCode", "TYPE_PE", "unifiedAge", "utm_e", "utm_easting",
-    "utm_n", "utm_northing", "utm_zone", "VERSION", "VisitTypeName",
+    "TreeStatusCode", "tree_tagging_limit", "TYPE_PE", "unifiedAge", "utm_e",
+    "utm_easting", "utm_n", "utm_northing", "utm_zone", "VERSION", "VisitTypeName",
     "Width", "year", "YEAR", "Z13nad83_e", "Z13nad83_n", "zone",
+
     "Zone"))
