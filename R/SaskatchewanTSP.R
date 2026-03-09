@@ -1,6 +1,7 @@
 
 
-#' standardize and treat the Saskatchewan Mistik TSP data
+#' standardize and treat the Saskatchewan Mistik temporary sample plot data
+#' This function will be deprecated
 #'
 #' @param compiledPlotData the plot header data
 #' @param compiledTreeData the tree data

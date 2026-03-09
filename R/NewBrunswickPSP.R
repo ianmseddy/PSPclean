@@ -136,6 +136,8 @@ dataPurification_NBPSP <- function(NB_PSP_Data,
 
   PSP_PLOTS[, source := "NB"]
   PSP_TREE_YIMO[, source := "NB"]
+  PSP_PLOTS[, minDBH := 5.1] #page 10 of User Guide
+  #note it mentions mountain maple and alder do not adhere to this threshold)
 
   return(list(
     "plotHeaderData" = PSP_PLOTS,
