@@ -2,7 +2,7 @@
 % Please edit documentation in R/NFIPSP.R
 \name{dataPurification_NFIPSP}
 \alias{dataPurification_NFIPSP}
-\title{#' Standardize and Treat the NFI PSP Data}
+\title{Standardize and Treat the NFI PSP Data}
 \usage{
 dataPurification_NFIPSP(
   NFIdata,

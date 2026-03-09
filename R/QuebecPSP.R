@@ -231,8 +231,15 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
     MeasureID, OrigPlotID1, MeasureYear, TreeNumber, PSP, Species, DBH, Height
   )]
 
+  PLACETTE_FINAL[, minDBH := 9]
+  # Gaules (saplings) in sub‑plots use a lower threshold:
+  # Quebec distinguishes “arbres numérotés” ≥ 91 mm and
+  # “gaules numérotées” (younger/smaller stems), typically starting around
+  #51 mm depending on the form. but in the main 400m² plot, the threshold remains 90 mm
+
   PLACETTE_FINAL[, source := "QC"]
   trees[, source := "QC"]
+
 
   return(list(plotHeaderData = PLACETTE_FINAL,
               treeData = trees))

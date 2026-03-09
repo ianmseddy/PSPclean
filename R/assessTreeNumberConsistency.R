@@ -8,9 +8,10 @@ globalVariables(c(
 #' @title Analyze Regeneration Proportion and Tree DBH Growth
 #'
 #' @description
-#' Computes the proportion of regeneration trees (`propStatus`) per MeasureID, Plot, and Source;
-#' identifies high-regeneration MeasureIDs; summarizes DBH statistics for high-regeneration plots;
-#' calculates elapsed time between successive measurements; and flags trees with biologically implausible DBH growth.
+#' 1. Identifies plots where all trees identified, and their subsequent measurements. These are of interest
+#' as the stand age is unlikely to be correct
+#' 2. calculates elapsed time between successive measurements and flags trees with
+#' biologically implausible DBH growth based on the max_assumed_growth_rate param
 #'
 #' @param plots A list containing at least a data frame `PSPmeasure` with tree measurements and `PSPplot` with measurement years.
 #' @param max_assumed_growth_rate Maximum plausible DBH growth per year for
@@ -26,7 +27,7 @@ globalVariables(c(
 #'
 #' @importFrom data.table data.table as.data.table .SD :=
 #' @export
-plot_regen_proportion <- function(plots,
+assessTreeNumberConsistency <- function(plots,
                                   max_assumed_growth_rate = 1) {
 
   # Convert to data.table
@@ -50,8 +51,11 @@ plot_regen_proportion <- function(plots,
   #TODO: these mininmums are an approximation
   minDBHs <- data.table(source = c("BC", "AB", "SK", "ON", "QC", "NB", "NFI"),
                         minDBH = c(4, 9.1, 9.7, 2.5, 9, 5, 9))
+
   #Alberta is 5 post 2015; BC varies and 4 is the min of mins, SK is 7 after 1977
-  DT <- DT[minDBHs, on = c("source")]
+  if (is.null(DT$minDBH)){
+    DT <- DT[minDBHs, on = c("source")]
+  }
 
   #------------------------------------------------------------
   # Compute elapsed time between measurements
