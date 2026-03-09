@@ -6,7 +6,7 @@ globalVariables(c(
   "ALTITUDE", "ORIGINE", "PERTURB",
   "AGE_SANSOP", "CL_QUAL", "HAUT_ARBRE", "ID_PE", "QCPSP", "SOURCE_AGE",
   "ID_ARBRE", "NO_ARBRE", "ID_ARB_MES", "ETAT", "ESSENCE", "DHP",
-  "Species", "DBH", "Height", "TreeNumber","MeasureYear"
+  "Species", "DBH", "Height", "TreeNumber","MeasureYear", "minDBH"
 ))
 
 
