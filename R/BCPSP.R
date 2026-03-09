@@ -120,7 +120,6 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
 
   set(headerData, NULL, "OrigPlotID2", NULL)
 
-  browser()
   headerData <- headerData[, .(MeasureID, OrigPlotID1, MeasureYear,
                                Longitude = NA,
                                Latitude = NA, Zone, Easting, Northing, minDBH, Elevation,
