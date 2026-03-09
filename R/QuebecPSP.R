@@ -173,6 +173,11 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   #standardize attribute names
   PLACETTE_FINAL <- PLACETTE_FINAL[, .(ID_PE, ID_PE_MES, MeasureYear, ALTITUDE,
                                        LATITUDE, LONGITUDE, baseStandAge, baseYear)]
+  # “Tous les arbres … seront mesurés sur toute la superficie de la placette si
+  # leur DHP est supérieur à 90 mm (9,0 cm).”[Protocole...vant coupe]
+  PLACETTE_FINAL[, minDBH := 9]
+  #PLACETTE_FINAL$minDBH <- 9
+
   #per documentation, all PEP (placette echantillon permanente) are 400m2
   #there does not appear to be an area field that explicitly defines the plot area
   #see PLAN_DESC_TYPE_PE
@@ -200,9 +205,10 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
            old = c(sppEquivCol,"QCPSP", "DHP", "HAUT_ARBRE", "NO_ARBRE", "ID_PE", "ID_PE_MES"),
            new = c("Species","PSP", "DBH", "Height", "TreeNumber", "OrigPlotID1", "MeasureID"))
 
+
   setnames(PLACETTE_FINAL,
-           old = c("ID_PE", "ID_PE_MES", "ALTITUDE", "baseStandAge", "LATITUDE", "LONGITUDE"),
-           new = c("OrigPlotID1", "MeasureID", "Elevation", "baseSA", "Latitude", "Longitude"))
+           old = c("ID_PE", "ID_PE_MES", "ALTITUDE","minDBH", "baseStandAge", "LATITUDE", "LONGITUDE"),
+           new = c("OrigPlotID1", "MeasureID", "minDBH","Elevation", "baseSA", "Latitude", "Longitude"))
 
   # Check
   trees[, .(PSP, Species)]
