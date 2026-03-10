@@ -196,11 +196,13 @@ process_dbh_issues <- function(Trees) {
 
   # Identify plots to keep: either low negative growth or no growth data
   OrigPlotID1s_to_keep <- negative_growth_summary %>%
-    filter(neg_growth_pct <= 5 | is.na(neg_growth_pct)) %>% # Keeps only OrigPlotID1s where the negative DBH growth percentage is ≤ 5%, or missing (i.e., OrigPlotID1s with no DBH change data).
+    filter(neg_growth_pct <= 5 | is.na(neg_growth_pct)) %>% #
     pull(OrigPlotID1)
-
+  # Keeps only OrigPlotID1s where the negative DBH growth percentage is ≤ 5%, or missing (i.e., OrigPlotID1s with no DBH change data).
   Trees_corrected <- Trees %>%
-    filter(OrigPlotID1 %in% OrigPlotID1s_to_keep) # Removes OrigPlotID1s with >5% negative DBH change from the final processed_data.
+    filter(OrigPlotID1 %in% OrigPlotID1s_to_keep)
+  # Removes OrigPlotID1s with >5% negative DBH change from the final processed_data.
+  #TOOD: review this 5% - it seems overkill to remove the entire plot over 1 typo?
 
   # Returns a list containing:
   return(list(
