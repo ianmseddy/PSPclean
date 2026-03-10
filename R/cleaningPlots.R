@@ -59,69 +59,70 @@ detect_dbh_outliers <- function(Trees, dbh_col = "DBH", plot_col = "OrigPlotID1"
 }
 
 
-#' @title Identify Tree Numbers Linked to Multiple PSP Names in a Plot
+#' @title Identify Tree Numbers Linked to Multiple Species Within a Plot
 #'
 #' @description
-#' Ensures consistent tree numbering when a tree (TreeNumber) in a plot (OrigPlotID1) is associated with multiple PSP over time.
+#' Ensures consistent Species and Tree numbering within a plot (OrigPlotID1)
 #'
 #'
-#' @param Trees A `data.table` of tree observations containing PSP identifiers and measurement years.
+#'
+#' @param Trees A `data.table` of tree observations containing OrigPlotID1, Species,
+#' PSP, MeasureYear and TreeNumber columns.
 #'
 #' @return A list containing:
 #' \describe{
-#'   \item{incorrect_data}{Flagged inconsistent PSP data.}
-#'   \item{correct_PSP}{Most likely PSP for each tree.}
-#'   \item{regeneration}{Subset with apparent regeneration.}
-#'   \item{last_measurement}{Subset with last recorded measurements.}
 #'   \item{Trees_corrected}{Cleaned tree dataset.}
-#'   \item{OrigPlotID1s}{Unique OrigPlotID1 identifiers.}
 #' }
 #'
 #' @export
 #'
-#' @importFrom data.table as.data.table copy
-#' @importFrom dplyr last first
-#' @importFrom dplyr n distinct n_distinct row_number arrange slice_max
-#' @importFrom dplyr group_by mutate ungroup filter summarise case_when
-#' @importFrom dplyr semi_join anti_join left_join bind_rows select coalesce
-#' @importFrom magrittr %>%
+#' @importFrom data.table copy
 #'
 treenum_to_multiplePSP <- function(Trees) {
 
   # Convert to data.table
   Trees <- copy(Trees)
-  Trees <- as.data.table(Trees)
 
+  safety <- nrow(Trees)
   # Identify a tree number assigned to multiple PSP in the same plot
-  incorrect_trees <- Trees %>%
-    group_by(OrigPlotID1, TreeNumber) %>%
-    filter(n_distinct(Species) > 1) %>%
-    ungroup()
 
-   # Identify correct PSP by most frequent combination within each Plot
-   correct_PSP <- incorrect_trees %>%
-    group_by(OrigPlotID1, TreeNumber, Species, PSP) %>%
-    summarise(count = n(), .groups = "drop") %>%
-    arrange(desc(count)) %>%
-    group_by(OrigPlotID1, TreeNumber) %>%
-    slice_max(count, with_ties = FALSE) %>%
-    ungroup() %>%
-    distinct(OrigPlotID1, TreeNumber, Species, PSP)
+  setkey(Trees, OrigPlotID1, TreeNumber, Species)
+  uniqueTrees <- Trees[, .(OrigPlotID1, TreeNumber, Species)]
+  #drop repeat measurements for faster unique
+  uniqueTrees <- uniqueTrees[!duplicated(uniqueTrees)]
 
-   # Correct PSP and Species in the original dataset
-   trees_corrected <- Trees %>%
-     left_join(correct_PSP, by = c("OrigPlotID1", "TreeNumber")) %>%
-     mutate(
-       PSP= coalesce(PSP.y, PSP.x),
-       Species = coalesce(Species.y, Species.x)) %>%
-     select(-PSP.x, -PSP.y, -Species.x, -Species.y)  # Remove extra columns
+  duplicateSpp <- uniqueTrees[, .N, .(OrigPlotID1, TreeNumber)][N > 1]
+  badTrees <- Trees[duplicateSpp, on = c("OrigPlotID1", "TreeNumber")]
 
-   return(list(
-     incorrect_trees = incorrect_trees,
-               correct_PSP = correct_PSP,
-               Trees_corrected = trees_corrected,
-               OrigPlotID1s = unique(Trees$OrigPlotID1)
-     ))
+  goodTrees <- Trees[!duplicateSpp, on = c("OrigPlotID1", "TreeNumber")]
+  #fix unknowns first - species was identified at some point (likely later)
+  unknowns <- badTrees[Species == "unknown",]
+  #must be unique in case unknown is > 1 e.g. SKPSP30239 TreeNumber 197
+  identified <- unique(badTrees[unknowns[, .(OrigPlotID1, TreeNumber)]][!Species == "unknown",])
+  unknowns[, c("Species", "PSP") := NULL]
+  identified_short <- unique(identified[, .(OrigPlotID1, TreeNumber, PSP, Species)])
+  nowKnown <- identified_short[, .(OrigPlotID1, TreeNumber, PSP, Species)][unknowns,
+                       on = c("OrigPlotID1", "TreeNumber")]
+  nowKnown <- rbind(identified, nowKnown)[, N := NULL]
+  goodTrees <- rbind(nowKnown, goodTrees)
+  #Fortunately there are no combinations where the tree was unknown and identified as 2+ other spp
+  badTrees <- badTrees[!nowKnown, on = c("OrigPlotID1", "TreeNumber")]
+
+  # else - take the most recent measurement
+  # assume they become easier to identify as they age (cones, bark)
+  badTrees[, mostRecentMsr := max(MeasureYear), .(OrigPlotID1, TreeNumber)][, N := NULL]
+  idsToAssign <- badTrees[MeasureYear == mostRecentMsr,]
+  needNewSpp <- badTrees[!MeasureYear == mostRecentMsr,]
+  needNewSpp[, c("PSP", "Species") := NULL]
+  needNewSpp <- unique(needNewSpp)
+  needNewSpp <- idsToAssign[, .(OrigPlotID1, TreeNumber, PSP, Species)][needNewSpp,
+                                                                        on = c("OrigPlotID1", "TreeNumber")]
+  needNewSpp <- rbind(needNewSpp, idsToAssign)[, mostRecentMsr := NULL]
+  goodTrees <- rbind(goodTrees, needNewSpp)
+  #just in case duplicates are caused by joins with Species
+  goodTrees <- goodTrees[!duplicated(goodTrees),]
+
+  return(goodTrees)
 }
 
 #' @title Process Implausible DBH Changes Across Measurement Years
@@ -159,8 +160,10 @@ process_dbh_issues <- function(Trees) {
   Trees[, diff_dbh := DBH - data.table::shift(DBH), by = .(OrigPlotID1, TreeNumber)]
 
   # Creates two diagnostic subsets:negative_growth and na_values
-  negative_growth <- Trees %>% filter(diff_dbh < -0.5)  # trees showing suspicious negative growth greater than 0.5 cm (used as a threshold for likely error).
-  na_values <- Trees %>% filter(is.na(diff_dbh))        # records where diff_dbh is NA (typically the first measurement for a tree).
+  negative_growth <- Trees %>% filter(diff_dbh < -0.5)  # trees showing suspicious negative growth greater than 0.5 cm
+  #(used as a threshold for likely error).
+  na_values <- Trees %>% filter(is.na(diff_dbh))
+  # records where diff_dbh is NA (typically the first measurement for a tree but possibly regen)
 
   # Flag invalid DBH values
   Trees <- Trees %>%
@@ -168,7 +171,7 @@ process_dbh_issues <- function(Trees) {
 
   # Subset DBH inconsistencies
   dbh_issues <- Trees %>%
-    filter(diff_dbh < 0) %>%                                                       # Filters out all records with negative growth for inspection.
+    filter(diff_dbh < 0) %>%  # Filters out all records with negative growth for inspection.
     select(Species, OrigPlotID1, MeasureID, TreeNumber, DBH, MeasureYear, diff_dbh) %>%    # Selects only relevant columns and arranges them for easy review.
     arrange(OrigPlotID1, TreeNumber, MeasureYear)
 

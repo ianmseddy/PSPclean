@@ -143,20 +143,22 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
 
     PSPmeasure <- rbindlist(PSPmeasures, fill = TRUE)
     PSPplot <- rbindlist(PSPplots, fill = TRUE)
+
     #Parvin's cleaning functions here:
     #first one : Identifies statistical outliers in key variables (e.g., DBH)
-    # this is too slow in practice for what is corrected - better to address upstream
+    # this is too slow in practice for the few measurements that are identified
+    # We choose to address these records upstream
     # cleaningData1 <- detect_dbh_outliers(Trees = PSPmeasure)
     # PSPmeasure <- cleaningData1$Trees
     # #View outliers
     # outliers <- PSPmeasure[is_outlier_z == TRUE]
     # PSPplot <- PSPplot[OrigPlotID1 %in% cleaningData1$OrigPlotID1s,]
 
+    #remove duplicates
+    PSPmeasure <- PSPmeasure[!duplicated(PSPmeasure)]
+
     #second one : Identify and resolves all inconsistencies, when a tree number in a Plot is linked to multiple Species Names
-    cleaningData2 <- treenum_to_multiplePSP(Trees = PSPmeasure)
-    PSPmeasure <- cleaningData2$Trees_corrected                 # Update PSPmeasure with corrected data
-    PSPmeasure_incorrect_data <- cleaningData2$incorrect_trees  # Store the records that had inconsistent species
-    PSPplot <- PSPplot[OrigPlotID1 %in% cleaningData2$OrigPlotID1s,]
+    PSPmeasure <- treenum_to_multiplePSP(Trees = PSPmeasure)
 
     #third one : Process Implausible DBH Changes Across Measurement Years
     cleaningData3 <- process_dbh_issues(Trees = PSPmeasure)
