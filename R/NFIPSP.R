@@ -125,7 +125,7 @@ dataPurification_NFIPSP <- function(NFIdata, codesToExclude = "IB", excludeAllOb
   lgpHeader[, source := "NFI"]
   treeData[, source := "NFI"]
 
-  lgpHeader[, minDBH = 9.0] #some trees will be below -  those with tree numbers in the 8000s..?
+  lgpHeader[, minDBH := 9.0] #some trees will be below -  those with tree numbers in the 8000s..?
 
   return(list(
     "plotHeaderData" = lgpHeader,
