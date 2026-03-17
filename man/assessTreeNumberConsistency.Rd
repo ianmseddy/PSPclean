@@ -18,7 +18,9 @@ A list with:
 \item{problematicMeasurements}{MeasurementIDs with 100\% regen at some point in plot history
 If the problematic measurement is the last measurement, then prior measurements are not included.
 If the problematic measurement is NOT the first, then all measurements are included}
-\item{problematic trees}{trees with problematic DBH (ie growing faster than max_assumed_growth_rate)}
+\item{problematic trees}{trees with problematic DBH (ie growing faster than max_assumed_growth_rate) and other
+variables: elapsedTime (years between measurements), DBHdiffFromMax (the difference between the actual growth rate
+and the expected maximum growth rate), and DBHdiffFromMax_perYear (the latter divided by the former))}
 }
 }
 \description{

@@ -23,7 +23,7 @@ globalVariables(c(
 #'   If the problematic measurement is the last measurement, then prior measurements are not included.
 #'   If the problematic measurement is NOT the first, then all measurements are included}
 #'   \item{problematic trees}{trees with problematic DBH (ie growing faster than max_assumed_growth_rate) and other 
-#'   variables, e.g. elapsedTime (years between measurements), DBHdiffFromMax (the difference between the actual growth rate
+#'   variables: elapsedTime (years between measurements), DBHdiffFromMax (the difference between the actual growth rate
 #'   and the expected maximum growth rate), and DBHdiffFromMax_perYear (the latter divided by the former))}
 #' }
 #'
