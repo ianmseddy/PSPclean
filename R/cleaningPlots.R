@@ -95,33 +95,35 @@ treenum_to_multiplePSP <- function(Trees) {
   badTrees <- Trees[duplicateSpp, on = c("OrigPlotID1", "TreeNumber")]
 
   goodTrees <- Trees[!duplicateSpp, on = c("OrigPlotID1", "TreeNumber")]
-  #fix unknowns first - species was identified at some point (likely later)
-  unknowns <- badTrees[Species == "unknown",]
-  #must be unique in case unknown is > 1 e.g. SKPSP30239 TreeNumber 197
-  identified <- unique(badTrees[unknowns[, .(OrigPlotID1, TreeNumber)]][!Species == "unknown",])
-  unknowns[, c("Species", "PSP") := NULL]
-  identified_short <- unique(identified[, .(OrigPlotID1, TreeNumber, PSP, Species)])
-  nowKnown <- identified_short[, .(OrigPlotID1, TreeNumber, PSP, Species)][unknowns,
-                       on = c("OrigPlotID1", "TreeNumber")]
-  nowKnown <- rbind(identified, nowKnown)[, N := NULL]
-  goodTrees <- rbind(nowKnown, goodTrees)
-  #Fortunately there are no combinations where the tree was unknown and identified as 2+ other spp
-  badTrees <- badTrees[!nowKnown, on = c("OrigPlotID1", "TreeNumber")]
-
-  # else - take the most recent measurement
-  # assume they become easier to identify as they age (cones, bark)
-  badTrees[, mostRecentMsr := max(MeasureYear), .(OrigPlotID1, TreeNumber)][, N := NULL]
-  idsToAssign <- badTrees[MeasureYear == mostRecentMsr,]
-  needNewSpp <- badTrees[!MeasureYear == mostRecentMsr,]
-  needNewSpp[, c("PSP", "Species") := NULL]
-  needNewSpp <- unique(needNewSpp)
-  needNewSpp <- idsToAssign[, .(OrigPlotID1, TreeNumber, PSP, Species)][needNewSpp,
-                                                                        on = c("OrigPlotID1", "TreeNumber")]
-  needNewSpp <- rbind(needNewSpp, idsToAssign)[, mostRecentMsr := NULL]
-  goodTrees <- rbind(goodTrees, needNewSpp)
-  #just in case duplicates are caused by joins with Species
-  goodTrees <- goodTrees[!duplicated(goodTrees),]
-
+  
+  if (nrow(badTrees) > 0) {
+    #fix unknowns first - species was identified at some point (likely later)
+    unknowns <- badTrees[Species == "unknown",]
+    #must be unique in case unknown is > 1 e.g. SKPSP30239 TreeNumber 197
+    identified <- unique(badTrees[unknowns[, .(OrigPlotID1, TreeNumber)]][!Species == "unknown",])
+    unknowns[, c("Species", "PSP") := NULL]
+    identified_short <- unique(identified[, .(OrigPlotID1, TreeNumber, PSP, Species)])
+    nowKnown <- identified_short[, .(OrigPlotID1, TreeNumber, PSP, Species)][unknowns,
+                                                                             on = c("OrigPlotID1", "TreeNumber")]
+    nowKnown <- rbind(identified, nowKnown)[, N := NULL]
+    goodTrees <- rbind(nowKnown, goodTrees)
+    #Fortunately there are no combinations where the tree was unknown and identified as 2+ other spp
+    badTrees <- badTrees[!nowKnown, on = c("OrigPlotID1", "TreeNumber")]
+    
+    # else - take the most recent measurement
+    # assume they become easier to identify as they age (cones, bark)
+    badTrees[, mostRecentMsr := max(MeasureYear), .(OrigPlotID1, TreeNumber)][, N := NULL]
+    idsToAssign <- badTrees[MeasureYear == mostRecentMsr,]
+    needNewSpp <- badTrees[!MeasureYear == mostRecentMsr,]
+    needNewSpp[, c("PSP", "Species") := NULL]
+    needNewSpp <- unique(needNewSpp)
+    needNewSpp <- idsToAssign[, .(OrigPlotID1, TreeNumber, PSP, Species)][needNewSpp,
+                                                                          on = c("OrigPlotID1", "TreeNumber")]
+    needNewSpp <- rbind(needNewSpp, idsToAssign)[, mostRecentMsr := NULL]
+    goodTrees <- rbind(goodTrees, needNewSpp)
+    #just in case duplicates are caused by joins with Species
+    goodTrees <- goodTrees[!duplicated(goodTrees),]
+  }
   return(goodTrees)
 }
 
