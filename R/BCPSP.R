@@ -35,38 +35,39 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
            SAtimes = length(unique(tot_stand_age)),
            plotsizetimes = length(unique(area_pm)),
            standorigtimes = length(unique(stnd_org)),
-           treatmenttimes = length(unique(treatment)),
-           dbhlimit_tag = dbhlimit_tag),
+           treatmenttimes = length(unique(treatment))), 
     by = SAMP_ID
   ]
-
+  #track the dbh tagging limit but join it later once each plot has unique measure IDs
+  forLater <- unique(headerData[, .(SAMP_ID, meas_yr, dbhlimit_tag)])
+  
   # select the natural originated and untreated
   headerData <- headerData[stnd_org == "N" | stnd_org == "F", ]
-  # this removes the repeated DBH utilization limits
+  
   headerData[, treatmenttimes := length(unique(treatment)), by = c("SAMP_ID", "meas_yr")]
   # unique(headDataRaw$treatmenttimes) # 1 2
   headerData <- headerData[
     treatmenttimes == 1 & treatment == "UNTREATED",
     .(SAMP_ID, utm_zone, utm_easting,
-      utm_northing, dbhlimit_tag,
-      Elevation = elev, area_pm, tot_stand_age,
+      utm_northing, 
+      Elevation = elev, area_pm, tot_stand_age, 
       meas_yr
     )
   ]
-  headerData[, baseYear := min(meas_yr), by = SAMP_ID]
+  headerData[, baseYear := min(meas_yr), by = SAMP_ID] #evidently some plots have multiple ages
   headerData[, baseSA := as.integer(tot_stand_age - (meas_yr - baseYear))]
   # get the plots with locations
   headerData <- headerData[!is.na(utm_zone) & !is.na(utm_easting) & !is.na(utm_northing), ]
   # get plots with plot size
 
   headerData <- headerData[!is.na(area_pm), ][, ":="(tot_stand_age = NULL, meas_yr = NULL)]
-
+  
   setnames(headerData,
-           old = c("SAMP_ID", "utm_zone", "utm_easting", "utm_northing", "area_pm", "dbhlimit_tag"),
-           new = c("OrigPlotID1", "Zone", "Easting", "Northing", "PlotSize", "minDBH")
+           old = c("SAMP_ID", "utm_zone", "utm_easting", "utm_northing", "area_pm"),
+           new = c("OrigPlotID1", "Zone", "Easting", "Northing", "PlotSize")
   )
-  headerData <- unique(headerData, by = c("OrigPlotID1"))
-
+  headerData <- unique(headerData, by = "OrigPlotID1")
+  
   # for tree data
   # SAMP_ID is lower case in new BC dataset
   setnames(treeDataRaw, c("samp_id", "plot_no"), c("OrigPlotID1", "OrigPlotID2"))
@@ -116,18 +117,32 @@ dataPurification_BCPSP <- function(treeDataRaw, plotHeaderDataRaw, damageAgentCo
   )
   measureidtable[, MeasureID := paste("BCPSP_", row.names(measureidtable), sep = "")]
   measureidtable <- measureidtable[, .(MeasureID, OrigPlotID1, OrigPlotID2, MeasureYear)]
-  headerData <- setkey(measureidtable, OrigPlotID1)[setkey(headerData, OrigPlotID1), nomatch = 0]
+
+  headerData <- setkey(measureidtable, OrigPlotID1, MeasureYear)[setkey(headerData, OrigPlotID1), nomatch = 0]
 
   set(headerData, NULL, "OrigPlotID2", NULL)
-
   headerData <- headerData[, .(MeasureID, OrigPlotID1, MeasureYear,
-                               Longitude = NA,
-                               Latitude = NA, Zone, Easting, Northing, minDBH, Elevation,
+                               Longitude = NA, Latitude = NA, 
+                               Zone, Easting, Northing, Elevation,
                                PlotSize, baseYear, baseSA
   )]
   measureidtable <- setkey(measureidtable, OrigPlotID1, OrigPlotID2, MeasureYear)
   treeData <- measureidtable[setkey(treeData, OrigPlotID1, OrigPlotID2, MeasureYear), nomatch = 0]
 
+  #join in the dbhlimit information
+  setnames(forLater, 
+           old = c("SAMP_ID", "meas_yr", "dbhlimit_tag"), 
+           new = c("OrigPlotID1", "MeasureYear", "minDBH"))
+  #some subplots had different tagging limits, even within the same year. Take the max
+  forLater[, minDBH := max(minDBH), .(OrigPlotID1, MeasureYear)]
+  forLater <- unique(forLater) #due to clusters, rows repeated
+  
+  sanity <- nrow(headerData)
+  headerData <- forLater[headerData, on = c("OrigPlotID1", "MeasureYear")]
+  if (nrow(headerData) != sanity) {
+    stop("error joining min DBH tagging limit to plots. Please contact ian.eddy@nrcan-rncan.gc.ca and complain, heartily")
+  }
+  
   # Standardize
   # Select only necessary columns and join
   sppEquiv <- sppEquiv[BC_forestry != "", .SD, .SDcols = c("BC_forestry", sppEquivCol)]
