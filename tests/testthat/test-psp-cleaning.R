@@ -94,4 +94,22 @@ test_that("PSP data is not empty and mandatory columns are complete for all prov
   nfiClean <- dataPurification_NFIPSP(NFIdata = nfi)
   check_data(nfiClean$treeData, mandatoryTreeCols)
   check_data(nfiClean$plotHeaderData, mandatoryPlotCols)
+  
+  allPlots <- rbind(bcClean$plotHeaderData,
+                    abClean$plotHeaderData,
+                    nfiClean$plotHeaderData,
+                    skClean$plotHeaderData,
+                    onClean$plotHeaderData,
+                    nbClean$plotHeaderData, 
+                    qcClean$plotHeaderData,
+                    fill = TRUE
+  )
+  
+  out8 <- geoCleanPSP(allPlots)
+  expect_false(any(sf::st_is_empty(out8)))
+  
+  #check for duplicate plots
+  allPlots[, N := .N, .(MeasureID, OrigPlotID1, MeasureYear)]
+  expect_true(max(allPlots$N) < 2)
+  
 })
