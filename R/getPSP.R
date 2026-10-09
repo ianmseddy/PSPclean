@@ -10,6 +10,11 @@
 #'  name of each species. The default is `"Latin_full"`. It is recommended not to change this as
 #'  there must be a one-to-one or one-to-many (e.g. variants, hybrids) relationship for each
 #'  column in sppEquiv that is used internally in the different standardization functions (e.g. AB_forestry)
+#' @param codesToExclude named list of damage agent codes, by source (`"BC"`,
+#'  `"AB"`, `"SK"`, `"NFI"`): every measurement of a tree recorded with one of
+#'  them (for `"SK"`, a tree that died of one of these causes) is removed. A
+#'  source not named takes the `forGMCS` default (its insect codes if `TRUE`,
+#'  none otherwise).
 #' @return a list of standardized plot and tree data.tables
 #'
 #' @export
@@ -18,7 +23,14 @@
 #' @importFrom reproducible prepInputs
 getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
                    sppEquiv = LandR::sppEquivalencies_CA,
-                   sppEquivCol = "Latin_full") {
+                   sppEquivCol = "Latin_full", codesToExclude = NULL) {
+  if (!is.null(codesToExclude)) {
+    unknown <- setdiff(names(codesToExclude), c("BC", "AB", "SK", "NFI"))
+    if (!is.list(codesToExclude) || is.null(names(codesToExclude)) || length(unknown)) {
+      stop("codesToExclude must be a list named by source, of BC, AB, SK and NFI",
+           if (length(unknown)) paste0(" (not ", paste(unknown, collapse = ", "), ")"))
+    }
+  }
   if ("dummy" %in% PSPdataTypes) {
     message("generating randomized PSP data")
 
@@ -57,7 +69,7 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
     PSPplots <- list()
 
     if (any(c("BC", "all") %in% PSPdataTypes)) {
-      BCexclude <- if (forGMCS) {"IMB"} else {NULL}
+      BCexclude <- damageCodesToExclude("BC", codesToExclude, forGMCS)
       PSPbc <- prepInputsBCPSP(dPath = destinationPath)
       PSPbc <- dataPurification_BCPSP(treeDataRaw = PSPbc$treeDataRaw,
                                       plotHeaderDataRaw = PSPbc$plotHeaderDataRaw,
@@ -71,7 +83,7 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
     }
 
     if (any(c("AB", "all") %in% PSPdataTypes)) {
-      ABexclude <- if (forGMCS) {3} else {NULL}
+      ABexclude <- damageCodesToExclude("AB", codesToExclude, forGMCS)
       PSPab <- prepInputsAlbertaPSP(dPath = destinationPath)
       PSPab <- dataPurification_ABPSP(treeMeasure = PSPab$pspABtreeMeasure,
                                       plotMeasure = PSPab$pspABplotMeasure,
@@ -91,6 +103,7 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
                                       plotHeaderRaw = PSPsk$plotHeaderRaw,
                                       measureHeaderRaw = PSPsk$measureHeaderRaw,
                                       treeDataRaw = PSPsk$treeDataRaw,
+                                      codesToExclude = damageCodesToExclude("SK", codesToExclude, forGMCS),
                                       sppEquiv = sppEquiv,
                                       sppEquivCol = sppEquivCol)
       PSPmeasures[["SK"]] <- PSPsk$treeData
@@ -132,7 +145,7 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
 
     if ("NFI" %in% PSPdataTypes | "all" %in% PSPdataTypes) {
 
-      NFIexclude <- if (forGMCS) {"IB"} else {NULL}
+      NFIexclude <- damageCodesToExclude("NFI", codesToExclude, forGMCS)
       PSPnfi <- prepInputsNFIPSP(dPath = destinationPath)
       PSPnfi <- dataPurification_NFIPSP(PSPnfi, codesToExclude = NFIexclude,
                                         sppEquiv = sppEquiv,
@@ -197,4 +210,18 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
               PSPmeasure = PSPmeasure,
               PSPgis = PSPgis))
 
+}
+
+## Damage agent codes to exclude for one PSP source: those given in `codesToExclude`, else, with
+## `forGMCS`, the insect codes the climate-sensitive growth models exclude (BC mountain pine beetle,
+## AB code 3, NFI bark beetles; none for SK, as before), else none. BC's mountain pine beetle code is "IBM"; "IMB", used here
+## before, matches no BC code, so no tree was removed.
+damageCodesToExclude <- function(source, codesToExclude = NULL, forGMCS = FALSE) {
+  if (!is.null(codesToExclude[[source]])) {
+    return(codesToExclude[[source]])
+  }
+  if (!isTRUE(forGMCS)) {
+    return(NULL)
+  }
+  switch(source, BC = "IBM", AB = 3, NFI = "IB", NULL)
 }
