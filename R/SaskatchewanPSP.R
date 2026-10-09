@@ -85,7 +85,7 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
     # therefore, we only remove observations if excludeAllObs is TRUE
     # meaning, if a tree died due to e.g. insects, remove it from all obs
     if (excludeAllObs) {
-      flaggedTrees <- treeData[MORTALITY %in% codesToExclude, ]
+      treeDataRaw <- removeTreesByMortality(treeDataRaw, codesToExclude)
     }
   }
 
@@ -227,4 +227,12 @@ prepInputsSaskatchwanPSP <- function(dPath) {
     "measureHeaderRaw" = measureHeaderRaw,
     "treeDataRaw" = treeDataRaw
   ))
+}
+
+
+## Remove every observation of each tree that died of a cause in `codesToExclude` (SK's MORTALITY codes).
+## This used to flag them in an object, `treeData`, that did not exist yet, and never removed them.
+removeTreesByMortality <- function(trees, codesToExclude) {
+  flagged <- unique(trees[MORTALITY %in% codesToExclude, .(PLOT_ID, TREE_NO)])
+  trees[!flagged, on = c("PLOT_ID", "TREE_NO")]
 }
