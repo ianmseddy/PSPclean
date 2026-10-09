@@ -27,7 +27,7 @@ Imports:
     sf,
     terra
 Suggests:
-    testthat,
+    testthat (>= 3.1.7),
     withr,
     googledrive,
 Remotes:

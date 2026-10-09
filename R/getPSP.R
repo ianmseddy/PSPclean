@@ -10,10 +10,11 @@
 #'  name of each species. The default is `"Latin_full"`. It is recommended not to change this as
 #'  there must be a one-to-one or one-to-many (e.g. variants, hybrids) relationship for each
 #'  column in sppEquiv that is used internally in the different standardization functions (e.g. AB_forestry)
-#' @param codesToExclude named list of damage agent codes, by source (`"BC"`, `"AB"`, `"SK"`, `"NFI"`):
-#'  every measurement of a tree recorded with one of them (for `"SK"`, a tree that died of one of these
-#'  causes) is removed. A source not named takes the `forGMCS` default (its insect codes if `TRUE`, none
-#'  otherwise).
+#' @param codesToExclude named list of damage agent codes, by source (`"BC"`,
+#'  `"AB"`, `"SK"`, `"NFI"`): every measurement of a tree recorded with one of
+#'  them (for `"SK"`, a tree that died of one of these causes) is removed. A
+#'  source not named takes the `forGMCS` default (its insect codes if `TRUE`,
+#'  none otherwise).
 #' @return a list of standardized plot and tree data.tables
 #'
 #' @export

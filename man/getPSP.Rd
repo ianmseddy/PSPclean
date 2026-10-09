@@ -29,10 +29,11 @@ name of each species. The default is \code{"Latin_full"}. It is recommended not 
 there must be a one-to-one or one-to-many (e.g. variants, hybrids) relationship for each
 column in sppEquiv that is used internally in the different standardization functions (e.g. AB_forestry)}
 
-\item{codesToExclude}{named list of damage agent codes, by source (\code{"BC"}, \code{"AB"}, \code{"SK"}, \code{"NFI"}):
-every measurement of a tree recorded with one of them (for \code{"SK"}, a tree that died of one of these
-causes) is removed. A source not named takes the \code{forGMCS} default (its insect codes if \code{TRUE}, none
-otherwise).}
+\item{codesToExclude}{named list of damage agent codes, by source (\code{"BC"},
+\code{"AB"}, \code{"SK"}, \code{"NFI"}): every measurement of a tree recorded with one of
+them (for \code{"SK"}, a tree that died of one of these causes) is removed. A
+source not named takes the \code{forGMCS} default (its insect codes if \code{TRUE},
+none otherwise).}
 }
 \value{
 a list of standardized plot and tree data.tables
