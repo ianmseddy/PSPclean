@@ -173,6 +173,10 @@ dataPurification_QCPSP <- function(QuebecPSP, codesToExclude = NULL, excludeAllO
   #standardize attribute names
   PLACETTE_FINAL <- PLACETTE_FINAL[, .(ID_PE, ID_PE_MES, MeasureYear, ALTITUDE,
                                        LATITUDE, LONGITUDE, baseStandAge, baseYear)]
+  # “Tous les arbres … seront mesurés sur toute la superficie de la placette si
+  # leur DHP est supérieur à 90 mm (9,0 cm).”[Protocole...vant coupe]
+  # minDBH is set to 9 below, once the columns are renamed
+
   #per documentation, all PEP (placette echantillon permanente) are 400m2
   #there does not appear to be an area field that explicitly defines the plot area
   #see PLAN_DESC_TYPE_PE
