@@ -195,10 +195,10 @@ dataPurification_ONPSP <- function(ONPSPlist,
   treeAges[, nDominant := sum(CrownClassCode == "D "), .(PlotName)]
   treeAges[, nCodominant := sum(CrownClassCode == "C "), .(PlotName)]
   treeAges[, standardizedAge := unifiedAge - FieldSeasonYear + firstAgeMsrYear] # standardize
-  standAgesDominant <- treeAges[
-    nDominant > 1 & CrownClassCode == "D",
+  standAgesDominant <- treeAges[nDominant > 1 & CrownClassCode == "D",
     .(meanStandAge = as.integer(mean(standardizedAge))), .(PlotName, firstAgeMsrYear)
   ]
+  
   standAgesOther <- treeAges[
     nDominant < 2,
     .(meanStandAge = as.integer(mean(standardizedAge, na.rm = TRUE))),
@@ -329,6 +329,7 @@ dataPurification_ONPSP <- function(ONPSPlist,
   plotData[, MeasureID := as.factor(paste0("ONPSP_", as.numeric(MeasureID)))]
   setnames(plotData, c("PlotName", "FieldSeasonYear", "plotArea"), c("OrigPlotID1", "MeasureYear", "PlotSize"))
   plotData[, c("MsrDate", "TreeGrowthPlotKey") := NULL]
+
   plotData <- unique(plotData) # treat different growth plots within a plot as one
 
   #### Final clean up of Tree####
@@ -355,7 +356,6 @@ dataPurification_ONPSP <- function(ONPSPlist,
 
   plotData[, source := "ON"]
   tree[, source := "ON"]
-
 
   return(list(
     plotHeaderData = plotData,

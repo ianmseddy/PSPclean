@@ -85,7 +85,7 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
     # therefore, we only remove observations if excludeAllObs is TRUE
     # meaning, if a tree died due to e.g. insects, remove it from all obs
     if (excludeAllObs) {
-      flaggedTrees <- treeData[MORTALITY %in% codesToExclude, ]
+      treeDataRaw <- removeTreesByMortality(treeDataRaw, codesToExclude)
     }
   }
 
@@ -127,8 +127,8 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   treeData <- treeData[, .(MeasureID, OrigPlotID1, MeasureYear, TreeNumber, Species, DBH, Height)]
   headData <- setkey(measureidtable, OrigPlotID1)[setkey(headData, OrigPlotID1), nomatch = 0]
   headData <- headData[, .(MeasureID, OrigPlotID1, MeasureYear,
-                           Longitude = NA,
-                           Latitude = NA, Zone, Easting, Northing, PlotSize, baseYear, baseSA
+                           Longitude = NA, Latitude = NA, Zone, Easting, Northing,
+                          PlotSize, baseYear, baseSA
   )]
 
   # Standardize
@@ -183,6 +183,10 @@ dataPurification_SKPSP <- function(SADataRaw, plotHeaderRaw, measureHeaderRaw,
   treeData[Height <= 0, Height := NA]
   treeData <- treeData[!is.na(DBH) & DBH > 0]
 
+  headData[MeasureYear > 1976, minDBH := 7.1]
+  headData[is.na(minDBH), minDBH := 9.2]
+
+
   treeData <- treeData[, .(
     MeasureID, OrigPlotID1, MeasureYear, TreeNumber, PSP, Species, DBH, Height
   )]
@@ -223,4 +227,12 @@ prepInputsSaskatchwanPSP <- function(dPath) {
     "measureHeaderRaw" = measureHeaderRaw,
     "treeDataRaw" = treeDataRaw
   ))
+}
+
+
+## Remove every observation of each tree that died of a cause in `codesToExclude` (SK's MORTALITY codes).
+## This used to flag them in an object, `treeData`, that did not exist yet, and never removed them.
+removeTreesByMortality <- function(trees, codesToExclude) {
+  flagged <- unique(trees[MORTALITY %in% codesToExclude, .(PLOT_ID, TREE_NO)])
+  trees[!flagged, on = c("PLOT_ID", "TREE_NO")]
 }

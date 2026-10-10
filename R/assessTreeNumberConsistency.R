@@ -8,9 +8,10 @@ globalVariables(c(
 #' @title Analyze Regeneration Proportion and Tree DBH Growth
 #'
 #' @description
-#' Computes the proportion of regeneration trees (`propStatus`) per MeasureID, Plot, and Source;
-#' identifies high-regeneration MeasureIDs; summarizes DBH statistics for high-regeneration plots;
-#' calculates elapsed time between successive measurements; and flags trees with biologically implausible DBH growth.
+#' 1. Identifies plots where all trees identified, and their subsequent measurements. These are of interest
+#' as the stand age is unlikely to be correct
+#' 2. calculates elapsed time between successive measurements and flags trees with
+#' biologically implausible DBH growth based on the max_assumed_growth_rate param
 #'
 #' @param plots A list containing at least a data frame `PSPmeasure` with tree measurements and `PSPplot` with measurement years.
 #' @param max_assumed_growth_rate Maximum plausible DBH growth per year for
@@ -21,12 +22,14 @@ globalVariables(c(
 #'   \item{problematicMeasurements}{MeasurementIDs with 100% regen at some point in plot history
 #'   If the problematic measurement is the last measurement, then prior measurements are not included.
 #'   If the problematic measurement is NOT the first, then all measurements are included}
-#'   \item{problematic trees}{trees with problematic DBH (ie growing faster than max_assumed_growth_rate)}
+#'   \item{problematic trees}{trees with problematic DBH (ie growing faster than max_assumed_growth_rate) and other 
+#'   variables: elapsedTime (years between measurements), DBHdiffFromMax (the difference between the actual growth rate
+#'   and the expected maximum growth rate), and DBHdiffFromMax_perYear (the latter divided by the former))}
 #' }
 #'
 #' @importFrom data.table data.table as.data.table .SD :=
 #' @export
-plot_regen_proportion <- function(plots,
+assessTreeNumberConsistency <- function(plots,
                                   max_assumed_growth_rate = 1) {
 
   # Convert to data.table
@@ -50,8 +53,14 @@ plot_regen_proportion <- function(plots,
   #TODO: these mininmums are an approximation
   minDBHs <- data.table(source = c("BC", "AB", "SK", "ON", "QC", "NB", "NFI"),
                         minDBH = c(4, 9.1, 9.7, 2.5, 9, 5, 9))
+
   #Alberta is 5 post 2015; BC varies and 4 is the min of mins, SK is 7 after 1977
-  DT <- DT[minDBHs, on = c("source")]
+  if (is.null(plots$PSPplot$minDBH)){
+    DT <- DT[minDBHs, on = c("source")]
+  } else {
+    subPlot <- plots$PSPplot[, .(MeasureID, minDBH)]
+    DT <- DT[subPlot, on = c("MeasureID")]
+  }
 
   #------------------------------------------------------------
   # Compute elapsed time between measurements
@@ -68,16 +77,24 @@ plot_regen_proportion <- function(plots,
   DT <- plotShift[DT, on = c("OrigPlotID1", "MeasureID", "MeasureYear")]
 
   a <- max_assumed_growth_rate
-  DT[status == "Regeneration", expected_dbh  := elapsedTime * a + minDBH]
-  #negative values are fine - they indicate the tree grew slower than 1 cm/year or appeared later
-  #positive values become increasingly problematic
+  #there is no expected DBH for the first year, obviously
+  DT[status == "Regeneration", 
+     expected_dbh  := c(elapsedTime + 1)* a + minDBH]
+  DT[status != "Regeneration", 
+     expected_dbh := DBH + c(elapsedTime + 1) * a]
+  # added one "a"th increment because we do not know the dates the plot was measured (ie before growing season) 
+  # This adjustment means fewer errors of commission in flagging unreliable measurements
+  # negative values are fine - they indicate the tree grew slower than 1 cm/year or appeared later
+  # positive values become increasingly problematic
   DT[, DBHdiffFromMax := DBH - expected_dbh]
   DT[, DBHdiffFromMax_perYear := DBHdiffFromMax/elapsedTime]
 
   #plots with high values of DiffPerYear suggest the tree was incorrectly tracked or renumbered
   # check these first, as they contain more new trees
   DT[DBHdiffFromMax > 0, DBHflag := "problematic growth"]
-  flagged <- DT[!is.na(DBHflag), .(OrigPlotID1, MeasureID, TreeNumber, source, DBH, DBHdiffFromMax, minDBH)]
+  flagged <- DT[!is.na(DBHflag), .(OrigPlotID1, MeasureID, TreeNumber, source, 
+                                   DBH, expected_dbh, DBHdiffFromMax_perYear,
+                                   DBHdiffFromMax, elapsedTime, minDBH)]
 
   #deal with 100% regen
   possiblyRemove <- DT[propStatus == 1 & status == "Regeneration", .N, .(MeasureYear, OrigPlotID1)]

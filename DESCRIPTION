@@ -1,7 +1,7 @@
 Package: PSPclean
 Type: Package
 Title: Sources and standardizes permanent sample plot data
-Version: 1.0.0.9003
+Version: 1.0.0.9007
 Authors@R: c(
     person("Ian M S", "Eddy", email = "ian.eddy@nrcan.rncan.gc.ca",
            role = c("aut", "cre")),
@@ -21,13 +21,13 @@ Imports:
     bit64,
     data.table,
     dplyr,
-    LandR (>= 1.1.5.9087),
+    LandR (>= 1.1.5.9088),
     magrittr, 
     reproducible (>= 2.0.3),
     sf,
     terra
 Suggests:
-    testthat,
+    testthat (>= 3.1.7),
     withr,
     googledrive,
 Remotes:
