@@ -52,6 +52,8 @@ getPSP <- function(PSPdataTypes, destinationPath, forGMCS = FALSE,
                          overwrite = TRUE,
                          destinationPath = destinationPath,
                          fun = "readRDS")
+    ## the dummy RDS is a plain sf; real data is sf + data.table (see geoCleanPSP)
+    PSPgis <- sf::st_as_sf(data.table::as.data.table(PSPgis))
     PSPmeasure[, source := "simulated"]
     PSPplot[, source := "simulated"]
     temp <- sppEquiv[PSP != "", .SD[1], by = c("PSP")]
