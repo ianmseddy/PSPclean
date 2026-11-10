@@ -1,0 +1,7 @@
+## Keep terra's median method compatible with the stricter R-devel S4 checks.
+if (!methods::isGeneric("median")) {
+  methods::setGeneric(
+    "median",
+    function(x, na.rm = FALSE, ...) methods::standardGeneric("median")
+  )
+}

@@ -41,6 +41,10 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
+      - name: Set R-devel compatibility profile
+        if: matrix.config.r == 'devel'
+        run: echo "R_PROFILE_USER=${{ github.workspace }}/.github/Rprofile" >> "$GITHUB_ENV"
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
@@ -50,5 +54,4 @@ jobs:
         with:
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
-
 
